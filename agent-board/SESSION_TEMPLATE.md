@@ -2,28 +2,28 @@
 
 ## Current State
 - Fracture transition collision fix is merged into main
-- Collision test import was corrected and focused collision tests passed
-- Current working branch is ui-mobile-viewport-validation
-- Next priority is validating mobile viewport and fullscreen correctness
+- Mobile canvas resize and DPR backing size fix is complete
+- Current working branch is asset-path-sanity
+- Next priority is production asset path stability
 
 ## What Was Just Completed
-- Added invulnerability during fracture transition
-- Limited fracture trigger counting to normal play
-- Fixed collision test import path
-- Merged the contained fracture fix branch into main
+- Added canvas backing-size sync using CSS size x DPR
+- Added resize/orientation listeners for canvas sizing
+- Rebuilt tracked web/game.js output
+- Completed viewport validation branch commits
 
 ## Current Branch
-- ui-mobile-viewport-validation
+- asset-path-sanity
 
 ## Active Blockers
-- Need mobile viewport validation
 - Need asset path sanity pass for production stability
+- Need manifest/icon/preload consistency check
 
 ## Next Recommended Agent
-- UI / UX Agent
+- Asset / Content Integration Agent
 
 ## Exact Next Prompt
-- Review OwlFly for mobile viewport and fullscreen correctness. Focus on menu, HUD, gameplay canvas sizing, overlays, and device-fit behavior. Return files reviewed, current UI/viewport risk assessment, likely impacted files, whether a code patch is needed or a verification pass is enough, an exact device validation checklist, full revised files if changes are needed, verification steps, and what could still break.
+- Review OwlFly asset path stability for production. Focus on icons, manifest references, preload paths, audio paths, sprite paths, and build-output consistency. Return files reviewed, current asset/path risk assessment, likely impacted files, whether a code patch is needed or a verification pass is enough, exact verification checklist, full revised files if changes are needed, verification steps, and what could still break.
 
 ## Merge Status
 - not ready
