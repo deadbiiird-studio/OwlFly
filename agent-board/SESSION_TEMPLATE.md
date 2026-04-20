@@ -3,29 +3,29 @@
 ## Current State
 - Fracture transition collision fix is merged into main
 - Mobile canvas resize and DPR backing size fix is merged into main
-- Asset path verification pass is complete
-- Building sprite filenames are normalized to zero-padded format
-- Current working branch is release-sanity-pass
+- Asset path verification and building filename normalization are merged into main
+- Release sanity verification pass is merged into main
+- Baseline fracture phase regression tests are merged into main
+- Current working branch is device-smoke-checklist
 
 ## What Was Just Completed
-- Verified production asset path setup
-- Documented asset path verification pass
-- Committed building filename normalization
-- Restored clean main branch state
+- Recovered fracture regression tests into a stable eval location
+- Hardened run-tests.mjs to skip unreadable test directories
+- Restored full test suite execution without broad simulator changes
+- Merged fracture test recovery into main
 
 ## Current Branch
-- release-sanity-pass
+- device-smoke-checklist
 
 ## Active Blockers
-- Need release sanity pass for web production behavior
-- Need manifest/installability/service worker sanity review
-- Need obvious deployment blocker check
+- Need tester-ready device smoke order
+- Need explicit release-blocking vs nice-to-fix criteria on device
 
 ## Next Recommended Agent
-- Release / Deployment Agent
+- Runtime Verifier
 
 ## Exact Next Prompt
-- Run a release sanity review for OwlFly. Focus on production web build behavior, manifest/installability, service worker sanity, asset delivery, and any obvious blockers for Vercel deployment or internal Android packaging readiness. Return files reviewed, current release risk assessment, likely impacted files, whether a code patch is needed or a verification pass is enough, exact release verification checklist, full revised files if changes are needed, verification steps, and what could still break.
+- Refine the device smoke checklist into a tester-facing sequence with exact actions, expected outcomes, fail interpretation, and release-blocking criteria only.
 
 ## Merge Status
 - not ready
