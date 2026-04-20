@@ -608,6 +608,7 @@ export function boot() {
   function beginFracture() {
     state.playPhase = "fracture";
     state.fractureTimer = FRACTURE.TRANSITION_DURATION;
+    state.invulnTimer = FRACTURE.TRANSITION_DURATION;
     state.fractureProgress = 0;
     state.rewardSpawnTimer = 0;
     uiHud.toast?.("⚡ Fracture opening", 1100);
@@ -835,10 +836,13 @@ export function boot() {
         scoring.onPassObstacle();
         uiHud.setScore(scoring.score);
         playSfx("score", { gain: 1.0 });
-        state.passesSinceFracture += 1;
-        maybeTriggerFracture();
-
-        handleProgress({ type: "score", score: scoring.score });
+     
+        if (state.playPhase === "normal") {
+         state.passesSinceFracture += 1;
+         maybeTriggerFracture();
+        } 
+        
+       handleProgress({ type: "score", score: scoring.score });
       }
     }
   }

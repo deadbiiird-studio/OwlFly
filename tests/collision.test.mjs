@@ -1,6 +1,6 @@
 ﻿import test from "node:test";
 import assert from "node:assert/strict";
-import { aabbIntersect, circleAabbIntersect } from "../../../src/engine/collision.js";
+import { aabbIntersect, circleAabbIntersect } from "../src/engine/collision.js";
 
 test("aabbIntersect: overlapping boxes", () => {
   assert.equal(aabbIntersect({ x: 0, y: 0, w: 10, h: 10 }, { x: 5, y: 5, w: 10, h: 10 }), true);
