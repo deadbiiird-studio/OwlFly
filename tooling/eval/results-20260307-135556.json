@@ -1,0 +1,5848 @@
+{
+  "meta": {
+    "dt": 0.016666666666666666,
+    "seeds": 200,
+    "seedStart": 1234,
+    "timeLimit": 90,
+    "strategy": "humanish_lag"
+  },
+  "summary": {
+    "meta": {
+      "dt": 0.016666666666666666,
+      "seeds": 200,
+      "seedStart": 1234,
+      "timeLimit": 90,
+      "strategy": "humanish_lag"
+    },
+    "score": {
+      "mean": 60.565,
+      "median": 67.5,
+      "p90": 81,
+      "p99": 81,
+      "min": 4,
+      "max": 81
+    },
+    "time": {
+      "mean": 69.397,
+      "median": 76.792,
+      "p90": 90.017,
+      "min": 7.867,
+      "max": 90.017
+    },
+    "crashReasons": {
+      "pipe": 132,
+      "timeout": 68
+    },
+    "reaction": {
+      "spawnEarlyMedian": 1.617,
+      "spawnLateMedian": 0.875,
+      "visibleEarlyMedian": 1.446,
+      "visibleLateMedian": 0.783
+    },
+    "fairness": {
+      "gapJumpP99": 75.441
+    }
+  },
+  "runs": [
+    {
+      "seed": 1234,
+      "strategy": "humanish_lag",
+      "score": 75,
+      "t": 84.567,
+      "flaps": 147,
+      "crashReason": "pipe",
+      "spawns": 76,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.103
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1235,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.815
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1236,
+      "strategy": "humanish_lag",
+      "score": 74,
+      "t": 83.417,
+      "flaps": 143,
+      "crashReason": "pipe",
+      "spawns": 75,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 72.065
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1237,
+      "strategy": "humanish_lag",
+      "score": 52,
+      "t": 60.933,
+      "flaps": 105,
+      "crashReason": "pipe",
+      "spawns": 53,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.906
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.811
+        }
+      },
+      "gapJump": {
+        "p99": 86.685
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1238,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.503
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1239,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.617,
+      "flaps": 78,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 75.724
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1240,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.813
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1241,
+      "strategy": "humanish_lag",
+      "score": 27,
+      "t": 34.8,
+      "flaps": 60,
+      "crashReason": "pipe",
+      "spawns": 28,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.913,
+          "allMedian": 1.1
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.817,
+          "allMedian": 0.984
+        }
+      },
+      "gapJump": {
+        "p99": 79.459
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1242,
+      "strategy": "humanish_lag",
+      "score": 73,
+      "t": 82.4,
+      "flaps": 143,
+      "crashReason": "pipe",
+      "spawns": 74,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 73.295
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1243,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 71.97
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1244,
+      "strategy": "humanish_lag",
+      "score": 48,
+      "t": 56.917,
+      "flaps": 99,
+      "crashReason": "pipe",
+      "spawns": 49,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.92
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.823
+        }
+      },
+      "gapJump": {
+        "p99": 77.715
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1245,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 72.763
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1246,
+      "strategy": "humanish_lag",
+      "score": 35,
+      "t": 43.45,
+      "flaps": 75,
+      "crashReason": "pipe",
+      "spawns": 36,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.056
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.944
+        }
+      },
+      "gapJump": {
+        "p99": 85.977
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1247,
+      "strategy": "humanish_lag",
+      "score": 7,
+      "t": 11.717,
+      "flaps": 20,
+      "crashReason": "pipe",
+      "spawns": 9,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 1.305,
+          "allMedian": 1.354
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 1.168,
+          "allMedian": 1.211
+        }
+      },
+      "gapJump": {
+        "p99": 57.017
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1248,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.705
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1249,
+      "strategy": "humanish_lag",
+      "score": 35,
+      "t": 43.45,
+      "flaps": 75,
+      "crashReason": "pipe",
+      "spawns": 36,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.056
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.944
+        }
+      },
+      "gapJump": {
+        "p99": 76.197
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1250,
+      "strategy": "humanish_lag",
+      "score": 34,
+      "t": 42.417,
+      "flaps": 74,
+      "crashReason": "pipe",
+      "spawns": 35,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 1.062
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.95
+        }
+      },
+      "gapJump": {
+        "p99": 82.573
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1251,
+      "strategy": "humanish_lag",
+      "score": 76,
+      "t": 85.6,
+      "flaps": 149,
+      "crashReason": "pipe",
+      "spawns": 78,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 76.904
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1252,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.941
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1253,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 73.646
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1254,
+      "strategy": "humanish_lag",
+      "score": 77,
+      "t": 86.6,
+      "flaps": 149,
+      "crashReason": "pipe",
+      "spawns": 78,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 68
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1255,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 82.587
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1256,
+      "strategy": "humanish_lag",
+      "score": 33,
+      "t": 41.35,
+      "flaps": 70,
+      "crashReason": "pipe",
+      "spawns": 34,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.887,
+          "allMedian": 1.066
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.794,
+          "allMedian": 0.954
+        }
+      },
+      "gapJump": {
+        "p99": 63.547
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1257,
+      "strategy": "humanish_lag",
+      "score": 34,
+      "t": 42.433,
+      "flaps": 72,
+      "crashReason": "pipe",
+      "spawns": 35,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 1.062
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.95
+        }
+      },
+      "gapJump": {
+        "p99": 75.766
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1258,
+      "strategy": "humanish_lag",
+      "score": 33,
+      "t": 41.317,
+      "flaps": 70,
+      "crashReason": "pipe",
+      "spawns": 34,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.887,
+          "allMedian": 1.066
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.794,
+          "allMedian": 0.954
+        }
+      },
+      "gapJump": {
+        "p99": 79.378
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1259,
+      "strategy": "humanish_lag",
+      "score": 74,
+      "t": 83.483,
+      "flaps": 143,
+      "crashReason": "pipe",
+      "spawns": 75,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 75.777
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1260,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 75.507
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1261,
+      "strategy": "humanish_lag",
+      "score": 67,
+      "t": 76.333,
+      "flaps": 134,
+      "crashReason": "pipe",
+      "spawns": 68,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 75.431
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1262,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.074
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1263,
+      "strategy": "humanish_lag",
+      "score": 53,
+      "t": 62.067,
+      "flaps": 106,
+      "crashReason": "pipe",
+      "spawns": 54,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.906
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.811
+        }
+      },
+      "gapJump": {
+        "p99": 87.622
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1264,
+      "strategy": "humanish_lag",
+      "score": 53,
+      "t": 62.067,
+      "flaps": 107,
+      "crashReason": "pipe",
+      "spawns": 54,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.906
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.811
+        }
+      },
+      "gapJump": {
+        "p99": 76.689
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1265,
+      "strategy": "humanish_lag",
+      "score": 54,
+      "t": 63.117,
+      "flaps": 111,
+      "crashReason": "pipe",
+      "spawns": 55,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 76.13
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1266,
+      "strategy": "humanish_lag",
+      "score": 72,
+      "t": 81.383,
+      "flaps": 143,
+      "crashReason": "pipe",
+      "spawns": 73,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 83.517
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1267,
+      "strategy": "humanish_lag",
+      "score": 63,
+      "t": 72.333,
+      "flaps": 127,
+      "crashReason": "pipe",
+      "spawns": 64,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 70.365
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1268,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 69.257
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1269,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 75.456
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1270,
+      "strategy": "humanish_lag",
+      "score": 72,
+      "t": 81.45,
+      "flaps": 140,
+      "crashReason": "pipe",
+      "spawns": 73,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 73.286
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1271,
+      "strategy": "humanish_lag",
+      "score": 33,
+      "t": 41.367,
+      "flaps": 71,
+      "crashReason": "pipe",
+      "spawns": 34,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.887,
+          "allMedian": 1.066
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.794,
+          "allMedian": 0.954
+        }
+      },
+      "gapJump": {
+        "p99": 75.452
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1272,
+      "strategy": "humanish_lag",
+      "score": 23,
+      "t": 30.517,
+      "flaps": 52,
+      "crashReason": "pipe",
+      "spawns": 24,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 1.028,
+          "allMedian": 1.182
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.92,
+          "allMedian": 1.058
+        }
+      },
+      "gapJump": {
+        "p99": 76.427
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1273,
+      "strategy": "humanish_lag",
+      "score": 74,
+      "t": 83.417,
+      "flaps": 144,
+      "crashReason": "pipe",
+      "spawns": 75,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.979
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1274,
+      "strategy": "humanish_lag",
+      "score": 56,
+      "t": 65.217,
+      "flaps": 114,
+      "crashReason": "pipe",
+      "spawns": 58,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 81.806
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1275,
+      "strategy": "humanish_lag",
+      "score": 78,
+      "t": 87.433,
+      "flaps": 151,
+      "crashReason": "pipe",
+      "spawns": 79,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 81.511
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1276,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.583,
+      "flaps": 78,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 76.96
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1277,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 76.435
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1278,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 81.099
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1279,
+      "strategy": "humanish_lag",
+      "score": 35,
+      "t": 43.467,
+      "flaps": 74,
+      "crashReason": "pipe",
+      "spawns": 36,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.056
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.944
+        }
+      },
+      "gapJump": {
+        "p99": 67.542
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1280,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.6,
+      "flaps": 77,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 67.208
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1281,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 82.136
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1282,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.617,
+      "flaps": 78,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 64.999
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1283,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 65.077
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1284,
+      "strategy": "humanish_lag",
+      "score": 52,
+      "t": 60.983,
+      "flaps": 106,
+      "crashReason": "pipe",
+      "spawns": 53,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.906
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.811
+        }
+      },
+      "gapJump": {
+        "p99": 68.917
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1285,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 159,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.219
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1286,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 66.536
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1287,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 69.383
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1288,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 159,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.433
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1289,
+      "strategy": "humanish_lag",
+      "score": 53,
+      "t": 62.033,
+      "flaps": 109,
+      "crashReason": "pipe",
+      "spawns": 54,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.906
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.811
+        }
+      },
+      "gapJump": {
+        "p99": 78.379
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1290,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 70.698
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1291,
+      "strategy": "humanish_lag",
+      "score": 53,
+      "t": 62.15,
+      "flaps": 107,
+      "crashReason": "pipe",
+      "spawns": 55,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.601
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1292,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.479
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1293,
+      "strategy": "humanish_lag",
+      "score": 75,
+      "t": 84.517,
+      "flaps": 147,
+      "crashReason": "pipe",
+      "spawns": 76,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.568
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1294,
+      "strategy": "humanish_lag",
+      "score": 8,
+      "t": 12.817,
+      "flaps": 22,
+      "crashReason": "pipe",
+      "spawns": 10,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 1.305,
+          "allMedian": 1.343
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 1.168,
+          "allMedian": 1.202
+        }
+      },
+      "gapJump": {
+        "p99": 80.79
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1295,
+      "strategy": "humanish_lag",
+      "score": 44,
+      "t": 52.983,
+      "flaps": 91,
+      "crashReason": "pipe",
+      "spawns": 46,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.942
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.843
+        }
+      },
+      "gapJump": {
+        "p99": 79.086
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1296,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.533,
+      "flaps": 76,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 65.313
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1297,
+      "strategy": "humanish_lag",
+      "score": 35,
+      "t": 43.617,
+      "flaps": 76,
+      "crashReason": "pipe",
+      "spawns": 36,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.056
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.944
+        }
+      },
+      "gapJump": {
+        "p99": 83.702
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1298,
+      "strategy": "humanish_lag",
+      "score": 4,
+      "t": 7.933,
+      "flaps": 13,
+      "crashReason": "pipe",
+      "spawns": 6,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 1.617,
+          "allMedian": 1.617
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 1.446,
+          "allMedian": 1.446
+        }
+      },
+      "gapJump": {
+        "p99": 70.112
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1299,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.738
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1300,
+      "strategy": "humanish_lag",
+      "score": 65,
+      "t": 74.183,
+      "flaps": 128,
+      "crashReason": "pipe",
+      "spawns": 66,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.579
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1301,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.93
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1302,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.42
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1303,
+      "strategy": "humanish_lag",
+      "score": 57,
+      "t": 66.017,
+      "flaps": 114,
+      "crashReason": "pipe",
+      "spawns": 58,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 68.874
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1304,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.124
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1305,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.82
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1306,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.714
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1307,
+      "strategy": "humanish_lag",
+      "score": 77,
+      "t": 86.517,
+      "flaps": 151,
+      "crashReason": "pipe",
+      "spawns": 78,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 82.868
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1308,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.683,
+      "flaps": 79,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 71.938
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1309,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.073
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1310,
+      "strategy": "humanish_lag",
+      "score": 72,
+      "t": 81.383,
+      "flaps": 141,
+      "crashReason": "pipe",
+      "spawns": 73,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 69.733
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1311,
+      "strategy": "humanish_lag",
+      "score": 77,
+      "t": 86.517,
+      "flaps": 150,
+      "crashReason": "pipe",
+      "spawns": 78,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.088
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1312,
+      "strategy": "humanish_lag",
+      "score": 27,
+      "t": 34.8,
+      "flaps": 61,
+      "crashReason": "pipe",
+      "spawns": 28,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.913,
+          "allMedian": 1.1
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.817,
+          "allMedian": 0.984
+        }
+      },
+      "gapJump": {
+        "p99": 81.963
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1313,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.951
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1314,
+      "strategy": "humanish_lag",
+      "score": 62,
+      "t": 71.117,
+      "flaps": 122,
+      "crashReason": "pipe",
+      "spawns": 63,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.851
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1315,
+      "strategy": "humanish_lag",
+      "score": 54,
+      "t": 63.017,
+      "flaps": 108,
+      "crashReason": "pipe",
+      "spawns": 55,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 75.616
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1316,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.6,
+      "flaps": 79,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 68.941
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1317,
+      "strategy": "humanish_lag",
+      "score": 78,
+      "t": 87.617,
+      "flaps": 155,
+      "crashReason": "pipe",
+      "spawns": 79,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 80.919
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1318,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.667
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1319,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.814
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1320,
+      "strategy": "humanish_lag",
+      "score": 62,
+      "t": 71.15,
+      "flaps": 123,
+      "crashReason": "pipe",
+      "spawns": 63,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.845
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1321,
+      "strategy": "humanish_lag",
+      "score": 63,
+      "t": 72.317,
+      "flaps": 125,
+      "crashReason": "pipe",
+      "spawns": 64,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 87.551
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1322,
+      "strategy": "humanish_lag",
+      "score": 66,
+      "t": 75.2,
+      "flaps": 132,
+      "crashReason": "pipe",
+      "spawns": 67,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.755
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1323,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.533,
+      "flaps": 76,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 68.134
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1324,
+      "strategy": "humanish_lag",
+      "score": 33,
+      "t": 41.317,
+      "flaps": 71,
+      "crashReason": "pipe",
+      "spawns": 34,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.887,
+          "allMedian": 1.066
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.794,
+          "allMedian": 0.954
+        }
+      },
+      "gapJump": {
+        "p99": 65.931
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1325,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.55
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1326,
+      "strategy": "humanish_lag",
+      "score": 68,
+      "t": 77.25,
+      "flaps": 133,
+      "crashReason": "pipe",
+      "spawns": 69,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.609
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1327,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 90.758
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1328,
+      "strategy": "humanish_lag",
+      "score": 27,
+      "t": 34.817,
+      "flaps": 58,
+      "crashReason": "pipe",
+      "spawns": 28,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.913,
+          "allMedian": 1.1
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.817,
+          "allMedian": 0.984
+        }
+      },
+      "gapJump": {
+        "p99": 90.861
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1329,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.633
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1330,
+      "strategy": "humanish_lag",
+      "score": 34,
+      "t": 42.417,
+      "flaps": 72,
+      "crashReason": "pipe",
+      "spawns": 35,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 1.062
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.95
+        }
+      },
+      "gapJump": {
+        "p99": 78.688
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1331,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 66.592
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1332,
+      "strategy": "humanish_lag",
+      "score": 67,
+      "t": 76.25,
+      "flaps": 132,
+      "crashReason": "pipe",
+      "spawns": 68,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 81.288
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1333,
+      "strategy": "humanish_lag",
+      "score": 74,
+      "t": 83.45,
+      "flaps": 144,
+      "crashReason": "pipe",
+      "spawns": 75,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 80.386
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1334,
+      "strategy": "humanish_lag",
+      "score": 27,
+      "t": 34.817,
+      "flaps": 58,
+      "crashReason": "pipe",
+      "spawns": 28,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.913,
+          "allMedian": 1.1
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.817,
+          "allMedian": 0.984
+        }
+      },
+      "gapJump": {
+        "p99": 68.069
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1335,
+      "strategy": "humanish_lag",
+      "score": 66,
+      "t": 75.25,
+      "flaps": 131,
+      "crashReason": "pipe",
+      "spawns": 67,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.354
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1336,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 159,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.444
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1337,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.5,
+      "flaps": 75,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 87.22
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1338,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.567,
+      "flaps": 78,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 74.024
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1339,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 71.808
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1340,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.583,
+      "flaps": 79,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 67.298
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1341,
+      "strategy": "humanish_lag",
+      "score": 74,
+      "t": 83.4,
+      "flaps": 142,
+      "crashReason": "pipe",
+      "spawns": 75,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.917
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1342,
+      "strategy": "humanish_lag",
+      "score": 78,
+      "t": 87.533,
+      "flaps": 151,
+      "crashReason": "pipe",
+      "spawns": 79,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 55.269
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1343,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 159,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 69.288
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1344,
+      "strategy": "humanish_lag",
+      "score": 78,
+      "t": 87.467,
+      "flaps": 152,
+      "crashReason": "pipe",
+      "spawns": 79,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 66.272
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1345,
+      "strategy": "humanish_lag",
+      "score": 28,
+      "t": 35.9,
+      "flaps": 62,
+      "crashReason": "pipe",
+      "spawns": 29,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.9,
+          "allMedian": 1.089
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.805,
+          "allMedian": 0.975
+        }
+      },
+      "gapJump": {
+        "p99": 73.62
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1346,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 75.784
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1347,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 72.63
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1348,
+      "strategy": "humanish_lag",
+      "score": 42,
+      "t": 50.8,
+      "flaps": 88,
+      "crashReason": "pipe",
+      "spawns": 43,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 1.013
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.906
+        }
+      },
+      "gapJump": {
+        "p99": 74.52
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1349,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.377
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1350,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.517,
+      "flaps": 77,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 64.825
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1351,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.392
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1352,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.641
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1353,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 68.486
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1354,
+      "strategy": "humanish_lag",
+      "score": 58,
+      "t": 67.05,
+      "flaps": 116,
+      "crashReason": "pipe",
+      "spawns": 59,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 84.24
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1355,
+      "strategy": "humanish_lag",
+      "score": 63,
+      "t": 72.317,
+      "flaps": 125,
+      "crashReason": "pipe",
+      "spawns": 64,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.899
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1356,
+      "strategy": "humanish_lag",
+      "score": 57,
+      "t": 66.067,
+      "flaps": 115,
+      "crashReason": "pipe",
+      "spawns": 58,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.104
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1357,
+      "strategy": "humanish_lag",
+      "score": 26,
+      "t": 33.733,
+      "flaps": 58,
+      "crashReason": "pipe",
+      "spawns": 27,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.927,
+          "allMedian": 1.11
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.829,
+          "allMedian": 0.993
+        }
+      },
+      "gapJump": {
+        "p99": 68.074
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1358,
+      "strategy": "humanish_lag",
+      "score": 33,
+      "t": 41.367,
+      "flaps": 71,
+      "crashReason": "pipe",
+      "spawns": 34,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.887,
+          "allMedian": 1.066
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.794,
+          "allMedian": 0.954
+        }
+      },
+      "gapJump": {
+        "p99": 73.567
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1359,
+      "strategy": "humanish_lag",
+      "score": 66,
+      "t": 75.367,
+      "flaps": 129,
+      "crashReason": "pipe",
+      "spawns": 67,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 76.014
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1360,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 76.547
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1361,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 69.75
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1362,
+      "strategy": "humanish_lag",
+      "score": 35,
+      "t": 43.45,
+      "flaps": 75,
+      "crashReason": "pipe",
+      "spawns": 36,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.056
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.944
+        }
+      },
+      "gapJump": {
+        "p99": 89.152
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1363,
+      "strategy": "humanish_lag",
+      "score": 34,
+      "t": 42.383,
+      "flaps": 72,
+      "crashReason": "pipe",
+      "spawns": 35,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 1.062
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.95
+        }
+      },
+      "gapJump": {
+        "p99": 70.448
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1364,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 64.75
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1365,
+      "strategy": "humanish_lag",
+      "score": 72,
+      "t": 81.317,
+      "flaps": 140,
+      "crashReason": "pipe",
+      "spawns": 73,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 71.453
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1366,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.583,
+      "flaps": 78,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 66.729
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1367,
+      "strategy": "humanish_lag",
+      "score": 28,
+      "t": 35.9,
+      "flaps": 61,
+      "crashReason": "pipe",
+      "spawns": 29,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.9,
+          "allMedian": 1.089
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.805,
+          "allMedian": 0.975
+        }
+      },
+      "gapJump": {
+        "p99": 61.163
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1368,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.758
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1369,
+      "strategy": "humanish_lag",
+      "score": 24,
+      "t": 31.517,
+      "flaps": 55,
+      "crashReason": "pipe",
+      "spawns": 25,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.996,
+          "allMedian": 1.132
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.891,
+          "allMedian": 1.013
+        }
+      },
+      "gapJump": {
+        "p99": 77.622
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1370,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 76.021
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1371,
+      "strategy": "humanish_lag",
+      "score": 35,
+      "t": 43.467,
+      "flaps": 75,
+      "crashReason": "pipe",
+      "spawns": 36,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.056
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.944
+        }
+      },
+      "gapJump": {
+        "p99": 76.314
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1372,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 81.195
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1373,
+      "strategy": "humanish_lag",
+      "score": 76,
+      "t": 85.45,
+      "flaps": 149,
+      "crashReason": "pipe",
+      "spawns": 77,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 78.403
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1374,
+      "strategy": "humanish_lag",
+      "score": 75,
+      "t": 84.417,
+      "flaps": 146,
+      "crashReason": "pipe",
+      "spawns": 76,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 83.393
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1375,
+      "strategy": "humanish_lag",
+      "score": 66,
+      "t": 75.333,
+      "flaps": 131,
+      "crashReason": "pipe",
+      "spawns": 67,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 76.407
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1376,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 159,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.698
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1377,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.777
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1378,
+      "strategy": "humanish_lag",
+      "score": 67,
+      "t": 76.283,
+      "flaps": 132,
+      "crashReason": "pipe",
+      "spawns": 68,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 73.686
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1379,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 68.397
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1380,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 73.393
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1381,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.533,
+      "flaps": 75,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 52.938
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1382,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 71.243
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1383,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 157,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 91.037
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1384,
+      "strategy": "humanish_lag",
+      "score": 38,
+      "t": 46.617,
+      "flaps": 81,
+      "crashReason": "pipe",
+      "spawns": 39,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.043
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.933
+        }
+      },
+      "gapJump": {
+        "p99": 72.249
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1385,
+      "strategy": "humanish_lag",
+      "score": 35,
+      "t": 43.45,
+      "flaps": 74,
+      "crashReason": "pipe",
+      "spawns": 36,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.056
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.944
+        }
+      },
+      "gapJump": {
+        "p99": 56.637
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1386,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.617,
+      "flaps": 78,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 65.205
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1387,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.567,
+      "flaps": 80,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 65.091
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1388,
+      "strategy": "humanish_lag",
+      "score": 66,
+      "t": 75.367,
+      "flaps": 129,
+      "crashReason": "pipe",
+      "spawns": 67,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.201
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1389,
+      "strategy": "humanish_lag",
+      "score": 68,
+      "t": 77.333,
+      "flaps": 135,
+      "crashReason": "pipe",
+      "spawns": 69,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 76.865
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1390,
+      "strategy": "humanish_lag",
+      "score": 62,
+      "t": 71.283,
+      "flaps": 124,
+      "crashReason": "pipe",
+      "spawns": 63,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 77.362
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1391,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 70.834
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1392,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.473
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1393,
+      "strategy": "humanish_lag",
+      "score": 62,
+      "t": 71.25,
+      "flaps": 125,
+      "crashReason": "pipe",
+      "spawns": 63,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 91.884
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1394,
+      "strategy": "humanish_lag",
+      "score": 76,
+      "t": 85.5,
+      "flaps": 149,
+      "crashReason": "pipe",
+      "spawns": 77,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 68.334
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1395,
+      "strategy": "humanish_lag",
+      "score": 67,
+      "t": 76.217,
+      "flaps": 131,
+      "crashReason": "pipe",
+      "spawns": 68,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 71.37
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1396,
+      "strategy": "humanish_lag",
+      "score": 55,
+      "t": 64.05,
+      "flaps": 112,
+      "crashReason": "pipe",
+      "spawns": 56,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 71.516
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1397,
+      "strategy": "humanish_lag",
+      "score": 33,
+      "t": 41.4,
+      "flaps": 71,
+      "crashReason": "pipe",
+      "spawns": 34,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.887,
+          "allMedian": 1.066
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.794,
+          "allMedian": 0.954
+        }
+      },
+      "gapJump": {
+        "p99": 71.975
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1398,
+      "strategy": "humanish_lag",
+      "score": 74,
+      "t": 83.483,
+      "flaps": 144,
+      "crashReason": "pipe",
+      "spawns": 75,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 72.109
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1399,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 158,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 72.24
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1400,
+      "strategy": "humanish_lag",
+      "score": 26,
+      "t": 33.7,
+      "flaps": 58,
+      "crashReason": "pipe",
+      "spawns": 27,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.927,
+          "allMedian": 1.11
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.829,
+          "allMedian": 0.993
+        }
+      },
+      "gapJump": {
+        "p99": 74.373
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1401,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 155,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 62.726
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1402,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 80.362
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1403,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 82
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1404,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.5,
+      "flaps": 76,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 79.27
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1405,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 154,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 67.834
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1406,
+      "strategy": "humanish_lag",
+      "score": 4,
+      "t": 7.867,
+      "flaps": 13,
+      "crashReason": "pipe",
+      "spawns": 6,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 1.617,
+          "allMedian": 1.617
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 1.446,
+          "allMedian": 1.446
+        }
+      },
+      "gapJump": {
+        "p99": 36.962
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1407,
+      "strategy": "humanish_lag",
+      "score": 78,
+      "t": 87.517,
+      "flaps": 152,
+      "crashReason": "pipe",
+      "spawns": 79,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.782
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1408,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 73.499
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1409,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.583,
+      "flaps": 78,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 75.315
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1410,
+      "strategy": "humanish_lag",
+      "score": 34,
+      "t": 42.383,
+      "flaps": 73,
+      "crashReason": "pipe",
+      "spawns": 35,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 1.062
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.95
+        }
+      },
+      "gapJump": {
+        "p99": 72.482
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1411,
+      "strategy": "humanish_lag",
+      "score": 55,
+      "t": 64.133,
+      "flaps": 113,
+      "crashReason": "pipe",
+      "spawns": 56,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 69.97
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1412,
+      "strategy": "humanish_lag",
+      "score": 38,
+      "t": 46.75,
+      "flaps": 84,
+      "crashReason": "pipe",
+      "spawns": 39,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.043
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.933
+        }
+      },
+      "gapJump": {
+        "p99": 76.566
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1413,
+      "strategy": "humanish_lag",
+      "score": 33,
+      "t": 41.35,
+      "flaps": 70,
+      "crashReason": "pipe",
+      "spawns": 34,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.887,
+          "allMedian": 1.066
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.794,
+          "allMedian": 0.954
+        }
+      },
+      "gapJump": {
+        "p99": 61.669
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1414,
+      "strategy": "humanish_lag",
+      "score": 42,
+      "t": 50.75,
+      "flaps": 88,
+      "crashReason": "pipe",
+      "spawns": 43,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 1.013
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.906
+        }
+      },
+      "gapJump": {
+        "p99": 74.633
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1415,
+      "strategy": "humanish_lag",
+      "score": 52,
+      "t": 61,
+      "flaps": 105,
+      "crashReason": "pipe",
+      "spawns": 53,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.906
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.811
+        }
+      },
+      "gapJump": {
+        "p99": 65.637
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1416,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.583,
+      "flaps": 79,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 71.309
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1417,
+      "strategy": "humanish_lag",
+      "score": 62,
+      "t": 71.25,
+      "flaps": 123,
+      "crashReason": "pipe",
+      "spawns": 63,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 82.658
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1418,
+      "strategy": "humanish_lag",
+      "score": 52,
+      "t": 61.083,
+      "flaps": 106,
+      "crashReason": "pipe",
+      "spawns": 53,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.906
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.811
+        }
+      },
+      "gapJump": {
+        "p99": 84.386
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1419,
+      "strategy": "humanish_lag",
+      "score": 77,
+      "t": 86.483,
+      "flaps": 149,
+      "crashReason": "pipe",
+      "spawns": 78,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 69.95
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1420,
+      "strategy": "humanish_lag",
+      "score": 33,
+      "t": 41.333,
+      "flaps": 71,
+      "crashReason": "pipe",
+      "spawns": 34,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.887,
+          "allMedian": 1.066
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.794,
+          "allMedian": 0.954
+        }
+      },
+      "gapJump": {
+        "p99": 79.483
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1421,
+      "strategy": "humanish_lag",
+      "score": 68,
+      "t": 77.4,
+      "flaps": 134,
+      "crashReason": "pipe",
+      "spawns": 69,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 79.961
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1422,
+      "strategy": "humanish_lag",
+      "score": 73,
+      "t": 82.383,
+      "flaps": 142,
+      "crashReason": "pipe",
+      "spawns": 74,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 84.194
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1423,
+      "strategy": "humanish_lag",
+      "score": 35,
+      "t": 43.5,
+      "flaps": 74,
+      "crashReason": "pipe",
+      "spawns": 36,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.056
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.944
+        }
+      },
+      "gapJump": {
+        "p99": 71.346
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1424,
+      "strategy": "humanish_lag",
+      "score": 36,
+      "t": 44.5,
+      "flaps": 77,
+      "crashReason": "pipe",
+      "spawns": 37,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.05
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.939
+        }
+      },
+      "gapJump": {
+        "p99": 65.547
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1425,
+      "strategy": "humanish_lag",
+      "score": 28,
+      "t": 35.933,
+      "flaps": 62,
+      "crashReason": "pipe",
+      "spawns": 29,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.9,
+          "allMedian": 1.089
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.805,
+          "allMedian": 0.975
+        }
+      },
+      "gapJump": {
+        "p99": 68.295
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1426,
+      "strategy": "humanish_lag",
+      "score": 37,
+      "t": 45.55,
+      "flaps": 79,
+      "crashReason": "pipe",
+      "spawns": 38,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.047
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.936
+        }
+      },
+      "gapJump": {
+        "p99": 67.7
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1427,
+      "strategy": "humanish_lag",
+      "score": 74,
+      "t": 83.4,
+      "flaps": 144,
+      "crashReason": "pipe",
+      "spawns": 75,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 68.47
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1428,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 159,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 90.824
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1429,
+      "strategy": "humanish_lag",
+      "score": 38,
+      "t": 46.683,
+      "flaps": 80,
+      "crashReason": "pipe",
+      "spawns": 39,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 1.043
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.933
+        }
+      },
+      "gapJump": {
+        "p99": 70.441
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1430,
+      "strategy": "humanish_lag",
+      "score": 47,
+      "t": 55.85,
+      "flaps": 98,
+      "crashReason": "pipe",
+      "spawns": 48,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.927
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.829
+        }
+      },
+      "gapJump": {
+        "p99": 80.295
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1431,
+      "strategy": "humanish_lag",
+      "score": 75,
+      "t": 84.4,
+      "flaps": 148,
+      "crashReason": "pipe",
+      "spawns": 76,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.844,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.756,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.579
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1432,
+      "strategy": "humanish_lag",
+      "score": 62,
+      "t": 71.183,
+      "flaps": 123,
+      "crashReason": "pipe",
+      "spawns": 63,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 81.836
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    },
+    {
+      "seed": 1433,
+      "strategy": "humanish_lag",
+      "score": 81,
+      "t": 90.017,
+      "flaps": 156,
+      "crashReason": "timeout",
+      "spawns": 82,
+      "reaction": {
+        "spawn": {
+          "earlyMedian": 1.617,
+          "lateMedian": 0.875,
+          "allMedian": 0.905
+        },
+        "visible": {
+          "earlyMedian": 1.446,
+          "lateMedian": 0.783,
+          "allMedian": 0.81
+        }
+      },
+      "gapJump": {
+        "p99": 74.257
+      },
+      "constants": {
+        "speedMax": 450,
+        "spawnX": 520,
+        "owlX": 140
+      }
+    }
+  ]
+}

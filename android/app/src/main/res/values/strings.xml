@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OwlFly</string>
+    <string name="title_activity_main">OwlFly</string>
+    <string name="package_name">com.owlfly.game</string>
+    <string name="custom_url_scheme">com.owlfly.game</string>
+</resources>

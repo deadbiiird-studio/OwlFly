@@ -1,0 +1,6 @@
+{
+  "appId": "com.owlfly.game",
+  "appName": "OwlFly",
+  "webDir": "web",
+  "bundledWebRuntime": false
+}

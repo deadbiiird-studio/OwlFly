@@ -1,0 +1,27 @@
+{
+  "name": "owlfly",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ./node_modules/vite/bin/vite.js --open /web/index.dev.html",
+    "build": "node tooling/build.mjs",
+    "build:ps": "powershell -ExecutionPolicy Bypass -File tooling/build.ps1",
+    "build:sh": "bash tooling/build.sh",
+    "test": "node tooling/eval/run-tests.mjs",
+    "eval:baseline": "node tooling/eval/sim.mjs --baseline --seeds 200 --time 90 --strategy humanish_lag",
+    "test:spawner": "node --test tests/spawner.test.mjs",
+    "eval": "node tooling/eval/sim.mjs --seeds 200 --time 90 --bot humanish_lag",
+    "eval:golden": "node tooling/eval/sim.mjs --golden --time 90 --bot humanish_lag",
+    "eval:repro": "node tooling/eval/repro.mjs --seed 101 --time 30"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/cli": "^7.6.0",
+    "@capacitor/core": "^8.2.0",
+    "@vercel/analytics": "^2.0.0"
+  }
+}
