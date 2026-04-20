@@ -3509,23 +3509,6 @@ class GameOverUI {
 // ===== FILE: src/app/boot.js =====
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
 }
@@ -3753,8 +3736,7 @@ async function preloadSprites(renderer) {
   const buildings = await loadFrameSet(13, buildingFrameCandidates, "Building");
 
   renderer.setObstacleSprites({ clouds, buildings });
-}
-function boot() {
+}function boot() {
   if (window.__owlfly_booted) return;
   window.__owlfly_booted = true;
 
@@ -3789,6 +3771,24 @@ function boot() {
   const gameOverEl = ensureUi("gameover");
 
   const renderer = new Renderer(canvas);
+
+  function syncCanvasSize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    const width = Math.max(1, Math.round(rect.width * dpr));
+    const height = Math.max(1, Math.round(rect.height * dpr));
+
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+  }
+
+  syncCanvasSize();
+  window.addEventListener("resize", syncCanvasSize);
+  window.addEventListener("orientationchange", syncCanvasSize);
+
   preloadSprites(renderer).catch((error) => {
     console.warn("Sprite preload failed:", error);
   });
@@ -4109,6 +4109,7 @@ function boot() {
   function beginFracture() {
     state.playPhase = "fracture";
     state.fractureTimer = FRACTURE.TRANSITION_DURATION;
+    state.invulnTimer = FRACTURE.TRANSITION_DURATION;
     state.fractureProgress = 0;
     state.rewardSpawnTimer = 0;
     uiHud.toast?.("⚡ Fracture opening", 1100);
@@ -4336,8 +4337,11 @@ function boot() {
         scoring.onPassObstacle();
         uiHud.setScore(scoring.score);
         playSfx("score", { gain: 1.0 });
-        state.passesSinceFracture += 1;
-        maybeTriggerFracture();
+
+        if (state.playPhase === "normal") {
+          state.passesSinceFracture += 1;
+          maybeTriggerFracture();
+        }
 
         handleProgress({ type: "score", score: scoring.score });
       }
