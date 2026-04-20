@@ -2,28 +2,30 @@
 
 ## Current State
 - Fracture transition collision fix is merged into main
-- Mobile canvas resize and DPR backing size fix is complete
-- Current working branch is asset-path-sanity
-- Next priority is production asset path stability
+- Mobile canvas resize and DPR backing size fix is merged into main
+- Asset path verification pass is complete
+- Building sprite filenames are normalized to zero-padded format
+- Current working branch is release-sanity-pass
 
 ## What Was Just Completed
-- Added canvas backing-size sync using CSS size x DPR
-- Added resize/orientation listeners for canvas sizing
-- Rebuilt tracked web/game.js output
-- Completed viewport validation branch commits
+- Verified production asset path setup
+- Documented asset path verification pass
+- Committed building filename normalization
+- Restored clean main branch state
 
 ## Current Branch
-- asset-path-sanity
+- release-sanity-pass
 
 ## Active Blockers
-- Need asset path sanity pass for production stability
-- Need manifest/icon/preload consistency check
+- Need release sanity pass for web production behavior
+- Need manifest/installability/service worker sanity review
+- Need obvious deployment blocker check
 
 ## Next Recommended Agent
-- Asset / Content Integration Agent
+- Release / Deployment Agent
 
 ## Exact Next Prompt
-- Review OwlFly asset path stability for production. Focus on icons, manifest references, preload paths, audio paths, sprite paths, and build-output consistency. Return files reviewed, current asset/path risk assessment, likely impacted files, whether a code patch is needed or a verification pass is enough, exact verification checklist, full revised files if changes are needed, verification steps, and what could still break.
+- Run a release sanity review for OwlFly. Focus on production web build behavior, manifest/installability, service worker sanity, asset delivery, and any obvious blockers for Vercel deployment or internal Android packaging readiness. Return files reviewed, current release risk assessment, likely impacted files, whether a code patch is needed or a verification pass is enough, exact release verification checklist, full revised files if changes are needed, verification steps, and what could still break.
 
 ## Merge Status
 - not ready
