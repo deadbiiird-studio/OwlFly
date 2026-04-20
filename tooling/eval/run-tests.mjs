@@ -5,19 +5,47 @@ import { spawnSync } from "node:child_process";
 
 const roots = ["tooling/eval/tests", "tooling/eval"];
 
+function safeReadDir(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true });
+  } catch (error) {
+    if (
+      error?.code === "EPERM" ||
+      error?.code === "EACCES" ||
+      error?.code === "ENOENT"
+    ) {
+      console.warn(`Skipping unreadable test path: ${dir} (${error.code})`);
+      return null;
+    }
+    throw error;
+  }
+}
+
 function collectTestFiles(root) {
   if (!fs.existsSync(root)) return [];
+
   const out = [];
   const stack = [root];
 
   while (stack.length) {
     const dir = stack.pop();
-    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entries = safeReadDir(dir);
+    if (!entries) continue;
+
+    for (const ent of entries) {
       const full = path.join(dir, ent.name);
-      if (ent.isDirectory()) stack.push(full);
-      else if (ent.isFile() && ent.name.endsWith(".test.mjs")) out.push(full);
+
+      if (ent.isDirectory()) {
+        stack.push(full);
+        continue;
+      }
+
+      if (ent.isFile() && ent.name.endsWith(".test.mjs")) {
+        out.push(full);
+      }
     }
   }
+
   return out;
 }
 
@@ -31,5 +59,8 @@ if (files.length === 0) {
 }
 
 console.log(`Found ${files.length} test files.`);
-const r = spawnSync(process.execPath, ["--test", ...files], { stdio: "inherit" });
-process.exit(r.status ?? 1);
+const result = spawnSync(process.execPath, ["--test", ...files], {
+  stdio: "inherit",
+});
+
+process.exit(result.status ?? 1);
