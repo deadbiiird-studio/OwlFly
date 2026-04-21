@@ -624,17 +624,21 @@ export function boot() {
   }
 
   function beginFracture() {
+    if (state.playPhase !== "normal") return;
+
     state.playPhase = "fracture";
     state.fractureTimer = FRACTURE.TRANSITION_DURATION;
+    state.glideTimer = FRACTURE.GLIDE_DURATION;
     state.invulnTimer = FRACTURE.TRANSITION_DURATION;
     state.fractureProgress = 0;
     state.rewardSpawnTimer = 0;
+    state.rewards.length = 0;
+    state.passesSinceFracture = 0;
     uiHud.toast?.("⚡ Fracture opening", 1100);
   }
 
   function enterGlide() {
     state.playPhase = "glide";
-    state.glideTimer = FRACTURE.GLIDE_DURATION;
     state.fractureProgress = 1;
     state.rewardSpawnTimer = 0;
     state.rewards.length = 0;
@@ -649,10 +653,12 @@ export function boot() {
       },
       "glide"
     );
-    uiHud.toast?.("✨ Glide mode — collect the line", 1500);
+    uiHud.toast?.("✨ Glide mode — touch down to reenter", 1500);
   }
 
   function beginReentry() {
+    if (state.playPhase !== "glide") return;
+
     state.playPhase = "reentry";
     state.reentryTimer = FRACTURE.REENTRY_DURATION;
     state.invulnTimer = FRACTURE.REENTRY_INVULN;
@@ -669,6 +675,7 @@ export function boot() {
     state.reentryTimer = 0;
     state.fractureProgress = 0;
     state.rewards.length = 0;
+    state.glideTimer = 0;
   }
 
   function spawnReward() {
@@ -735,9 +742,6 @@ export function boot() {
     if (state.playPhase === "glide") {
       state.glideTimer = Math.max(0, state.glideTimer - dt);
       state.fractureProgress = 1;
-      if (state.glideTimer <= 0) {
-        beginReentry();
-      }
       return;
     }
 
@@ -751,10 +755,7 @@ export function boot() {
   }
 
   function maybeTriggerFracture() {
-    if (state.playPhase !== "normal") return;
-    if (state.passesSinceFracture < FRACTURE.TRIGGER_EVERY_PASSES) return;
-    state.passesSinceFracture = 0;
-    beginFracture();
+    return false;
   }
 
   function crash() {
@@ -808,30 +809,47 @@ export function boot() {
     owl.update(dt);
     updatePhase(dt);
 
-    if (state.playPhase === "glide") {
-      const circle = owl.getCircle();
-      updateRewards(dt, circle);
+    const c = owl.getCircle();
 
-      if (circle.cy - circle.r < 0) {
-        owl.y = circle.r + 2;
+    if (state.playPhase === "glide") {
+      updateRewards(dt, c);
+
+      if (c.cy - c.r < 0) {
+        owl.y = c.r + 2;
         owl.vy = Math.max(0, owl.vy * 0.25);
-      } else if (circle.cy + circle.r > GAME.BASE_HEIGHT) {
-        owl.y = GAME.BASE_HEIGHT - circle.r - 2;
-        owl.vy = Math.min(0, owl.vy * 0.25);
+      } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
+        owl.y = GAME.BASE_HEIGHT - c.r - 2;
+        owl.vy = 0;
+        beginReentry();
       }
       return;
     }
 
     spawner.update(dt);
 
-    const c = owl.getCircle();
-    if (c.cy - c.r < 0 || c.cy + c.r > GAME.BASE_HEIGHT) {
+    if (c.cy - c.r < 0) {
+      if (state.playPhase === "normal") {
+        owl.y = c.r + 2;
+        owl.vy = Math.max(0, owl.vy * 0.25);
+        beginFracture();
+        return;
+      }
+
       if (state.invulnTimer <= 0) {
         crash();
         return;
       }
-      owl.y = clamp(owl.y, c.r + 4, GAME.BASE_HEIGHT - c.r - 4);
-      owl.vy *= 0.35;
+
+      owl.y = c.r + 4;
+      owl.vy = Math.max(0, owl.vy * 0.35);
+    } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
+      if (state.invulnTimer <= 0) {
+        crash();
+        return;
+      }
+
+      owl.y = GAME.BASE_HEIGHT - c.r - 4;
+      owl.vy = Math.min(0, owl.vy * 0.35);
     }
 
     for (const o of spawner.active) {
@@ -854,12 +872,6 @@ export function boot() {
         scoring.onPassObstacle();
         uiHud.setScore(scoring.score);
         playSfx("score", { gain: 1.0 });
-
-        if (state.playPhase === "normal") {
-          state.passesSinceFracture += 1;
-          maybeTriggerFracture();
-        }
-
         handleProgress({ type: "score", score: scoring.score });
       }
     }

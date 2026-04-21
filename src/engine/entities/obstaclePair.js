@@ -16,6 +16,10 @@ function hash01(value, salt = 0) {
   return x - Math.floor(x);
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
 export class ObstaclePair {
   constructor() {
     this.active = false;
@@ -39,16 +43,14 @@ export class ObstaclePair {
     this.active = true;
     this.passed = false;
     this.x = x;
-    this.topH = topH;
-    this.gap = gap;
     this.speed = speed;
 
     this.visualSpawnId = nextVisualSpawnId++;
     this.visualSeed =
       this.visualSpawnId * 0.173 +
-      this.topH * 0.037 +
-      this.gap * 0.019 +
-      this.speed * 0.011;
+      topH * 0.037 +
+      gap * 0.019 +
+      speed * 0.011;
 
     const cloudHash = hash01(this.visualSeed, 13);
     const buildingHash = hash01(this.visualSeed, 29);
@@ -67,6 +69,31 @@ export class ObstaclePair {
       Math.floor(hash01(this.visualSeed, 31) * 5),
       5
     );
+
+    const cloudGapBonusByBucket = [0, 12, 24];
+    const buildingGapBonusByBucket = [0, 8, 16, 24, 32];
+
+    const gapBonus =
+      (cloudGapBonusByBucket[this.cloudScaleBucket] || 0) +
+      (buildingGapBonusByBucket[this.buildingSizeBucket] || 0);
+
+    const minGap = Number.isFinite(OBSTACLE.MIN_GAP) ? OBSTACLE.MIN_GAP : gap;
+    const maxGap = Number.isFinite(OBSTACLE.MAX_GAP)
+      ? OBSTACLE.MAX_GAP
+      : gap + gapBonus;
+
+    const grownGap = clamp(gap + gapBonus, minGap, maxGap);
+
+    const minTop = Number.isFinite(OBSTACLE.MIN_TOP) ? OBSTACLE.MIN_TOP : 0;
+    const minBottom = Number.isFinite(OBSTACLE.MIN_BOTTOM)
+      ? OBSTACLE.MIN_BOTTOM
+      : 0;
+
+    const gapCenterY = topH + gap * 0.5;
+    const maxTop = Math.max(minTop, GAME.BASE_HEIGHT - minBottom - grownGap);
+
+    this.gap = grownGap;
+    this.topH = clamp(gapCenterY - grownGap * 0.5, minTop, maxTop);
   }
 
   despawn() {
