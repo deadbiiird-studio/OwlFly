@@ -61,7 +61,7 @@ export class MenuUI {
     this.el.innerHTML = `
       <div class="panel menuPanel sacredMenu">
         <div class="menuHero">
-          <div class="eyebrow">Sacred Portal</div>
+          <div class="eyebrow">Little Owl Takes Flight</div>
           <h1 class="title">OwlFly</h1>
           <p class="sub">Fly clean. Break through. Touch the hidden sky.</p>
         </div>
@@ -90,8 +90,7 @@ export class MenuUI {
               ${sliderRow("Master", "master", a.master)}
               ${sliderRow("SFX", "sfx", a.sfx)}
               ${sliderRow("Music", "music", a.music)}
-              ${sliderRow("Flap", "flap", a.flap)}
-              ${sliderRow("Score", "score", a.score)}
+             
 
               <div class="row compact wideRow">
                 <button id="resetAudioBtn">Reset audio</button>
