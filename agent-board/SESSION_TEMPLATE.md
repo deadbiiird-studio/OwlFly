@@ -6,26 +6,27 @@
 - Asset path verification and building filename normalization are merged into main
 - Release sanity verification pass is merged into main
 - Baseline fracture phase regression tests are merged into main
-- Current working branch is device-smoke-checklist
+- Device smoke checklist is committed on main
+- Current working branch is internal-test-candidate-prep
 
 ## What Was Just Completed
-- Recovered fracture regression tests into a stable eval location
-- Hardened run-tests.mjs to skip unreadable test directories
-- Restored full test suite execution without broad simulator changes
-- Merged fracture test recovery into main
+- Added tester-facing device smoke checklist
+- Preserved clean main branch state after docs commit
+- Established repeatable tester validation order
 
 ## Current Branch
-- device-smoke-checklist
+- internal-test-candidate-prep
 
 ## Active Blockers
-- Need tester-ready device smoke order
-- Need explicit release-blocking vs nice-to-fix criteria on device
+- Need internal-test candidate prep
+- Need exact tester handoff notes
+- Need install/run proof surface for Android/internal test flow
 
 ## Next Recommended Agent
-- Runtime Verifier
+- Release Steward
 
 ## Exact Next Prompt
-- Refine the device smoke checklist into a tester-facing sequence with exact actions, expected outcomes, fail interpretation, and release-blocking criteria only.
+- Prepare OwlFly for an internal-test candidate. Focus on what is already present versus what is still missing for a credible tester handoff. Return a concrete handoff checklist, exact tester instructions, required assets/docs, release blockers, and a done / not-done call.
 
 ## Merge Status
 - not ready
