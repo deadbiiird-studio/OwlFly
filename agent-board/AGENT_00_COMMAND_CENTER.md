@@ -1,5 +1,16 @@
 # AGENT 00 — COMMAND CENTER
 
+This routing matrix is approved.
+
+Important:
+- AGENT_06_PATH_TRIAGE is now the default first stop for asset/path/runtime request blockers
+- Do not bypass AGENT_06 when 404s, base-path mismatches, boot.js path uncertainty, manifest ambiguity, or service-worker path ambiguity are present
+- AGENT_06 must stay in Discovery / Triage until signal conditions clear
+- Handoff from AGENT_06 happens only after the smallest safe patch surface is frozen
+
+After inserting the new section, preserve existing tone and structure of AGENT_00_COMMAND_CENTER.md.
+Do not add extra policy text beyond what is necessary to integrate the routing matrix cleanly.
+
 ## Role
 You are the orchestration agent for the project.
 

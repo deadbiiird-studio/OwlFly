@@ -45,13 +45,21 @@ function isLocalDev() {
 }
 
 function assetCandidates(path) {
-  const clean = String(path || "").trim();
-  if (!clean) return [];
+  const withoutSlash = String(path).replace(/^\/+/, "");
+  const candidates = isLocalDev()
+    ? [`./${withoutSlash}`]
+    : [`/${withoutSlash}`, `./${withoutSlash}`];
+  return Array.from(new Set(candidates));
+}
 
-  const withoutDot = clean.replace(/^\.\//, "");
-  const withoutSlash = withoutDot.replace(/^\/+/, "");
-
-  return unique([`/${withoutSlash}`, `./${withoutSlash}`]);
+function buildingFrameCandidates(index) {
+  const padded = String(index).padStart(2, "0");
+  return unique([
+    ...assetCandidates(`assets/obstacles/buildings/building_${padded}.png`),
+    ...assetCandidates(`assets/obstacles/buildings/building_${index}.png`),
+    ...assetCandidates(`assets/obstacles/building_${padded}.png`),
+    ...assetCandidates(`assets/obstacles/building_${index}.png`),
+  ]);
 }
 
 function audioCandidates(wavName, mp3Name) {
@@ -186,29 +194,17 @@ function cloudFrameCandidates(index) {
   ]);
 }
 
-function buildingFrameCandidates(index) {
-  const padded = String(index).padStart(2, "0");
-  return unique([
-    ...assetCandidates(`assets/obstacles/buildings/building_${index}.png`),
-    ...assetCandidates(`assets/obstacles/buildings/building_${padded}.png`),
-    ...assetCandidates(`assets/obstacles/building_${index}.png`),
-    ...assetCandidates(`assets/obstacles/building_${padded}.png`),
-  ]);
-}
-
 function glideOwlFrameCandidates(index) {
   return unique([
-    ...assetCandidates(`assets/sprites/owl_glide_frame_${index}.png`),
-    ...assetCandidates(`assets/sprites/owl_glide_${index}.png`),
-    ...assetCandidates(`assets/sprites/glide/owl_glide_${index}.png`),
+    ...assetCandidates(`assets/sprites/owl_frame_${index}.png`),
   ]);
 }
 
 function rewardSpriteCandidates() {
   return unique([
-    ...assetCandidates("assets/rewards/shard.png"),
-    ...assetCandidates("assets/rewards/reward.png"),
-    ...assetCandidates("assets/sprites/reward_shard.png"),
+    ...assetCandidates("assets/rings/ring_1.png"),
+    ...assetCandidates("assets/rings/ring_2.png"),
+    ...assetCandidates("assets/rings/ring_3.png"),
   ]);
 }
 
@@ -887,3 +883,5 @@ export function boot() {
 }
 
 boot();
+
+

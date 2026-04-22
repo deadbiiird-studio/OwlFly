@@ -1801,7 +1801,10 @@ function hash01(value, salt = 0) {
   const x = Math.sin(value * 127.1 + salt * 311.7) * 43758.5453123;
   return x - Math.floor(x);
 }
-class ObstaclePair {
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}class ObstaclePair {
   constructor() {
     this.active = false;
     this.passed = false;
@@ -1824,16 +1827,14 @@ class ObstaclePair {
     this.active = true;
     this.passed = false;
     this.x = x;
-    this.topH = topH;
-    this.gap = gap;
     this.speed = speed;
 
     this.visualSpawnId = nextVisualSpawnId++;
     this.visualSeed =
       this.visualSpawnId * 0.173 +
-      this.topH * 0.037 +
-      this.gap * 0.019 +
-      this.speed * 0.011;
+      topH * 0.037 +
+      gap * 0.019 +
+      speed * 0.011;
 
     const cloudHash = hash01(this.visualSeed, 13);
     const buildingHash = hash01(this.visualSeed, 29);
@@ -1852,6 +1853,31 @@ class ObstaclePair {
       Math.floor(hash01(this.visualSeed, 31) * 5),
       5
     );
+
+    const cloudGapBonusByBucket = [0, 12, 24];
+    const buildingGapBonusByBucket = [0, 8, 16, 24, 32];
+
+    const gapBonus =
+      (cloudGapBonusByBucket[this.cloudScaleBucket] || 0) +
+      (buildingGapBonusByBucket[this.buildingSizeBucket] || 0);
+
+    const minGap = Number.isFinite(OBSTACLE.MIN_GAP) ? OBSTACLE.MIN_GAP : gap;
+    const maxGap = Number.isFinite(OBSTACLE.MAX_GAP)
+      ? OBSTACLE.MAX_GAP
+      : gap + gapBonus;
+
+    const grownGap = clamp(gap + gapBonus, minGap, maxGap);
+
+    const minTop = Number.isFinite(OBSTACLE.MIN_TOP) ? OBSTACLE.MIN_TOP : 0;
+    const minBottom = Number.isFinite(OBSTACLE.MIN_BOTTOM)
+      ? OBSTACLE.MIN_BOTTOM
+      : 0;
+
+    const gapCenterY = topH + gap * 0.5;
+    const maxTop = Math.max(minTop, GAME.BASE_HEIGHT - minBottom - grownGap);
+
+    this.gap = grownGap;
+    this.topH = clamp(gapCenterY - grownGap * 0.5, minTop, maxTop);
   }
 
   despawn() {
@@ -1972,7 +1998,6 @@ class ObstaclePair {
     return this.topH + this.gap / 2;
   }
 }
-
 
 // ===== FILE: src/systems/scoring.js =====
 
@@ -3064,7 +3089,7 @@ class MenuUI {
     this.el.innerHTML = `
       <div class="panel menuPanel sacredMenu">
         <div class="menuHero">
-          <div class="eyebrow">Sacred Portal</div>
+          <div class="eyebrow">Little Owl Takes Flight</div>
           <h1 class="title">OwlFly</h1>
           <p class="sub">Fly clean. Break through. Touch the hidden sky.</p>
         </div>
@@ -3093,8 +3118,7 @@ class MenuUI {
               ${sliderRow("Master", "master", a.master)}
               ${sliderRow("SFX", "sfx", a.sfx)}
               ${sliderRow("Music", "music", a.music)}
-              ${sliderRow("Flap", "flap", a.flap)}
-              ${sliderRow("Score", "score", a.score)}
+             
 
               <div class="row compact wideRow">
                 <button id="resetAudioBtn">Reset audio</button>
@@ -3530,13 +3554,21 @@ function isLocalDev() {
 }
 
 function assetCandidates(path) {
-  const clean = String(path || "").trim();
-  if (!clean) return [];
+  const withoutSlash = String(path).replace(/^\/+/, "");
+  const candidates = isLocalDev()
+    ? [`./${withoutSlash}`]
+    : [`/${withoutSlash}`, `./${withoutSlash}`];
+  return Array.from(new Set(candidates));
+}
 
-  const withoutDot = clean.replace(/^\.\//, "");
-  const withoutSlash = withoutDot.replace(/^\/+/, "");
-
-  return unique([`/${withoutSlash}`, `./${withoutSlash}`]);
+function buildingFrameCandidates(index) {
+  const padded = String(index).padStart(2, "0");
+  return unique([
+    ...assetCandidates(`assets/obstacles/buildings/building_${padded}.png`),
+    ...assetCandidates(`assets/obstacles/buildings/building_${index}.png`),
+    ...assetCandidates(`assets/obstacles/building_${padded}.png`),
+    ...assetCandidates(`assets/obstacles/building_${index}.png`),
+  ]);
 }
 
 function audioCandidates(wavName, mp3Name) {
@@ -3671,29 +3703,17 @@ function cloudFrameCandidates(index) {
   ]);
 }
 
-function buildingFrameCandidates(index) {
-  const padded = String(index).padStart(2, "0");
-  return unique([
-    ...assetCandidates(`assets/obstacles/buildings/building_${index}.png`),
-    ...assetCandidates(`assets/obstacles/buildings/building_${padded}.png`),
-    ...assetCandidates(`assets/obstacles/building_${index}.png`),
-    ...assetCandidates(`assets/obstacles/building_${padded}.png`),
-  ]);
-}
-
 function glideOwlFrameCandidates(index) {
   return unique([
-    ...assetCandidates(`assets/sprites/owl_glide_frame_${index}.png`),
-    ...assetCandidates(`assets/sprites/owl_glide_${index}.png`),
-    ...assetCandidates(`assets/sprites/glide/owl_glide_${index}.png`),
+    ...assetCandidates(`assets/sprites/owl_frame_${index}.png`),
   ]);
 }
 
 function rewardSpriteCandidates() {
   return unique([
-    ...assetCandidates("assets/rewards/shard.png"),
-    ...assetCandidates("assets/rewards/reward.png"),
-    ...assetCandidates("assets/sprites/reward_shard.png"),
+    ...assetCandidates("assets/rings/ring_1.png"),
+    ...assetCandidates("assets/rings/ring_2.png"),
+    ...assetCandidates("assets/rings/ring_3.png"),
   ]);
 }
 
@@ -4107,17 +4127,21 @@ async function preloadSprites(renderer) {
   }
 
   function beginFracture() {
+    if (state.playPhase !== "normal") return;
+
     state.playPhase = "fracture";
     state.fractureTimer = FRACTURE.TRANSITION_DURATION;
+    state.glideTimer = FRACTURE.GLIDE_DURATION;
     state.invulnTimer = FRACTURE.TRANSITION_DURATION;
     state.fractureProgress = 0;
     state.rewardSpawnTimer = 0;
+    state.rewards.length = 0;
+    state.passesSinceFracture = 0;
     uiHud.toast?.("⚡ Fracture opening", 1100);
   }
 
   function enterGlide() {
     state.playPhase = "glide";
-    state.glideTimer = FRACTURE.GLIDE_DURATION;
     state.fractureProgress = 1;
     state.rewardSpawnTimer = 0;
     state.rewards.length = 0;
@@ -4132,10 +4156,12 @@ async function preloadSprites(renderer) {
       },
       "glide"
     );
-    uiHud.toast?.("✨ Glide mode — collect the line", 1500);
+    uiHud.toast?.("✨ Glide mode — touch down to reenter", 1500);
   }
 
   function beginReentry() {
+    if (state.playPhase !== "glide") return;
+
     state.playPhase = "reentry";
     state.reentryTimer = FRACTURE.REENTRY_DURATION;
     state.invulnTimer = FRACTURE.REENTRY_INVULN;
@@ -4152,6 +4178,7 @@ async function preloadSprites(renderer) {
     state.reentryTimer = 0;
     state.fractureProgress = 0;
     state.rewards.length = 0;
+    state.glideTimer = 0;
   }
 
   function spawnReward() {
@@ -4218,9 +4245,6 @@ async function preloadSprites(renderer) {
     if (state.playPhase === "glide") {
       state.glideTimer = Math.max(0, state.glideTimer - dt);
       state.fractureProgress = 1;
-      if (state.glideTimer <= 0) {
-        beginReentry();
-      }
       return;
     }
 
@@ -4234,10 +4258,7 @@ async function preloadSprites(renderer) {
   }
 
   function maybeTriggerFracture() {
-    if (state.playPhase !== "normal") return;
-    if (state.passesSinceFracture < FRACTURE.TRIGGER_EVERY_PASSES) return;
-    state.passesSinceFracture = 0;
-    beginFracture();
+    return false;
   }
 
   function crash() {
@@ -4291,30 +4312,47 @@ async function preloadSprites(renderer) {
     owl.update(dt);
     updatePhase(dt);
 
-    if (state.playPhase === "glide") {
-      const circle = owl.getCircle();
-      updateRewards(dt, circle);
+    const c = owl.getCircle();
 
-      if (circle.cy - circle.r < 0) {
-        owl.y = circle.r + 2;
+    if (state.playPhase === "glide") {
+      updateRewards(dt, c);
+
+      if (c.cy - c.r < 0) {
+        owl.y = c.r + 2;
         owl.vy = Math.max(0, owl.vy * 0.25);
-      } else if (circle.cy + circle.r > GAME.BASE_HEIGHT) {
-        owl.y = GAME.BASE_HEIGHT - circle.r - 2;
-        owl.vy = Math.min(0, owl.vy * 0.25);
+      } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
+        owl.y = GAME.BASE_HEIGHT - c.r - 2;
+        owl.vy = 0;
+        beginReentry();
       }
       return;
     }
 
     spawner.update(dt);
 
-    const c = owl.getCircle();
-    if (c.cy - c.r < 0 || c.cy + c.r > GAME.BASE_HEIGHT) {
+    if (c.cy - c.r < 0) {
+      if (state.playPhase === "normal") {
+        owl.y = c.r + 2;
+        owl.vy = Math.max(0, owl.vy * 0.25);
+        beginFracture();
+        return;
+      }
+
       if (state.invulnTimer <= 0) {
         crash();
         return;
       }
-      owl.y = clamp(owl.y, c.r + 4, GAME.BASE_HEIGHT - c.r - 4);
-      owl.vy *= 0.35;
+
+      owl.y = c.r + 4;
+      owl.vy = Math.max(0, owl.vy * 0.35);
+    } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
+      if (state.invulnTimer <= 0) {
+        crash();
+        return;
+      }
+
+      owl.y = GAME.BASE_HEIGHT - c.r - 4;
+      owl.vy = Math.min(0, owl.vy * 0.35);
     }
 
     for (const o of spawner.active) {
@@ -4337,12 +4375,6 @@ async function preloadSprites(renderer) {
         scoring.onPassObstacle();
         uiHud.setScore(scoring.score);
         playSfx("score", { gain: 1.0 });
-
-        if (state.playPhase === "normal") {
-          state.passesSinceFracture += 1;
-          maybeTriggerFracture();
-        }
-
         handleProgress({ type: "score", score: scoring.score });
       }
     }
@@ -4358,3 +4390,5 @@ async function preloadSprites(renderer) {
 }
 
 boot();
+
+

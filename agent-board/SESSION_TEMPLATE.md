@@ -1,32 +1,32 @@
 # SESSION
 
 ## Current State
-- Fracture transition collision fix is merged into main
-- Mobile canvas resize and DPR backing size fix is merged into main
-- Asset path verification and building filename normalization are merged into main
-- Release sanity verification pass is merged into main
-- Baseline fracture phase regression tests are merged into main
-- Device smoke checklist is committed on main
-- Current working branch is internal-test-candidate-prep
+- Core stabilization patches are merged into main
+- Internal test docs are merged into main
+- Menu copy/audio simplification is merged into main
+- Fracture now triggers from upper screen collision
+- Reentry now triggers from bottom collision during glide
+- Gap width now expands based on sprite-size buckets
+- Current working branch is runtime-proof-pass
 
 ## What Was Just Completed
-- Added tester-facing device smoke checklist
-- Preserved clean main branch state after docs commit
-- Established repeatable tester validation order
+- Merged the new fracture/reentry mechanic patch into main
+- Restored main to a clean working tree
+- Preserved a clean merge history for the mechanic change
 
 ## Current Branch
-- internal-test-candidate-prep
+- runtime-proof-pass
 
 ## Active Blockers
-- Need internal-test candidate prep
-- Need exact tester handoff notes
-- Need install/run proof surface for Android/internal test flow
+- Need real runtime proof for the new fracture trigger flow
+- Need live verification that bottom-triggered reentry feels correct
+- Need confirmation that widened sprite-aware gaps feel readable and fair
 
 ## Next Recommended Agent
-- Release Steward
+- Runtime Verifier
 
 ## Exact Next Prompt
-- Prepare OwlFly for an internal-test candidate. Focus on what is already present versus what is still missing for a credible tester handoff. Return a concrete handoff checklist, exact tester instructions, required assets/docs, release blockers, and a done / not-done call.
+- Create a live runtime proof plan for the newly merged fracture mechanic. Focus on exact steps to verify: top collision triggers fracture, bottom collision during glide triggers reentry, bottom collision during normal still crashes, and widened sprite-aware gaps remain readable. Return exact test sequence, expected outcomes, fail interpretation, and what should be logged if the mechanic feels wrong.
 
 ## Merge Status
 - not ready
