@@ -5,7 +5,7 @@ OwlFly is a modular, production-ready endless flyer built with **vanilla JavaScr
 
 ## Core Identity (Current Build)
 
-- Obstacles: **Clouds (top) + Tornadoes (bottom)**
+- Obstacles: **Clouds (top) + buildings  (bottom)**
 - Sprite-based rendering (animated obstacle frames)
 - Difficulty scaling with controlled fairness
 - "Confidence pattern" injection (easier sequences for player flow)
