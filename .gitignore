@@ -13,3 +13,5 @@ Thumbs.db
 keystore.jks
 *.jks
 *.bak
+# Android Studio local workspace files
+android/.idea/
