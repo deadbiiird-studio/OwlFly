@@ -65,7 +65,7 @@ function buildingFrameCandidates(index) {
 function audioCandidates(wavName, mp3Name) {
   return unique([
     ...assetCandidates(`assets/audio/${wavName}`),
-    ...assetCandidates(`assets/audio/${mp3Name}`),
+    ...(mp3Name ? assetCandidates(`assets/audio/${mp3Name}`) : []),
   ]);
 }
 
@@ -318,9 +318,9 @@ export function boot() {
 
   const audio = new AudioBank(
     {
-      jump: audioCandidates("flap.wav", "jump.mp3"),
-      score: audioCandidates("score.wav", "score.mp3"),
-      hit: audioCandidates("hit.wav", "hit.mp3"),
+jump: audioCandidates("flap.wav"),
+score: audioCandidates("score.wav"),
+hit: audioCandidates("hit.wav"),
     },
     settings.audio
   );

@@ -12,15 +12,13 @@ const GAME = {
   FPS_CAP: 60,
   FIXED_DT: 1 / 60,
   MAX_CATCHUP_STEPS: 5,
-};
-const WORLD = {
+};const WORLD = {
   GRAVITY: 1700,
   JUMP_IMPULSE: 525,
   MAX_FALL_SPEED: 1100,
   ROT_UP: -0.55,
   ROT_DOWN: 1.35,
-};
-const OWL = {
+};const OWL = {
   X: 140,
   RADIUS: 18,
   HIT_RADIUS_SCALE: 0.8,
@@ -28,8 +26,7 @@ const OWL = {
   HEIGHT: 34,
   RENDER_W: 64,
   RENDER_Y_OFFSET: -2,
-};
-const OBSTACLE = {
+};const OBSTACLE = {
   WIDTH: 78,
   MIN_GAP: 176,
   MAX_GAP: 262,
@@ -55,8 +52,7 @@ const OBSTACLE = {
   TORNADO_SURGE_SCALE_MAX: 1.34,
   TORNADO_SURGE_HITBOX_BONUS_MIN: 16,
   TORNADO_SURGE_HITBOX_BONUS_MAX: 28,
-};
-const SPAWN = {
+};const SPAWN = {
   BASE_INTERVAL: 1.32,
   MIN_INTERVAL: 1.02,
 
@@ -76,13 +72,11 @@ const SPAWN = {
 
   CLOUD_SWELL_EVERY: 4,
   TORNADO_SURGE_EVERY: 6,
-};
-const DIFFICULTY = {
+};const DIFFICULTY = {
   SPEED_RAMP_PER_SEC: 5.5,
   GAP_SHRINK_PER_SEC: 0.55,
   INTERVAL_SHRINK_PER_SEC: 0.006,
-};
-const FRACTURE = {
+};const FRACTURE = {
   TRIGGER_EVERY_PASSES: 6,
   TRANSITION_DURATION: 0.72,
   GLIDE_DURATION: 4.4,
@@ -100,16 +94,14 @@ const FRACTURE = {
   REWARD_POINTS: 1,
   REWARD_TRACK_TOP: 180,
   REWARD_TRACK_BOTTOM: 620,
-};
-const AUDIO = {
+};const AUDIO = {
   MASTER: 1.0,
   SFX: 0.9,
   MUSIC: 0.25,
   FLAP: 0.75,
   SCORE: 0.35,
   HIT: 0.95,
-};
-const STORAGE_KEYS = {
+};const STORAGE_KEYS = {
   HIGH_SCORE: "owlfly_highscore_v1",
   SETTINGS: "owlfly_settings_v1",
   PROFILE: "owlfly_profile_v1",
@@ -147,8 +139,7 @@ function loadHighScore() {
   const raw = localStorage.getItem(STORAGE_KEYS.HIGH_SCORE);
   const n = raw ? Number(raw) : 0;
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
-}
-function saveHighScore(score) {
+}function saveHighScore(score) {
   const n = Math.max(0, Math.floor(score));
   localStorage.setItem(STORAGE_KEYS.HIGH_SCORE, String(n));
 }
@@ -165,8 +156,7 @@ const DEFAULT_SETTINGS = {
     score: AUDIO.SCORE,
     hit: AUDIO.HIT,
   },
-};
-function loadSettings() {
+};function loadSettings() {
   const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
   if (!raw) return structuredCloneFallback(DEFAULT_SETTINGS);
 
@@ -193,8 +183,7 @@ function loadSettings() {
   } catch {
     return structuredCloneFallback(DEFAULT_SETTINGS);
   }
-}
-function saveSettings(settings) {
+}function saveSettings(settings) {
   const safe = {
     muted: !!settings?.muted,
     reducedMotion: !!settings?.reducedMotion,
@@ -237,8 +226,7 @@ function structuredCloneFallback(x) {
 // Submission-safe hybrid audio:
 // - primes on first gesture (mobile policy)
 // - WebAudio for low-latency SFX when available
-// - HTMLAudio pool fallback (covers slow decode + older WebViews)
-class AudioBank {
+// - HTMLAudio pool fallback (covers slow decode + older WebViews)class AudioBank {
   constructor(map, mix = {}) {
     this._map = map || {};
 
@@ -534,8 +522,7 @@ function clamp01(x) {
 // Lightweight procedural background music (WebAudio).
 // - Original, simple, upbeat loop (no copyrighted melody)
 // - Starts only after user gesture (call start after AudioContext is primed)
-// - Theme-aware key/tempo
-class MusicLoop {
+// - Theme-aware key/tempoclass MusicLoop {
   constructor({ ctx, destination, volume = 0.25, enabled = true } = {}) {
     this._ctx = ctx || null;
     this._dest = destination || null;
@@ -949,8 +936,7 @@ const DEFAULT_PROFILE = {
     bestScore: 0,
     totalScore: 0,
   },
-};
-function loadProfile() {
+};function loadProfile() {
   const raw = localStorage.getItem(STORAGE_KEYS.PROFILE);
   if (!raw) return clone(DEFAULT_PROFILE);
 
@@ -961,12 +947,10 @@ function loadProfile() {
   } catch {
     return clone(DEFAULT_PROFILE);
   }
-}
-function saveProfile(profile) {
+}function saveProfile(profile) {
   const safe = mergeProfile(profile);
   localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(safe));
-}
-function getUnlockedThemes(profile) {
+}function getUnlockedThemes(profile) {
   const arr = profile?.unlockedThemes;
   if (!Array.isArray(arr)) return ["night"];
   const out = [];
@@ -976,8 +960,7 @@ function getUnlockedThemes(profile) {
   }
   if (!out.includes("night")) out.unshift("night");
   return out;
-}
-function isAchievementEarned(profile, id) {
+}function isAchievementEarned(profile, id) {
   return !!profile?.achievements?.[id];
 }
 
@@ -986,8 +969,7 @@ function isAchievementEarned(profile, id) {
  *
  * Returns:
  *  { profile, earned: Achievement[], unlockedThemes: string[] }
- */
-function applyProgressEvent(profile, evt) {
+ */function applyProgressEvent(profile, evt) {
   const p = mergeProfile(profile);
 
   const earned = [];
@@ -1050,8 +1032,7 @@ function applyProgressEvent(profile, evt) {
   }
 
   return { profile: p, earned, unlockedThemes };
-}
-function getAchievementProgress(profile, achievementId) {
+}function getAchievementProgress(profile, achievementId) {
   const p = mergeProfile(profile);
   const a = ACHIEVEMENTS.find((x) => x.id === achievementId);
   if (!a) return { current: 0, target: 1, pct: 0, earned: false };
@@ -1421,12 +1402,10 @@ const THEMES = [
       alpha: 0.30,
     },
   },
-];
-function getTheme(themeId) {
+];function getTheme(themeId) {
   const id = String(themeId || "").trim();
   return THEMES.find((t) => t.id === id) || THEMES[0];
-}
-function getThemePreview(theme) {
+}function getThemePreview(theme) {
   const t = theme || THEMES[0];
   return {
     a: t.sky?.top || "#000",
@@ -1450,8 +1429,7 @@ function getThemePreview(theme) {
 
 const FLAP_GRAVITY_RECOVERY_BOOST = 1.12;
 const FAST_FALL_EXTRA = 1.08;
-const UPWARD_VELOCITY_SOFT_CAP = 1.18;
-function applyGravity(vy, dt, gravityScale = 1, maxFallScale = 1) {
+const UPWARD_VELOCITY_SOFT_CAP = 1.18;function applyGravity(vy, dt, gravityScale = 1, maxFallScale = 1) {
   const s = Number.isFinite(gravityScale) ? gravityScale : 1;
   const fallCapScale = Number.isFinite(maxFallScale) ? maxFallScale : 1;
 
@@ -1467,14 +1445,12 @@ function applyGravity(vy, dt, gravityScale = 1, maxFallScale = 1) {
   if (nextVy > maxFall) nextVy = maxFall;
 
   return nextVy;
-}
-function jumpImpulse(impulseScale = 1) {
+}function jumpImpulse(impulseScale = 1) {
   const s = Number.isFinite(impulseScale) ? impulseScale : 1;
   const raw = -WORLD.JUMP_IMPULSE * s;
   const riseCap = -WORLD.JUMP_IMPULSE * s * UPWARD_VELOCITY_SOFT_CAP;
   return Math.max(raw, riseCap);
-}
-function rotationForVelocity(vy, upScale = 1, downScale = 1) {
+}function rotationForVelocity(vy, upScale = 1, downScale = 1) {
   const safeUpScale = Number.isFinite(upScale) ? upScale : 1;
   const safeDownScale = Number.isFinite(downScale) ? downScale : 1;
 
@@ -1500,19 +1476,16 @@ function aabbIntersect(a, b) {
     a.y < b.y + b.h &&
     a.y + a.h > b.y
   );
-}
-function circleAabbIntersect(cx, cy, r, rect) {
+}function circleAabbIntersect(cx, cy, r, rect) {
   const closestX = clamp(cx, rect.x, rect.x + rect.w);
   const closestY = clamp(cy, rect.y, rect.y + rect.h);
   const dx = cx - closestX;
   const dy = cy - closestY;
   return dx * dx + dy * dy <= r * r;
-}
-function forgivingCircleAabbIntersect(cx, cy, r, rect, forgiveness = 0.92) {
+}function forgivingCircleAabbIntersect(cx, cy, r, rect, forgiveness = 0.92) {
   const rr = Math.max(1, r * forgiveness);
   return circleAabbIntersect(cx, cy, rr, rect);
-}
-function resolveHitSide(cx, cy, rect) {
+}function resolveHitSide(cx, cy, rect) {
   const left = Math.abs(cx - rect.x);
   const right = Math.abs(cx - (rect.x + rect.w));
   const top = Math.abs(cy - rect.y);
@@ -1673,15 +1646,13 @@ class GameLoop {
 // ===== FILE: src/engine/entities/owl.js =====
 
 
-
 const DEFAULT_FLIGHT_PROFILE = {
   gravityScale: 1,
   jumpScale: 1,
   maxFallScale: 1,
   rotUpScale: 1,
   rotDownScale: 1,
-};
-class Owl {
+};class Owl {
   constructor() {
     this.reset();
   }
@@ -3574,7 +3545,7 @@ function buildingFrameCandidates(index) {
 function audioCandidates(wavName, mp3Name) {
   return unique([
     ...assetCandidates(`assets/audio/${wavName}`),
-    ...assetCandidates(`assets/audio/${mp3Name}`),
+    ...(mp3Name ? assetCandidates(`assets/audio/${mp3Name}`) : []),
   ]);
 }
 
@@ -3825,9 +3796,9 @@ async function preloadSprites(renderer) {
 
   const audio = new AudioBank(
     {
-      jump: audioCandidates("flap.wav", "jump.mp3"),
-      score: audioCandidates("score.wav", "score.mp3"),
-      hit: audioCandidates("hit.wav", "hit.mp3"),
+jump: audioCandidates("flap.wav"),
+score: audioCandidates("score.wav"),
+hit: audioCandidates("hit.wav"),
     },
     settings.audio
   );
