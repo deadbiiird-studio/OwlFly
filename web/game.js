@@ -2417,9 +2417,9 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
 
   const variant = ensureVisualVariant(obstacle, frames, "cloud", 6);
   const clusterScale = variant.scale ?? 1;
-  const clusterH = Math.max(92, Math.min(146, bounds.h * 0.62 * clusterScale));
+  const clusterH = Math.max(188, Math.min(292, bounds.h * 1.08 * clusterScale));
   const y = Math.max(0, bounds.y + bounds.h - clusterH);
-  const baseW = bounds.w * 1.5 * (variant.widthScale ?? 1);
+  const baseW = bounds.w * 2.6 * (variant.widthScale ?? 1);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
 
   if (isImgReady(frame)) {
@@ -2467,10 +2467,11 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
   const groundAnchorY = GAME.BASE_HEIGHT - 18;
-  const spriteH = Math.max(200, Math.min(320, bounds.h * (variant.heightScale ?? 1) + 44));
-  const spriteW = Math.max(104, Math.min(228, bounds.w * (variant.widthScale ?? 1) * 1.52));
+  const visualBottomY = GAME.BASE_HEIGHT + 52;
+  const spriteH = Math.max(360, Math.min(640, bounds.h * (variant.heightScale ?? 1.35) * 1.75 + 96));
+  const spriteW = Math.max(210, Math.min(460, bounds.w * (variant.widthScale ?? 1.25) * 2.45));
   const x = bounds.x + bounds.w * 0.5 - spriteW * 0.5;
-  const y = groundAnchorY - spriteH;
+  const y = visualBottomY - spriteH;
 
   if (isImgReady(frame)) {
     drawContainImage(ctx, frame, { x, y, w: spriteW, h: spriteH });
@@ -2691,6 +2692,58 @@ function drawFarGlow(ctx, theme) {
   ctx.restore();
 }
 
+function drawDistantSkyline(ctx, t, theme) {
+  ctx.save();
+
+  const horizonY = GAME.BASE_HEIGHT - 150;
+  const baseY = GAME.BASE_HEIGHT - 92;
+  const drift = (t * 7) % 96;
+
+  // Soft horizon glow behind the skyline.
+  const glow = ctx.createLinearGradient(0, horizonY - 70, 0, baseY + 30);
+  glow.addColorStop(0, "rgba(255, 190, 130, 0)");
+  glow.addColorStop(0.45, "rgba(255, 178, 112, 0.12)");
+  glow.addColorStop(1, "rgba(255, 140, 95, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, horizonY - 70, GAME.BASE_WIDTH, 150);
+
+  // Distant skyline: low contrast, behind gameplay.
+  ctx.globalAlpha = 0.22;
+  ctx.fillStyle = theme?.ground?.silhouette || "#261724";
+
+  const startX = -120 - drift;
+  const y = baseY;
+
+  for (let x = startX; x < GAME.BASE_WIDTH + 160; x += 96) {
+    // Hotel / tower blocks
+    ctx.fillRect(x + 4, y - 42, 22, 42);
+    ctx.fillRect(x + 30, y - 64, 18, 64);
+    ctx.fillRect(x + 52, y - 34, 26, 34);
+
+    // Tower of the Americas-inspired needle silhouette
+    ctx.fillRect(x + 82, y - 96, 4, 96);
+    ctx.beginPath();
+    ctx.arc(x + 84, y - 76, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dome-like shape, kept very subtle
+    ctx.beginPath();
+    ctx.moveTo(x + 112, y);
+    ctx.quadraticCurveTo(x + 136, y - 38, x + 160, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Very light haze wash so the distant layer stays behind obstacles.
+  ctx.globalAlpha = 0.12;
+  const haze = ctx.createLinearGradient(0, horizonY - 30, 0, baseY + 20);
+  haze.addColorStop(0, "rgba(255,255,255,0)");
+  haze.addColorStop(1, theme?.mist?.a || "rgba(220,235,255,0.18)");
+  ctx.fillStyle = haze;
+  ctx.fillRect(0, horizonY - 30, GAME.BASE_WIDTH, 120);
+
+  ctx.restore();
+}
 function drawGround(ctx, t, theme) {
   ctx.save();
 
@@ -2740,6 +2793,19 @@ function drawContainImage(ctx, img, bounds) {
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
+function drawImageContainBottom(ctx, img, bounds, sink = 0) {
+  if (!img) return;
+
+  const iw = Math.max(1, img.naturalWidth || img.width || 1);
+  const ih = Math.max(1, img.naturalHeight || img.height || 1);
+  const scale = Math.min(bounds.w / iw, bounds.h / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = bounds.x + (bounds.w - dw) * 0.5;
+  const dy = bounds.y + bounds.h - dh + sink;
+
+  ctx.drawImage(img, dx, dy, dw, dh);
+}
 function drawFallbackCloudCluster(ctx, x, y, w, h, theme) {
   const g = ctx.createLinearGradient(x, y - h * 0.5, x, y + h * 0.7);
   g.addColorStop(0, theme?.clouds?.top || "rgba(255,255,255,0.28)");
@@ -3000,6 +3066,13 @@ function hexToRgb(hex) {
     b: n & 255,
   };
 }
+
+
+
+
+
+
+
 
 
 // ===== FILE: src/ui/menu.js =====
