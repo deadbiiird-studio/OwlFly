@@ -3828,7 +3828,7 @@ hit: audioCandidates("hit.wav"),
     fractureTimer: 0,
     fractureProgress: 0,
     glideTimer: 0,
-    uiHud.toast?.("Reentry", 900);
+    reentryTimer: 0,
     invulnTimer: 0,
     passesSinceFracture: 0,
     rewardSpawnTimer: 0,
@@ -3943,7 +3943,7 @@ hit: audioCandidates("hit.wav"),
     state.fractureTimer = 0;
     state.fractureProgress = 0;
     state.glideTimer = 0;
-    uiHud.toast?.("Reentry", 900);
+    state.reentryTimer = 0;
     state.invulnTimer = 0;
     state.passesSinceFracture = 0;
     state.rewardSpawnTimer = 0;
@@ -4138,12 +4138,12 @@ hit: audioCandidates("hit.wav"),
     uiHud.toast?.("Glide mode - touch down to reenter", 1500);
   }
 
-    uiHud.toast?.("Reentry", 900);
+  function beginReentry() {
     if (state.playPhase !== "glide") return;
 
-    uiHud.toast?.("Reentry", 900);
-    uiHud.toast?.("Reentry", 900);
-    uiHud.toast?.("Reentry", 900);
+    state.playPhase = "reentry";
+    state.reentryTimer = FRACTURE.REENTRY_DURATION;
+    state.invulnTimer = FRACTURE.REENTRY_INVULN;
     state.rewards.length = 0;
     state.rewardSpawnTimer = 0;
     state.fractureProgress = 0.35;
@@ -4152,9 +4152,9 @@ hit: audioCandidates("hit.wav"),
     uiHud.toast?.("Reentry", 900);
   }
 
-    uiHud.toast?.("Reentry", 900);
+  function finishReentry() {
     state.playPhase = "normal";
-    uiHud.toast?.("Reentry", 900);
+    state.reentryTimer = 0;
     state.fractureProgress = 0;
     state.rewards.length = 0;
     state.glideTimer = 0;
@@ -4227,11 +4227,11 @@ hit: audioCandidates("hit.wav"),
       return;
     }
 
-    uiHud.toast?.("Reentry", 900);
-    uiHud.toast?.("Reentry", 900);
-    uiHud.toast?.("Reentry", 900);
-    uiHud.toast?.("Reentry", 900);
-    uiHud.toast?.("Reentry", 900);
+    if (state.playPhase === "reentry") {
+      state.reentryTimer = Math.max(0, state.reentryTimer - dt);
+      state.fractureProgress = state.reentryTimer / Math.max(0.001, FRACTURE.REENTRY_DURATION);
+      if (state.reentryTimer <= 0) {
+        finishReentry();
       }
     }
   }
@@ -4298,7 +4298,7 @@ hit: audioCandidates("hit.wav"),
       } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
         owl.y = GAME.BASE_HEIGHT - c.r - 2;
         owl.vy = 0;
-    uiHud.toast?.("Reentry", 900);
+        beginReentry();
       }
       return;
     }
