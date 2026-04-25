@@ -1,4 +1,4 @@
-import { FRACTURE, GAME } from "../core/constants.js";
+﻿import { FRACTURE, GAME } from "../core/constants.js";
 import { AudioBank } from "../core/audio.js";
 import { MusicLoop } from "../core/music.js";
 import { RNG } from "../core/rng.js";
@@ -420,10 +420,10 @@ hit: audioCandidates("hit.wav"),
 
       if (state.mode === "playing") {
         for (const id of res.unlockedThemes) {
-          uiHud.toast?.(`✨ Theme unlocked: ${getTheme(id).name}`);
+          uiHud.toast?.(`âœ¨ Theme unlocked: ${getTheme(id).name}`);
         }
         for (const a of res.earned) {
-          uiHud.toast?.(`🏆 ${a.title}`);
+          uiHud.toast?.(`ðŸ† ${a.title}`);
           break;
         }
       }
@@ -435,7 +435,7 @@ hit: audioCandidates("hit.wav"),
     const unlocked = getUnlockedThemes(profile);
 
     if (!unlocked.includes(th.id)) {
-      uiHud.toast?.(`🔒 ${th.name} locked — ${th.unlock?.text || "keep playing"}`);
+      uiHud.toast?.(`ðŸ”’ ${th.name} locked â€” ${th.unlock?.text || "keep playing"}`);
       return;
     }
 
@@ -493,7 +493,7 @@ hit: audioCandidates("hit.wav"),
       onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
-    uiHud.toast?.("🦉 Fly clean. Break through.", 1300);
+    uiHud.toast?.("ðŸ¦‰ Fly clean. Break through.", 1300);
 
     applyMusicState();
   }
@@ -630,7 +630,7 @@ hit: audioCandidates("hit.wav"),
     state.rewardSpawnTimer = 0;
     state.rewards.length = 0;
     state.passesSinceFracture = 0;
-    uiHud.toast?.("⚡ Fracture opening", 1100);
+    uiHud.toast?.("âš¡ Fracture opening", 1100);
   }
 
   function enterGlide() {
@@ -649,7 +649,7 @@ hit: audioCandidates("hit.wav"),
       },
       "glide"
     );
-    uiHud.toast?.("✨ Glide mode — touch down to reenter", 1500);
+    uiHud.toast?.("âœ¨ Glide mode â€” touch down to reenter", 1500);
   }
 
   function beginReentry() {
@@ -663,7 +663,7 @@ hit: audioCandidates("hit.wav"),
     state.fractureProgress = 0.35;
     owl.clearFlightProfile();
     spawner.reset();
-    uiHud.toast?.("🌀 Reentry", 900);
+    uiHud.toast?.("ðŸŒ€ Reentry", 900);
   }
 
   function finishReentry() {
@@ -783,11 +783,7 @@ hit: audioCandidates("hit.wav"),
     }
 
     if (state.mode !== "playing") {
-      if (state.mode === "menu") {
-        input.consumeJump();
-        return;
-      }
-      if (state.mode === "gameover" && input.consumeJump()) {
+      if ((state.mode === "menu" || state.mode === "gameover") && input.consumeJump()) {
         startGame();
       }
       return;
@@ -883,5 +879,6 @@ hit: audioCandidates("hit.wav"),
 }
 
 boot();
+
 
 

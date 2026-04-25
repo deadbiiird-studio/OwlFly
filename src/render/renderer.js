@@ -186,7 +186,7 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
   const groundAnchorY = GAME.BASE_HEIGHT - 18;
-  const spriteH = Math.max(166, Math.min(320, bounds.h * (variant.heightScale ?? 1) + 44));
+  const spriteH = Math.max(200, Math.min(320, bounds.h * (variant.heightScale ?? 1) + 44));
   const spriteW = Math.max(104, Math.min(228, bounds.w * (variant.widthScale ?? 1) * 1.52));
   const x = bounds.x + bounds.w * 0.5 - spriteW * 0.5;
   const y = groundAnchorY - spriteH;
@@ -206,7 +206,7 @@ function drawRewards(ctx, rewards, rewardSprite, t, reducedMotion, theme, playPh
     if (!reward?.active) continue;
 
     const pulse = reducedMotion ? 0 : Math.sin(t * 10 + reward.x * 0.02) * 0.5 + 0.5;
-    const size = Math.max(18, (reward.r || 14) * 2.4 + pulse * 6);
+    const size = Math.max(18, (reward.r || 14) * 3.0 + pulse * 6);
     const x = reward.x;
     const y = reward.y;
 
@@ -295,7 +295,7 @@ function drawModeBanner(ctx, text, accent, y) {
 function drawOwl(ctx, owl, frames, t, reducedMotion, theme, playPhase) {
   if (!owl) return;
 
-  const frame = pickOwlFrame(frames, owl, t, reducedMotion);
+  const frame = pickOwlFrame(frames, owl, t, reducedMotion, playPhase);
   const x = owl.x;
   const y = owl.y + (OWL.RENDER_Y_OFFSET || 0);
   const rot = typeof owl.rot === "number" ? owl.rot : 0;
@@ -384,7 +384,7 @@ function drawAmbientClouds(ctx, t, theme) {
   if (clouds.enabled === false) return;
 
   ctx.save();
-  ctx.globalAlpha = clouds.alpha ?? 0.12;
+  ctx.globalAlpha = clouds.alpha ?? 0.08;
 
   const drift = (t * 14) % (GAME.BASE_WIDTH + 240);
 
@@ -656,17 +656,22 @@ function pickFrame(frames, t, fps, reducedMotion) {
   return frames[i] || frames[0] || null;
 }
 
-function pickOwlFrame(frames, owl, t, reducedMotion) {
+function pickOwlFrame(frames, owl, t, reducedMotion, playPhase) {
   if (!Array.isArray(frames) || frames.length < 3) return null;
   if (reducedMotion) return frames[1] || frames[0] || null;
+
+  if (playPhase === "glide") {
+    return frames[1] || frames[0] || null;
+  }
 
   if (typeof owl?.wingAngle === "number") {
     if (owl.wingAngle < -0.25) return frames[0];
     if (owl.wingAngle > 0.25) return frames[2];
-    return frames[1];
+    return frames[1] || frames[0] || null;
   }
 
-  return frames[Math.floor(t * 10) % 3] || frames[1] || frames[0] || null;
+  const i = Math.floor(t * 10) % frames.length;
+  return frames[i] || frames[0] || null;
 }
 
 function isImgReady(img) {
