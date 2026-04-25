@@ -51,7 +51,7 @@
               themeList.length
                 ? `
               <div class="unlockRow">
-                <div class="unlockTitle">✨ Themes</div>
+                <div class="unlockTitle">Themes</div>
                 <div class="unlockList">${themeList
                   .map((t) => `<span class="chip">${t.name}</span>`)
                   .join("")}</div>
@@ -63,7 +63,7 @@
               earnedList.length
                 ? `
               <div class="unlockRow">
-                <div class="unlockTitle">🏆 Achievements</div>
+                <div class="unlockTitle">Achievements</div>
                 <div class="unlockList">${earnedList
                   .map((a) => `<span class="chip">${a.title}</span>`)
                   .join("")}</div>

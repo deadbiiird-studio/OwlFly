@@ -420,7 +420,7 @@ hit: audioCandidates("hit.wav"),
 
       if (state.mode === "playing") {
         for (const id of res.unlockedThemes) {
-          uiHud.toast?.(`âœ¨ Theme unlocked: ${getTheme(id).name}`);
+          uiHud.toast?.(`Theme unlocked: ${getTheme(id).name}`);
         }
         for (const a of res.earned) {
           uiHud.toast?.(`ðŸ† ${a.title}`);
@@ -435,7 +435,7 @@ hit: audioCandidates("hit.wav"),
     const unlocked = getUnlockedThemes(profile);
 
     if (!unlocked.includes(th.id)) {
-      uiHud.toast?.(`ðŸ”’ ${th.name} locked â€” ${th.unlock?.text || "keep playing"}`);
+      uiHud.toast?.(`${th.name} locked - ${th.unlock?.text || "keep playing"}`);
       return;
     }
 
