@@ -342,7 +342,7 @@ hit: audioCandidates("hit.wav"),
     fractureTimer: 0,
     fractureProgress: 0,
     glideTimer: 0,
-    reentryTimer: 0,
+    uiHud.toast?.("Reentry", 900);
     invulnTimer: 0,
     passesSinceFracture: 0,
     rewardSpawnTimer: 0,
@@ -423,7 +423,7 @@ hit: audioCandidates("hit.wav"),
           uiHud.toast?.(`Theme unlocked: ${getTheme(id).name}`);
         }
         for (const a of res.earned) {
-          uiHud.toast?.(`ðŸ† ${a.title}`);
+          uiHud.toast?.(`Achievement: ${a.title}`);
           break;
         }
       }
@@ -457,7 +457,7 @@ hit: audioCandidates("hit.wav"),
     state.fractureTimer = 0;
     state.fractureProgress = 0;
     state.glideTimer = 0;
-    state.reentryTimer = 0;
+    uiHud.toast?.("Reentry", 900);
     state.invulnTimer = 0;
     state.passesSinceFracture = 0;
     state.rewardSpawnTimer = 0;
@@ -493,7 +493,7 @@ hit: audioCandidates("hit.wav"),
       onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
-    uiHud.toast?.("ðŸ¦‰ Fly clean. Break through.", 1300);
+    uiHud.toast?.("Fly clean. Break through.", 1300);
 
     applyMusicState();
   }
@@ -630,7 +630,7 @@ hit: audioCandidates("hit.wav"),
     state.rewardSpawnTimer = 0;
     state.rewards.length = 0;
     state.passesSinceFracture = 0;
-    uiHud.toast?.("âš¡ Fracture opening", 1100);
+    uiHud.toast?.("Fracture opening", 1100);
   }
 
   function enterGlide() {
@@ -649,26 +649,26 @@ hit: audioCandidates("hit.wav"),
       },
       "glide"
     );
-    uiHud.toast?.("âœ¨ Glide mode â€” touch down to reenter", 1500);
+    uiHud.toast?.("Glide mode - touch down to reenter", 1500);
   }
 
-  function beginReentry() {
+    uiHud.toast?.("Reentry", 900);
     if (state.playPhase !== "glide") return;
 
-    state.playPhase = "reentry";
-    state.reentryTimer = FRACTURE.REENTRY_DURATION;
-    state.invulnTimer = FRACTURE.REENTRY_INVULN;
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
     state.rewards.length = 0;
     state.rewardSpawnTimer = 0;
     state.fractureProgress = 0.35;
     owl.clearFlightProfile();
     spawner.reset();
-    uiHud.toast?.("ðŸŒ€ Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
   }
 
-  function finishReentry() {
+    uiHud.toast?.("Reentry", 900);
     state.playPhase = "normal";
-    state.reentryTimer = 0;
+    uiHud.toast?.("Reentry", 900);
     state.fractureProgress = 0;
     state.rewards.length = 0;
     state.glideTimer = 0;
@@ -741,11 +741,11 @@ hit: audioCandidates("hit.wav"),
       return;
     }
 
-    if (state.playPhase === "reentry") {
-      state.reentryTimer = Math.max(0, state.reentryTimer - dt);
-      state.fractureProgress = state.reentryTimer / Math.max(0.001, FRACTURE.REENTRY_DURATION);
-      if (state.reentryTimer <= 0) {
-        finishReentry();
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
       }
     }
   }
@@ -812,7 +812,7 @@ hit: audioCandidates("hit.wav"),
       } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
         owl.y = GAME.BASE_HEIGHT - c.r - 2;
         owl.vy = 0;
-        beginReentry();
+    uiHud.toast?.("Reentry", 900);
       }
       return;
     }

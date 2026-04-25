@@ -143,14 +143,14 @@ export class MenuUI {
                 .map((a) => {
                   const p = a.progress || { current: 0, target: 1, earned: false };
                   const pct01 = clamp01(Number(p.pct || 0));
-                  const right = a.earned ? "âœ“" : `${Math.min(p.current, p.target)}/${p.target}`;
+                  const right = a.earned ? "Done" : `${Math.min(p.current, p.target)}/${p.target}`;
                   const rewardTheme = a.reward?.theme ? getTheme(a.reward.theme) : null;
                   const reward = rewardTheme ? `- Unlocks <strong>${rewardTheme.name}</strong>` : "";
 
                   return `
                     <div class="achRow ${a.earned ? "earned" : ""}">
                       <div class="achMain">
-                        <div class="achTitle">${a.earned ? "ðŸ†" : "â˜†"} ${a.title}</div>
+                        <div class="achTitle">${a.earned ? "Earned" : "Open"} - ${a.title}</div>
                         <div class="achDesc">${a.desc} ${reward}</div>
                         <div class="achBar"><div class="achFill" style="width:${Math.round(
                           pct01 * 100
@@ -165,7 +165,7 @@ export class MenuUI {
           </div>
         </details>
 
-        <p class="footer"><small>Enter / Space starts a run â€¢ Esc pauses during play</small></p>
+        <p class="footer"><small>Enter / Space starts a run - Esc pauses during play</small></p>
       </div>
     `;
 
@@ -186,7 +186,7 @@ export class MenuUI {
         if (btn.classList.contains("locked")) {
           const label = btn.querySelector(".themeName")?.textContent || "Theme";
           const sub = btn.querySelector(".themeSub")?.textContent || "Locked";
-          this.toast(`ðŸ”’ ${label} â€” ${sub}`);
+          this.toast(`${label} locked - ${sub}`);
           return;
         }
         this._onSelectTheme?.(id);

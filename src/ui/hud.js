@@ -1,4 +1,4 @@
-export class HudUI {
+﻿export class HudUI {
   constructor(rootEl) {
     this.el = rootEl;
     this._pill = null;
@@ -24,10 +24,10 @@ export class HudUI {
 
         <div class="hudActions">
           <button type="button" class="hudIconBtn" id="muteBtn" aria-label="Toggle mute">
-            ${muted ? "🔇" : "🔊"}
+            ${muted ? "Muted" : "Sound"}
           </button>
           <button type="button" class="hudIconBtn" id="rmBtn" aria-label="Toggle reduced motion">
-            ${reducedMotion ? "🐢" : "✨"}
+            ${reducedMotion ? "Slow" : "Motion"}
           </button>
         </div>
       </div>
@@ -49,11 +49,11 @@ export class HudUI {
   }
 
   setMuted(muted) {
-    if (this._muteBtn) this._muteBtn.textContent = muted ? "🔇" : "🔊";
+    if (this._muteBtn) this._muteBtn.textContent = muted ? "Muted" : "Sound";
   }
 
   setReducedMotion(reducedMotion) {
-    if (this._rmBtn) this._rmBtn.textContent = reducedMotion ? "🐢" : "✨";
+    if (this._rmBtn) this._rmBtn.textContent = reducedMotion ? "Slow" : "Motion";
   }
 
   toast(message, ms = 1700) {
@@ -88,3 +88,4 @@ export class HudUI {
     this._onToggleRM = null;
   }
 }
+

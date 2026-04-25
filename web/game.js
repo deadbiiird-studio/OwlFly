@@ -3147,14 +3147,14 @@ class MenuUI {
                 .map((a) => {
                   const p = a.progress || { current: 0, target: 1, earned: false };
                   const pct01 = clamp01(Number(p.pct || 0));
-                  const right = a.earned ? "âœ“" : `${Math.min(p.current, p.target)}/${p.target}`;
+                  const right = a.earned ? "Done" : `${Math.min(p.current, p.target)}/${p.target}`;
                   const rewardTheme = a.reward?.theme ? getTheme(a.reward.theme) : null;
                   const reward = rewardTheme ? `- Unlocks <strong>${rewardTheme.name}</strong>` : "";
 
                   return `
                     <div class="achRow ${a.earned ? "earned" : ""}">
                       <div class="achMain">
-                        <div class="achTitle">${a.earned ? "ðŸ†" : "â˜†"} ${a.title}</div>
+                        <div class="achTitle">${a.earned ? "Earned" : "Open"} - ${a.title}</div>
                         <div class="achDesc">${a.desc} ${reward}</div>
                         <div class="achBar"><div class="achFill" style="width:${Math.round(
                           pct01 * 100
@@ -3169,7 +3169,7 @@ class MenuUI {
           </div>
         </details>
 
-        <p class="footer"><small>Enter / Space starts a run â€¢ Esc pauses during play</small></p>
+        <p class="footer"><small>Enter / Space starts a run - Esc pauses during play</small></p>
       </div>
     `;
 
@@ -3190,7 +3190,7 @@ class MenuUI {
         if (btn.classList.contains("locked")) {
           const label = btn.querySelector(".themeName")?.textContent || "Theme";
           const sub = btn.querySelector(".themeSub")?.textContent || "Locked";
-          this.toast(`ðŸ”’ ${label} â€” ${sub}`);
+          this.toast(`${label} locked - ${sub}`);
           return;
         }
         this._onSelectTheme?.(id);
@@ -3341,10 +3341,10 @@ class HudUI {
 
         <div class="hudActions">
           <button type="button" class="hudIconBtn" id="muteBtn" aria-label="Toggle mute">
-            ${muted ? "🔇" : "🔊"}
+            ${muted ? "Muted" : "Sound"}
           </button>
           <button type="button" class="hudIconBtn" id="rmBtn" aria-label="Toggle reduced motion">
-            ${reducedMotion ? "🐢" : "✨"}
+            ${reducedMotion ? "Slow" : "Motion"}
           </button>
         </div>
       </div>
@@ -3366,11 +3366,11 @@ class HudUI {
   }
 
   setMuted(muted) {
-    if (this._muteBtn) this._muteBtn.textContent = muted ? "🔇" : "🔊";
+    if (this._muteBtn) this._muteBtn.textContent = muted ? "Muted" : "Sound";
   }
 
   setReducedMotion(reducedMotion) {
-    if (this._rmBtn) this._rmBtn.textContent = reducedMotion ? "🐢" : "✨";
+    if (this._rmBtn) this._rmBtn.textContent = reducedMotion ? "Slow" : "Motion";
   }
 
   toast(message, ms = 1700) {
@@ -3405,6 +3405,8 @@ class HudUI {
     this._onToggleRM = null;
   }
 }
+
+
 
 // ===== FILE: src/ui/gameOver.js =====
 
@@ -3826,7 +3828,7 @@ hit: audioCandidates("hit.wav"),
     fractureTimer: 0,
     fractureProgress: 0,
     glideTimer: 0,
-    reentryTimer: 0,
+    uiHud.toast?.("Reentry", 900);
     invulnTimer: 0,
     passesSinceFracture: 0,
     rewardSpawnTimer: 0,
@@ -3907,7 +3909,7 @@ hit: audioCandidates("hit.wav"),
           uiHud.toast?.(`Theme unlocked: ${getTheme(id).name}`);
         }
         for (const a of res.earned) {
-          uiHud.toast?.(`ðŸ† ${a.title}`);
+          uiHud.toast?.(`Achievement: ${a.title}`);
           break;
         }
       }
@@ -3941,7 +3943,7 @@ hit: audioCandidates("hit.wav"),
     state.fractureTimer = 0;
     state.fractureProgress = 0;
     state.glideTimer = 0;
-    state.reentryTimer = 0;
+    uiHud.toast?.("Reentry", 900);
     state.invulnTimer = 0;
     state.passesSinceFracture = 0;
     state.rewardSpawnTimer = 0;
@@ -3977,7 +3979,7 @@ hit: audioCandidates("hit.wav"),
       onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
-    uiHud.toast?.("ðŸ¦‰ Fly clean. Break through.", 1300);
+    uiHud.toast?.("Fly clean. Break through.", 1300);
 
     applyMusicState();
   }
@@ -4114,7 +4116,7 @@ hit: audioCandidates("hit.wav"),
     state.rewardSpawnTimer = 0;
     state.rewards.length = 0;
     state.passesSinceFracture = 0;
-    uiHud.toast?.("âš¡ Fracture opening", 1100);
+    uiHud.toast?.("Fracture opening", 1100);
   }
 
   function enterGlide() {
@@ -4133,26 +4135,26 @@ hit: audioCandidates("hit.wav"),
       },
       "glide"
     );
-    uiHud.toast?.("âœ¨ Glide mode â€” touch down to reenter", 1500);
+    uiHud.toast?.("Glide mode - touch down to reenter", 1500);
   }
 
-  function beginReentry() {
+    uiHud.toast?.("Reentry", 900);
     if (state.playPhase !== "glide") return;
 
-    state.playPhase = "reentry";
-    state.reentryTimer = FRACTURE.REENTRY_DURATION;
-    state.invulnTimer = FRACTURE.REENTRY_INVULN;
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
     state.rewards.length = 0;
     state.rewardSpawnTimer = 0;
     state.fractureProgress = 0.35;
     owl.clearFlightProfile();
     spawner.reset();
-    uiHud.toast?.("ðŸŒ€ Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
   }
 
-  function finishReentry() {
+    uiHud.toast?.("Reentry", 900);
     state.playPhase = "normal";
-    state.reentryTimer = 0;
+    uiHud.toast?.("Reentry", 900);
     state.fractureProgress = 0;
     state.rewards.length = 0;
     state.glideTimer = 0;
@@ -4225,11 +4227,11 @@ hit: audioCandidates("hit.wav"),
       return;
     }
 
-    if (state.playPhase === "reentry") {
-      state.reentryTimer = Math.max(0, state.reentryTimer - dt);
-      state.fractureProgress = state.reentryTimer / Math.max(0.001, FRACTURE.REENTRY_DURATION);
-      if (state.reentryTimer <= 0) {
-        finishReentry();
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
+    uiHud.toast?.("Reentry", 900);
       }
     }
   }
@@ -4296,7 +4298,7 @@ hit: audioCandidates("hit.wav"),
       } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
         owl.y = GAME.BASE_HEIGHT - c.r - 2;
         owl.vy = 0;
-        beginReentry();
+    uiHud.toast?.("Reentry", 900);
       }
       return;
     }
