@@ -61,10 +61,7 @@ export class ObstaclePair {
       3
     );
 
-    this.buildingVariantIndex = clampIndex(
-      Math.floor(buildingHash * 13),
-      13
-    );
+    this.buildingVariantIndex = clampIndex(Math.floor(buildingHash * 13), 13);
     this.buildingSizeBucket = clampIndex(
       Math.floor(hash01(this.visualSeed, 31) * 5),
       5
@@ -122,7 +119,7 @@ export class ObstaclePair {
 
     const bottomAvailableHeight = Math.max(0, GAME.BASE_HEIGHT - gapBottomY);
     const bottomHitboxHeight = clampToAvailable(
-      OBSTACLE.TORNADO_HITBOX_HEIGHT,
+      OBSTACLE.BUILDING_HITBOX_HEIGHT,
       bottomAvailableHeight
     );
 
@@ -134,9 +131,9 @@ export class ObstaclePair {
     };
 
     const bottom = {
-      x: this.x + OBSTACLE.TORNADO_HITBOX_INSET_X,
+      x: this.x + OBSTACLE.BUILDING_HITBOX_INSET_X,
       y: GAME.BASE_HEIGHT - bottomHitboxHeight,
-      w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.TORNADO_HITBOX_INSET_X * 2),
+      w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.BUILDING_HITBOX_INSET_X * 2),
       h: bottomHitboxHeight,
     };
 
@@ -158,7 +155,7 @@ export class ObstaclePair {
         y: gapBottomY,
         w: OBSTACLE.WIDTH,
         h: Math.max(
-          OBSTACLE.TORNADO_VISUAL_MIN_HEIGHT,
+          OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT,
           GAME.BASE_HEIGHT - gapBottomY
         ),
       },
@@ -170,10 +167,10 @@ export class ObstaclePair {
     const gapBottomY = this.topH + this.gap;
 
     const groundAnchorY =
-      GAME.BASE_HEIGHT - (OBSTACLE.GROUND_VISUAL_INSET ?? 18);
+      GAME.BASE_HEIGHT - (OBSTACLE.BUILDING_GROUND_VISUAL_INSET ?? 8);
 
     const bottomVisualHeight = Math.max(
-      OBSTACLE.TORNADO_VISUAL_MIN_HEIGHT,
+      OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT,
       GAME.BASE_HEIGHT - gapBottomY
     );
 
