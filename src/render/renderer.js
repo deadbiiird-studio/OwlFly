@@ -180,11 +180,8 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
 
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
-
-  // Lower contact line: closer to the bottom edge without sinking below screen.
   const groundAnchorY = GAME.BASE_HEIGHT - 8;
 
-  // Keep the bottom anchored, but grow the skyline upward so buildings are visible.
   const spriteH = Math.max(
     430,
     Math.min(720, bounds.h * (variant.heightScale ?? 1.45) * 2.15 + 132)
@@ -853,6 +850,7 @@ function hexToRgb(hex) {
     b: n & 255,
   };
 }
+
 
 
 

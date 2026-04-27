@@ -1772,28 +1772,233 @@ const DEFAULT_FLIGHT_PROFILE = {
 }
 
 
-// ===== FILE: src/engine/entities/obstaclePair.js =====
+// ===== FILE: src/engine/entities/obstaclePair/math.js =====
 
-
-let nextVisualSpawnId = 1;
-
-function clampToAvailable(target, available) {
+function obstacleClampToAvailable(target, available) {
   return Math.max(0, Math.min(target, available));
 }
-
-function clampIndex(value, max) {
+function obstacleClampIndex(value, max) {
   if (!Number.isFinite(value) || max <= 0) return 0;
   return Math.max(0, Math.min(max - 1, value | 0));
 }
-
-function hash01(value, salt = 0) {
+function obstacleHash01(value, salt = 0) {
   const x = Math.sin(value * 127.1 + salt * 311.7) * 43758.5453123;
   return x - Math.floor(x);
 }
-
-function clamp(value, min, max) {
+function obstacleClampNumber(value, min, max) {
   return Math.max(min, Math.min(max, value));
-}class ObstaclePair {
+}
+
+
+// ===== FILE: src/engine/entities/obstaclePair/geometry.js =====
+
+function normalizeObstaclePairSpawnGeometry({ topH, gap, gapBonus }) {
+  const minGap = Number.isFinite(OBSTACLE.MIN_GAP) ? OBSTACLE.MIN_GAP : gap;
+  const maxGap = Number.isFinite(OBSTACLE.MAX_GAP)
+    ? OBSTACLE.MAX_GAP
+    : gap + gapBonus;
+
+  const grownGap = obstacleClampNumber(gap + gapBonus, minGap, maxGap);
+
+  const minTop = Number.isFinite(OBSTACLE.MIN_TOP) ? OBSTACLE.MIN_TOP : 0;
+  const minBottom = Number.isFinite(OBSTACLE.MIN_BOTTOM)
+    ? OBSTACLE.MIN_BOTTOM
+    : 0;
+
+  const gapCenterY = topH + gap * 0.5;
+  const maxTop = Math.max(minTop, GAME.BASE_HEIGHT - minBottom - grownGap);
+
+  return {
+    gap: grownGap,
+    topH: obstacleClampNumber(gapCenterY - grownGap * 0.5, minTop, maxTop),
+  };
+}
+function getObstaclePairRects(obstacle, buildingMetrics = {}) {
+  const gapTopY = obstacle.topH;
+  const gapBottomY = obstacle.topH + obstacle.gap;
+
+  const topAvailableHeight = Math.max(0, gapTopY);
+  const topHitboxHeight = obstacleClampToAvailable(
+    OBSTACLE.CLOUD_HITBOX_HEIGHT,
+    topAvailableHeight
+  );
+
+  const bottomAvailableHeight = Math.max(0, GAME.BASE_HEIGHT - gapBottomY);
+  const bottomHitboxHeight = obstacleClampToAvailable(
+    (buildingMetrics.BUILDING_HITBOX_HEIGHT ?? OBSTACLE.BUILDING_HITBOX_HEIGHT ?? 150),
+    bottomAvailableHeight
+  );
+
+  const top = {
+    x: obstacle.x + OBSTACLE.CLOUD_HITBOX_INSET_X,
+    y: Math.max(0, gapTopY - topHitboxHeight),
+    w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.CLOUD_HITBOX_INSET_X * 2),
+    h: topHitboxHeight,
+  };
+
+  const bottom = {
+    x: obstacle.x + (buildingMetrics.BUILDING_HITBOX_INSET_X ?? OBSTACLE.BUILDING_HITBOX_INSET_X ?? 10),
+    y: GAME.BASE_HEIGHT - bottomHitboxHeight,
+    w: Math.max(24, OBSTACLE.WIDTH - (buildingMetrics.BUILDING_HITBOX_INSET_X ?? OBSTACLE.BUILDING_HITBOX_INSET_X ?? 10) * 2),
+    h: bottomHitboxHeight,
+  };
+
+  return { top, bottom };
+}
+function getObstaclePairVisualBounds(obstacle, buildingMetrics = {}) {
+  const gapBottomY = obstacle.topH + obstacle.gap;
+
+  return {
+    top: {
+      x: obstacle.x,
+      y: 0,
+      w: OBSTACLE.WIDTH,
+      h: Math.max(OBSTACLE.CLOUD_VISUAL_MIN_HEIGHT, obstacle.topH),
+    },
+    bottom: {
+      x: obstacle.x,
+      y: gapBottomY,
+      w: OBSTACLE.WIDTH,
+      h: Math.max(
+        (buildingMetrics.BUILDING_VISUAL_MIN_HEIGHT ?? OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT ?? 170),
+        GAME.BASE_HEIGHT - gapBottomY
+      ),
+    },
+  };
+}
+function getObstaclePairGapCenterY(obstacle) {
+  return obstacle.topH + obstacle.gap / 2;
+}
+
+
+
+// ===== FILE: src/engine/entities/obstaclePair/motion.js =====
+
+function updateObstaclePairMotion(obstacle, dt) {
+  if (!obstacle.active) return;
+
+  obstacle.x -= obstacle.speed * dt;
+
+  if (obstacle.x + OBSTACLE.WIDTH < -40) {
+    obstacle.despawn();
+  }
+}
+
+
+// ===== FILE: src/engine/entities/obstaclePair/visualState.js =====
+
+
+
+let nextObstaclePairVisualSpawnId = 1;
+
+const OBSTACLE_PAIR_CLOUD_GAP_BONUS_BY_BUCKET = [0, 12, 24];
+const OBSTACLE_PAIR_BUILDING_GAP_BONUS_BY_BUCKET = [0, 8, 16, 24, 32];
+
+const OBSTACLE_PAIR_CLOUD_SCALE_PRESETS = [0.94, 1.0, 1.06];
+const OBSTACLE_PAIR_BUILDING_SCALE_PRESETS = [
+  { widthScale: 0.9, heightScale: 0.86 },
+  { widthScale: 0.96, heightScale: 0.94 },
+  { widthScale: 1.0, heightScale: 1.0 },
+  { widthScale: 1.06, heightScale: 1.08 },
+  { widthScale: 1.12, heightScale: 1.16 },
+];
+function createObstaclePairVisualState({ topH, gap, speed }) {
+  const visualSpawnId = nextObstaclePairVisualSpawnId++;
+  const visualSeed =
+    visualSpawnId * 0.173 + topH * 0.037 + gap * 0.019 + speed * 0.011;
+
+  const cloudHash = obstacleHash01(visualSeed, 13);
+  const buildingHash = obstacleHash01(visualSeed, 29);
+
+  const cloudScaleBucket = obstacleClampIndex(
+    Math.floor(obstacleHash01(visualSeed, 17) * 3),
+    3
+  );
+
+  const buildingSizeBucket = obstacleClampIndex(
+    Math.floor(obstacleHash01(visualSeed, 31) * 5),
+    5
+  );
+
+  return {
+    visualSpawnId,
+    visualSeed,
+    cloudVariantIndex: obstacleClampIndex(Math.floor(cloudHash * 6), 6),
+    cloudScaleBucket,
+    buildingVariantIndex: obstacleClampIndex(Math.floor(buildingHash * 13), 13),
+    buildingSizeBucket,
+  };
+}
+function getObstaclePairGapBonus(obstacle) {
+  return (
+    (OBSTACLE_PAIR_CLOUD_GAP_BONUS_BY_BUCKET[obstacle.cloudScaleBucket] || 0) +
+    (OBSTACLE_PAIR_BUILDING_GAP_BONUS_BY_BUCKET[
+      obstacle.buildingSizeBucket
+    ] || 0)
+  );
+}
+function getObstaclePairRenderHints(obstacle, buildingMetrics = {}) {
+  const gapTopY = obstacle.topH;
+  const gapBottomY = obstacle.topH + obstacle.gap;
+
+  const buildingGroundVisualInset =
+    buildingMetrics.BUILDING_GROUND_VISUAL_INSET ??
+    OBSTACLE.BUILDING_GROUND_VISUAL_INSET ??
+    8;
+
+  const groundAnchorY = GAME.BASE_HEIGHT - buildingGroundVisualInset;
+
+  const bottomVisualHeight = Math.max(
+    (buildingMetrics.BUILDING_VISUAL_MIN_HEIGHT ?? OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT ?? 170),
+    GAME.BASE_HEIGHT - gapBottomY
+  );
+
+  const buildingScale =
+    OBSTACLE_PAIR_BUILDING_SCALE_PRESETS[obstacle.buildingSizeBucket] ||
+    OBSTACLE_PAIR_BUILDING_SCALE_PRESETS[2];
+
+  return {
+    gapTopY,
+    gapBottomY,
+    groundAnchorY,
+
+    visualSpawnId: obstacle.visualSpawnId,
+    visualSeed: obstacle.visualSeed,
+
+    cloudVariantIndex: obstacle.cloudVariantIndex,
+    cloudScaleBucket: obstacle.cloudScaleBucket,
+    cloudScale:
+      OBSTACLE_PAIR_CLOUD_SCALE_PRESETS[obstacle.cloudScaleBucket] || 1,
+
+    buildingVariantIndex: obstacle.buildingVariantIndex,
+    buildingSizeBucket: obstacle.buildingSizeBucket,
+    buildingWidthScale: buildingScale.widthScale,
+    buildingHeightScale: buildingScale.heightScale,
+    buildingTopY: groundAnchorY - bottomVisualHeight,
+    buildingHeight: bottomVisualHeight,
+  };
+}
+
+
+
+// ===== FILE: src/engine/entities/obstaclePair.js =====
+
+
+
+
+
+const BUILDING_HITBOX_HEIGHT = OBSTACLE.BUILDING_HITBOX_HEIGHT ?? 150;
+const BUILDING_HITBOX_INSET_X = OBSTACLE.BUILDING_HITBOX_INSET_X ?? 10;
+const BUILDING_VISUAL_MIN_HEIGHT = OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT ?? 170;
+const BUILDING_GROUND_VISUAL_INSET = OBSTACLE.BUILDING_GROUND_VISUAL_INSET ?? 8;
+
+const BUILDING_METRICS = {
+  BUILDING_HITBOX_HEIGHT,
+  BUILDING_HITBOX_INSET_X,
+  BUILDING_VISUAL_MIN_HEIGHT,
+  BUILDING_GROUND_VISUAL_INSET,
+};
+class ObstaclePair {
   constructor() {
     this.active = false;
     this.passed = false;
@@ -1818,52 +2023,20 @@ function clamp(value, min, max) {
     this.x = x;
     this.speed = speed;
 
-    this.visualSpawnId = nextVisualSpawnId++;
-    this.visualSeed =
-      this.visualSpawnId * 0.173 +
-      topH * 0.037 +
-      gap * 0.019 +
-      speed * 0.011;
-
-    const cloudHash = hash01(this.visualSeed, 13);
-    const buildingHash = hash01(this.visualSeed, 29);
-
-    this.cloudVariantIndex = clampIndex(Math.floor(cloudHash * 6), 6);
-    this.cloudScaleBucket = clampIndex(
-      Math.floor(hash01(this.visualSeed, 17) * 3),
-      3
+    Object.assign(
+      this,
+      createObstaclePairVisualState({ topH, gap, speed })
     );
 
-    this.buildingVariantIndex = clampIndex(Math.floor(buildingHash * 13), 13);
-    this.buildingSizeBucket = clampIndex(
-      Math.floor(hash01(this.visualSeed, 31) * 5),
-      5
-    );
+    const { topH: normalizedTopH, gap: normalizedGap } =
+      normalizeObstaclePairSpawnGeometry({
+        topH,
+        gap,
+        gapBonus: getObstaclePairGapBonus(this),
+      });
 
-    const cloudGapBonusByBucket = [0, 12, 24];
-    const buildingGapBonusByBucket = [0, 8, 16, 24, 32];
-
-    const gapBonus =
-      (cloudGapBonusByBucket[this.cloudScaleBucket] || 0) +
-      (buildingGapBonusByBucket[this.buildingSizeBucket] || 0);
-
-    const minGap = Number.isFinite(OBSTACLE.MIN_GAP) ? OBSTACLE.MIN_GAP : gap;
-    const maxGap = Number.isFinite(OBSTACLE.MAX_GAP)
-      ? OBSTACLE.MAX_GAP
-      : gap + gapBonus;
-
-    const grownGap = clamp(gap + gapBonus, minGap, maxGap);
-
-    const minTop = Number.isFinite(OBSTACLE.MIN_TOP) ? OBSTACLE.MIN_TOP : 0;
-    const minBottom = Number.isFinite(OBSTACLE.MIN_BOTTOM)
-      ? OBSTACLE.MIN_BOTTOM
-      : 0;
-
-    const gapCenterY = topH + gap * 0.5;
-    const maxTop = Math.max(minTop, GAME.BASE_HEIGHT - minBottom - grownGap);
-
-    this.gap = grownGap;
-    this.topH = clamp(gapCenterY - grownGap * 0.5, minTop, maxTop);
+    this.topH = normalizedTopH;
+    this.gap = normalizedGap;
   }
 
   despawn() {
@@ -1871,119 +2044,27 @@ function clamp(value, min, max) {
   }
 
   update(dt) {
-    if (!this.active) return;
-
-    this.x -= this.speed * dt;
-
-    if (this.x + OBSTACLE.WIDTH < -40) {
-      this.despawn();
-    }
+    updateObstaclePairMotion(this, dt);
   }
 
   getRects() {
-    const gapTopY = this.topH;
-    const gapBottomY = this.topH + this.gap;
-
-    const topAvailableHeight = Math.max(0, gapTopY);
-    const topHitboxHeight = clampToAvailable(
-      OBSTACLE.CLOUD_HITBOX_HEIGHT,
-      topAvailableHeight
-    );
-
-    const bottomAvailableHeight = Math.max(0, GAME.BASE_HEIGHT - gapBottomY);
-    const bottomHitboxHeight = clampToAvailable(
-      OBSTACLE.BUILDING_HITBOX_HEIGHT,
-      bottomAvailableHeight
-    );
-
-    const top = {
-      x: this.x + OBSTACLE.CLOUD_HITBOX_INSET_X,
-      y: Math.max(0, gapTopY - topHitboxHeight),
-      w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.CLOUD_HITBOX_INSET_X * 2),
-      h: topHitboxHeight,
-    };
-
-    const bottom = {
-      x: this.x + OBSTACLE.BUILDING_HITBOX_INSET_X,
-      y: GAME.BASE_HEIGHT - bottomHitboxHeight,
-      w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.BUILDING_HITBOX_INSET_X * 2),
-      h: bottomHitboxHeight,
-    };
-
-    return { top, bottom };
+    return getObstaclePairRects(this, BUILDING_METRICS);
   }
 
   getVisualBounds() {
-    const gapBottomY = this.topH + this.gap;
-
-    return {
-      top: {
-        x: this.x,
-        y: 0,
-        w: OBSTACLE.WIDTH,
-        h: Math.max(OBSTACLE.CLOUD_VISUAL_MIN_HEIGHT, this.topH),
-      },
-      bottom: {
-        x: this.x,
-        y: gapBottomY,
-        w: OBSTACLE.WIDTH,
-        h: Math.max(
-          OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT,
-          GAME.BASE_HEIGHT - gapBottomY
-        ),
-      },
-    };
+    return getObstaclePairVisualBounds(this, BUILDING_METRICS);
   }
 
   getRenderHints() {
-    const gapTopY = this.topH;
-    const gapBottomY = this.topH + this.gap;
-
-    const groundAnchorY =
-      GAME.BASE_HEIGHT - (OBSTACLE.BUILDING_GROUND_VISUAL_INSET ?? 8);
-
-    const bottomVisualHeight = Math.max(
-      OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT,
-      GAME.BASE_HEIGHT - gapBottomY
-    );
-
-    const cloudScalePresets = [0.94, 1.0, 1.06];
-    const buildingScalePresets = [
-      { widthScale: 0.9, heightScale: 0.86 },
-      { widthScale: 0.96, heightScale: 0.94 },
-      { widthScale: 1.0, heightScale: 1.0 },
-      { widthScale: 1.06, heightScale: 1.08 },
-      { widthScale: 1.12, heightScale: 1.16 },
-    ];
-
-    const buildingScale =
-      buildingScalePresets[this.buildingSizeBucket] || buildingScalePresets[2];
-
-    return {
-      gapTopY,
-      gapBottomY,
-      groundAnchorY,
-
-      visualSpawnId: this.visualSpawnId,
-      visualSeed: this.visualSeed,
-
-      cloudVariantIndex: this.cloudVariantIndex,
-      cloudScaleBucket: this.cloudScaleBucket,
-      cloudScale: cloudScalePresets[this.cloudScaleBucket] || 1,
-
-      buildingVariantIndex: this.buildingVariantIndex,
-      buildingSizeBucket: this.buildingSizeBucket,
-      buildingWidthScale: buildingScale.widthScale,
-      buildingHeightScale: buildingScale.heightScale,
-      buildingTopY: groundAnchorY - bottomVisualHeight,
-      buildingHeight: bottomVisualHeight,
-    };
+    return getObstaclePairRenderHints(this, BUILDING_METRICS);
   }
 
   getGapCenterY() {
-    return this.topH + this.gap / 2;
+    return getObstaclePairGapCenterY(this);
   }
 }
+
+
 
 // ===== FILE: src/systems/scoring.js =====
 
@@ -2476,11 +2557,8 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
 
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
-
-  // Lower contact line: closer to the bottom edge without sinking below screen.
   const groundAnchorY = GAME.BASE_HEIGHT - 8;
 
-  // Keep the bottom anchored, but grow the skyline upward so buildings are visible.
   const spriteH = Math.max(
     430,
     Math.min(720, bounds.h * (variant.heightScale ?? 1.45) * 2.15 + 132)
@@ -3149,6 +3227,7 @@ function hexToRgb(hex) {
     b: n & 255,
   };
 }
+
 
 
 
