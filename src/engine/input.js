@@ -5,9 +5,22 @@ export class Input {
     this._pause = false;
 
     this._onKeyDown = (e) => {
-      if (e.code === "Space") { e.preventDefault(); this._jump = true; }
-      if (e.code === "Enter") this._jump = true;
-      if (e.code === "Escape") this._pause = true;
+      const code = e.code || "";
+      const key = e.key || "";
+
+      const isSpace = code === "Space" || key === " " || key === "Spacebar";
+      const isEnter = code === "Enter" || key === "Enter";
+      const isEscape = code === "Escape" || key === "Escape";
+
+      if (isSpace || isEnter) {
+        e.preventDefault();
+        this._jump = true;
+        return;
+      }
+
+      if (isEscape) {
+        this._pause = true;
+      }
     };
 
     this._onPointerDown = (e) => {

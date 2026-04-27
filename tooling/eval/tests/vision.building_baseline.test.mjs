@@ -7,10 +7,10 @@ const root = process.cwd();
 const rendererPath = path.join(root, "src/render/renderer.js");
 const renderer = fs.readFileSync(rendererPath, "utf8");
 
-test("vision buildings: visual baseline connects to the ground without sinking below screen", () => {
+test("building visual baseline should connect close to the bottom edge without sinking", () => {
   assert.match(
     renderer,
-    /const groundAnchorY = GAME\.BASE_HEIGHT - 18;/,
+    /const groundAnchorY = GAME\.BASE_HEIGHT - 8;/,
     "building visual baseline should connect near the ground instead of hovering"
   );
 

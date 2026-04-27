@@ -28,8 +28,8 @@ const GAME = {
   RENDER_Y_OFFSET: -2,
 };const OBSTACLE = {
   WIDTH: 78,
-  MIN_GAP: 176,
-  MAX_GAP: 262,
+  MIN_GAP: 208,
+  MAX_GAP: 296,
   MIN_TOP: 110,
   MIN_BOTTOM: 140,
   BASE_SPEED: 245,
@@ -39,11 +39,15 @@ const GAME = {
   CLOUD_HITBOX_INSET_X: 8,
 
   TORNADO_HITBOX_HEIGHT: 150,
+  BUILDING_HITBOX_HEIGHT: 118,
   TORNADO_HITBOX_INSET_X: 10,
+  BUILDING_HITBOX_INSET_X: 10,
 
   CLOUD_VISUAL_MIN_HEIGHT: 92,
   TORNADO_VISUAL_MIN_HEIGHT: 170,
+  BUILDING_VISUAL_MIN_HEIGHT: 172,
   GROUND_VISUAL_INSET: 18,
+  BUILDING_GROUND_VISUAL_INSET: 8,
 
   CLOUD_SWELL_SCALE_MIN: 1.12,
   CLOUD_SWELL_SCALE_MAX: 1.22,
@@ -106,6 +110,8 @@ const GAME = {
   SETTINGS: "owlfly_settings_v1",
   PROFILE: "owlfly_profile_v1",
 };
+
+
 
 // ===== FILE: src/core/rng.js =====
 
@@ -1549,9 +1555,22 @@ class Input {
     this._pause = false;
 
     this._onKeyDown = (e) => {
-      if (e.code === "Space") { e.preventDefault(); this._jump = true; }
-      if (e.code === "Enter") this._jump = true;
-      if (e.code === "Escape") this._pause = true;
+      const code = e.code || "";
+      const key = e.key || "";
+
+      const isSpace = code === "Space" || key === " " || key === "Spacebar";
+      const isEnter = code === "Enter" || key === "Enter";
+      const isEscape = code === "Escape" || key === "Escape";
+
+      if (isSpace || isEnter) {
+        e.preventDefault();
+        this._jump = true;
+        return;
+      }
+
+      if (isEscape) {
+        this._pause = true;
+      }
     };
 
     this._onPointerDown = (e) => {
@@ -1580,7 +1599,6 @@ class Input {
     this.canvas.removeEventListener("pointerdown", this._onPointerDown);
   }
 }
-
 
 // ===== FILE: src/engine/gameLoop.js =====
 
@@ -1816,10 +1834,7 @@ function clamp(value, min, max) {
       3
     );
 
-    this.buildingVariantIndex = clampIndex(
-      Math.floor(buildingHash * 13),
-      13
-    );
+    this.buildingVariantIndex = clampIndex(Math.floor(buildingHash * 13), 13);
     this.buildingSizeBucket = clampIndex(
       Math.floor(hash01(this.visualSeed, 31) * 5),
       5
@@ -1877,7 +1892,7 @@ function clamp(value, min, max) {
 
     const bottomAvailableHeight = Math.max(0, GAME.BASE_HEIGHT - gapBottomY);
     const bottomHitboxHeight = clampToAvailable(
-      OBSTACLE.TORNADO_HITBOX_HEIGHT,
+      OBSTACLE.BUILDING_HITBOX_HEIGHT,
       bottomAvailableHeight
     );
 
@@ -1889,9 +1904,9 @@ function clamp(value, min, max) {
     };
 
     const bottom = {
-      x: this.x + OBSTACLE.TORNADO_HITBOX_INSET_X,
+      x: this.x + OBSTACLE.BUILDING_HITBOX_INSET_X,
       y: GAME.BASE_HEIGHT - bottomHitboxHeight,
-      w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.TORNADO_HITBOX_INSET_X * 2),
+      w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.BUILDING_HITBOX_INSET_X * 2),
       h: bottomHitboxHeight,
     };
 
@@ -1913,7 +1928,7 @@ function clamp(value, min, max) {
         y: gapBottomY,
         w: OBSTACLE.WIDTH,
         h: Math.max(
-          OBSTACLE.TORNADO_VISUAL_MIN_HEIGHT,
+          OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT,
           GAME.BASE_HEIGHT - gapBottomY
         ),
       },
@@ -1925,10 +1940,10 @@ function clamp(value, min, max) {
     const gapBottomY = this.topH + this.gap;
 
     const groundAnchorY =
-      GAME.BASE_HEIGHT - (OBSTACLE.GROUND_VISUAL_INSET ?? 18);
+      GAME.BASE_HEIGHT - (OBSTACLE.BUILDING_GROUND_VISUAL_INSET ?? 8);
 
     const bottomVisualHeight = Math.max(
-      OBSTACLE.TORNADO_VISUAL_MIN_HEIGHT,
+      OBSTACLE.BUILDING_VISUAL_MIN_HEIGHT,
       GAME.BASE_HEIGHT - gapBottomY
     );
 
@@ -2363,6 +2378,7 @@ class Renderer {
     drawSky(ctx, t, theme);
     drawAmbientClouds(ctx, t, theme);
     drawFarGlow(ctx, theme);
+    drawDistantCityBackdrop(ctx, t, theme);
     drawGround(ctx, t, theme);
 
     for (const obstacle of spawner.active) {
@@ -2453,12 +2469,6 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
       theme
     );
   }
-
-  ctx.save();
-  ctx.globalAlpha = 0.1;
-  ctx.fillStyle = theme?.clouds?.top || "rgba(255,255,255,0.22)";
-  ctx.fillRect(bounds.x + 8, y + clusterH - 6, Math.max(18, bounds.w - 16), 6);
-  ctx.restore();
 }
 
 function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
@@ -2466,12 +2476,23 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
 
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
-  const groundAnchorY = GAME.BASE_HEIGHT - 18;
-  const visualBottomY = GAME.BASE_HEIGHT + 52;
-  const spriteH = Math.max(360, Math.min(640, bounds.h * (variant.heightScale ?? 1.35) * 1.75 + 96));
-  const spriteW = Math.max(210, Math.min(460, bounds.w * (variant.widthScale ?? 1.25) * 2.45));
+
+  // Lower contact line: closer to the bottom edge without sinking below screen.
+  const groundAnchorY = GAME.BASE_HEIGHT - 8;
+
+  // Keep the bottom anchored, but grow the skyline upward so buildings are visible.
+  const spriteH = Math.max(
+    430,
+    Math.min(720, bounds.h * (variant.heightScale ?? 1.45) * 2.15 + 132)
+  );
+
+  const spriteW = Math.max(
+    230,
+    Math.min(500, bounds.w * (variant.widthScale ?? 1.3) * 2.65)
+  );
+
   const x = bounds.x + bounds.w * 0.5 - spriteW * 0.5;
-  const y = visualBottomY - spriteH;
+  const y = groundAnchorY - spriteH;
 
   if (isImgReady(frame)) {
     drawContainImage(ctx, frame, { x, y, w: spriteW, h: spriteH });
@@ -2661,6 +2682,119 @@ function drawStars(ctx, t, theme) {
   ctx.restore();
 }
 
+function drawDistantCityBackdrop(ctx, t, theme) {
+  const horizonY = GAME.BASE_HEIGHT - 238;
+  const baseY = GAME.BASE_HEIGHT - 106;
+  const drift = (t * 4) % GAME.BASE_WIDTH;
+
+  ctx.save();
+
+  // High atmospheric city haze behind the playable buildings.
+  const haze = ctx.createLinearGradient(0, horizonY - 42, 0, baseY + 96);
+  haze.addColorStop(0, "rgba(126,243,210,0)");
+  haze.addColorStop(0.42, "rgba(126,243,210,0.035)");
+  haze.addColorStop(1, "rgba(255,214,120,0.035)");
+  ctx.fillStyle = haze;
+  ctx.fillRect(0, horizonY - 48, GAME.BASE_WIDTH, baseY - horizonY + 126);
+
+  drawSkylineLayer(ctx, {
+    baseY: baseY - 8,
+    offsetX: -drift * 0.16,
+    alpha: 0.24,
+    color: "14, 21, 35",
+    scale: 0.74,
+    windowAlpha: 0.026,
+  });
+
+  drawSkylineLayer(ctx, {
+    baseY,
+    offsetX: -drift * 0.3,
+    alpha: 0.42,
+    color: "22, 32, 49",
+    scale: 0.92,
+    windowAlpha: 0.052,
+  });
+
+  // Soft raised horizon. This should read as distance, not a floor edge.
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = theme?.ui?.accent || "#7ef3d2";
+  ctx.fillRect(0, baseY + 1, GAME.BASE_WIDTH, 1);
+
+  // Fade the lower city into the foreground so obstacle buildings stay dominant.
+  const lowerFade = ctx.createLinearGradient(0, baseY - 8, 0, GAME.BASE_HEIGHT);
+  lowerFade.addColorStop(0, "rgba(5,8,15,0)");
+  lowerFade.addColorStop(0.62, "rgba(5,8,15,0.18)");
+  lowerFade.addColorStop(1, "rgba(5,8,15,0.48)");
+  ctx.fillStyle = lowerFade;
+  ctx.fillRect(0, baseY - 8, GAME.BASE_WIDTH, GAME.BASE_HEIGHT - baseY + 8);
+
+  ctx.restore();
+}
+
+function drawSkylineLayer(ctx, { baseY, offsetX, alpha, color, scale, windowAlpha }) {
+  const buildings = [
+    { x: 0, w: 30, h: 72 },
+    { x: 26, w: 24, h: 54 },
+    { x: 48, w: 34, h: 96 },
+    { x: 80, w: 20, h: 62 },
+    { x: 100, w: 42, h: 86 },
+    { x: 138, w: 16, h: 122, cap: "tower" },
+    { x: 154, w: 34, h: 78 },
+    { x: 186, w: 50, h: 108 },
+    { x: 234, w: 24, h: 68 },
+    { x: 256, w: 22, h: 92 },
+    { x: 278, w: 44, h: 136, cap: "needle" },
+    { x: 320, w: 32, h: 74 },
+    { x: 350, w: 46, h: 118 },
+    { x: 394, w: 26, h: 66 },
+    { x: 418, w: 34, h: 88 },
+    { x: 450, w: 38, h: 104 },
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = `rgba(${color}, 1)`;
+
+  for (let pass = -1; pass <= 1; pass++) {
+    const wrapX = offsetX + pass * GAME.BASE_WIDTH;
+
+    for (const b of buildings) {
+      const x = wrapX + b.x;
+      const w = b.w * scale;
+      const h = b.h * scale;
+      const y = baseY - h;
+
+      ctx.fillRect(x, y, w, h);
+
+      if (b.cap === "tower") {
+        ctx.fillRect(x + w * 0.42, y - 28 * scale, w * 0.16, 28 * scale);
+        ctx.fillRect(x + w * 0.30, y - 32 * scale, w * 0.40, 5 * scale);
+      }
+
+      if (b.cap === "needle") {
+        ctx.fillRect(x + w * 0.44, y - 38 * scale, w * 0.12, 38 * scale);
+        ctx.beginPath();
+        ctx.arc(x + w * 0.5, y - 42 * scale, 5 * scale, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.globalAlpha = windowAlpha;
+      ctx.fillStyle = "rgba(255, 214, 120, 1)";
+
+      for (let yy = y + 12 * scale; yy < baseY - 8 * scale; yy += 16 * scale) {
+        for (let xx = x + 6 * scale; xx < x + w - 5 * scale; xx += 12 * scale) {
+          ctx.fillRect(xx, yy, 3 * scale, 2 * scale);
+        }
+      }
+
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = `rgba(${color}, 1)`;
+    }
+  }
+
+  ctx.restore();
+}
+
 function drawAmbientClouds(ctx, t, theme) {
   const clouds = theme?.clouds || {};
   if (clouds.enabled === false) return;
@@ -2692,80 +2826,29 @@ function drawFarGlow(ctx, theme) {
   ctx.restore();
 }
 
-function drawDistantSkyline(ctx, t, theme) {
-  ctx.save();
-
-  const horizonY = GAME.BASE_HEIGHT - 150;
-  const baseY = GAME.BASE_HEIGHT - 92;
-  const drift = (t * 7) % 96;
-
-  // Soft horizon glow behind the skyline.
-  const glow = ctx.createLinearGradient(0, horizonY - 70, 0, baseY + 30);
-  glow.addColorStop(0, "rgba(255, 190, 130, 0)");
-  glow.addColorStop(0.45, "rgba(255, 178, 112, 0.12)");
-  glow.addColorStop(1, "rgba(255, 140, 95, 0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, horizonY - 70, GAME.BASE_WIDTH, 150);
-
-  // Distant skyline: low contrast, behind gameplay.
-  ctx.globalAlpha = 0.22;
-  ctx.fillStyle = theme?.ground?.silhouette || "#261724";
-
-  const startX = -120 - drift;
-  const y = baseY;
-
-  for (let x = startX; x < GAME.BASE_WIDTH + 160; x += 96) {
-    // Hotel / tower blocks
-    ctx.fillRect(x + 4, y - 42, 22, 42);
-    ctx.fillRect(x + 30, y - 64, 18, 64);
-    ctx.fillRect(x + 52, y - 34, 26, 34);
-
-    // Tower of the Americas-inspired needle silhouette
-    ctx.fillRect(x + 82, y - 96, 4, 96);
-    ctx.beginPath();
-    ctx.arc(x + 84, y - 76, 12, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Dome-like shape, kept very subtle
-    ctx.beginPath();
-    ctx.moveTo(x + 112, y);
-    ctx.quadraticCurveTo(x + 136, y - 38, x + 160, y);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // Very light haze wash so the distant layer stays behind obstacles.
-  ctx.globalAlpha = 0.12;
-  const haze = ctx.createLinearGradient(0, horizonY - 30, 0, baseY + 20);
-  haze.addColorStop(0, "rgba(255,255,255,0)");
-  haze.addColorStop(1, theme?.mist?.a || "rgba(220,235,255,0.18)");
-  ctx.fillStyle = haze;
-  ctx.fillRect(0, horizonY - 30, GAME.BASE_WIDTH, 120);
-
-  ctx.restore();
-}
 function drawGround(ctx, t, theme) {
+  const groundY = GAME.BASE_HEIGHT - 8;
+  const bottomY = GAME.BASE_HEIGHT;
+
   ctx.save();
 
-  ctx.fillStyle = theme?.ground?.base || "#1a0f19";
-  ctx.fillRect(0, GAME.BASE_HEIGHT - 120, GAME.BASE_WIDTH, 120);
+  // Lower atmospheric fade only. No platform/deck strip.
+  const fade = ctx.createLinearGradient(0, groundY - 72, 0, bottomY);
+  fade.addColorStop(0, "rgba(5,8,15,0)");
+  fade.addColorStop(0.6, "rgba(5,8,15,0.16)");
+  fade.addColorStop(1, "rgba(5,8,15,0.64)");
+  ctx.fillStyle = fade;
+  ctx.fillRect(0, groundY - 72, GAME.BASE_WIDTH, 80);
 
-  ctx.globalAlpha = 0.9;
-  ctx.fillStyle = theme?.ground?.silhouette || "#261724";
-  ctx.beginPath();
-  ctx.moveTo(0, GAME.BASE_HEIGHT);
-  for (let x = 0; x <= GAME.BASE_WIDTH; x += 16) {
-    const y = GAME.BASE_HEIGHT - 110 - Math.sin((x + t * 28) * 0.018) * 12;
-    ctx.lineTo(x, y);
-  }
-  ctx.lineTo(GAME.BASE_WIDTH, GAME.BASE_HEIGHT);
-  ctx.closePath();
-  ctx.fill();
+  // Very low contact weight so buildings do not float.
+  ctx.globalAlpha = 0.24;
+  ctx.fillStyle = "rgba(0,0,0,0.36)";
+  ctx.fillRect(0, groundY, GAME.BASE_WIDTH, bottomY - groundY);
 
-  ctx.globalAlpha = 0.08;
-  for (let x = -24; x < GAME.BASE_WIDTH + 24; x += 16) {
-    ctx.fillRect(x + ((t * 140) % 16), GAME.BASE_HEIGHT - 118, 1, 118);
-  }
+  // Subtle horizon glow, not a platform edge.
+  ctx.globalAlpha = 0.14;
+  ctx.fillStyle = theme?.ui?.accent || "#7ef3d2";
+  ctx.fillRect(0, groundY - 1, GAME.BASE_WIDTH, 1);
 
   ctx.restore();
 }
@@ -3066,6 +3149,10 @@ function hexToRgb(hex) {
     b: n & 255,
   };
 }
+
+
+
+
 
 
 
@@ -3606,11 +3693,22 @@ function isLocalDev() {
 }
 
 function assetCandidates(path) {
-  const withoutSlash = String(path).replace(/^\/+/, "");
-  const candidates = isLocalDev()
-    ? [`./${withoutSlash}`]
-    : [`/${withoutSlash}`, `./${withoutSlash}`];
-  return Array.from(new Set(candidates));
+  const clean = String(path || "").trim();
+  if (!clean) return [];
+
+  const withoutDot = clean.replace(/^\.\//, "");
+  const withoutSlash = withoutDot.replace(/^\/+/, "");
+
+  const candidates = [`./${withoutSlash}`, `/${withoutSlash}`];
+  const isWebShell = String(location.pathname || "").startsWith("/web/");
+  if (!isWebShell) {
+    // When the dev page is served from root, assets live under /web/.
+    candidates.unshift(`./web/${withoutSlash}`, `/web/${withoutSlash}`);
+  }
+
+  // Prefer relative paths first so dev (/web/index.dev.html), production,
+  // and Capacitor resolve assets from the active shell before trying root.
+  return unique(candidates);
 }
 
 function buildingFrameCandidates(index) {
@@ -3624,9 +3722,21 @@ function buildingFrameCandidates(index) {
 }
 
 function audioCandidates(wavName, mp3Name) {
+  const wav = `assets/audio/${wavName}`;
+  const mp3 = mp3Name ? `assets/audio/${mp3Name}` : null;
+
+  if (isLocalDev()) {
+    return unique([
+      `/web/${wav}`,
+      `./web/${wav}`,
+      ...assetCandidates(wav),
+      ...(mp3 ? [`/web/${mp3}`, `./web/${mp3}`, ...assetCandidates(mp3)] : []),
+    ]);
+  }
+
   return unique([
-    ...assetCandidates(`assets/audio/${wavName}`),
-    ...(mp3Name ? assetCandidates(`assets/audio/${mp3Name}`) : []),
+    ...assetCandidates(wav),
+    ...(mp3 ? assetCandidates(mp3) : []),
   ]);
 }
 
@@ -4336,18 +4446,16 @@ hit: audioCandidates("hit.wav"),
   }
 
   function step(dt) {
-    if (input.consumePause() && state.mode === "playing") {
-      state.paused = !state.paused;
-      loop.setPaused(state.paused);
-    }
-
     if (state.mode !== "playing") {
-      if ((state.mode === "menu" || state.mode === "gameover") && input.consumeJump()) {
-        startGame();
-      }
-      return;
-    }
-
+    if (state.mode === "menu") {
+    input.consumeJump();
+    return;
+  }
+    if (state.mode === "gameover" && input.consumeJump()) {
+    startGame();
+  }
+   return;
+  }
     if (state.paused) return;
 
     if (input.consumeJump()) {
@@ -4438,6 +4546,10 @@ hit: audioCandidates("hit.wav"),
 }
 
 boot();
+
+
+
+
 
 
 

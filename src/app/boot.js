@@ -45,11 +45,22 @@ function isLocalDev() {
 }
 
 function assetCandidates(path) {
-  const withoutSlash = String(path).replace(/^\/+/, "");
-  const candidates = isLocalDev()
-    ? [`./${withoutSlash}`]
-    : [`/${withoutSlash}`, `./${withoutSlash}`];
-  return Array.from(new Set(candidates));
+  const clean = String(path || "").trim();
+  if (!clean) return [];
+
+  const withoutDot = clean.replace(/^\.\//, "");
+  const withoutSlash = withoutDot.replace(/^\/+/, "");
+
+  const candidates = [`./${withoutSlash}`, `/${withoutSlash}`];
+  const isWebShell = String(location.pathname || "").startsWith("/web/");
+  if (!isWebShell) {
+    // When the dev page is served from root, assets live under /web/.
+    candidates.unshift(`./web/${withoutSlash}`, `/web/${withoutSlash}`);
+  }
+
+  // Prefer relative paths first so dev (/web/index.dev.html), production,
+  // and Capacitor resolve assets from the active shell before trying root.
+  return unique(candidates);
 }
 
 function buildingFrameCandidates(index) {
@@ -63,9 +74,21 @@ function buildingFrameCandidates(index) {
 }
 
 function audioCandidates(wavName, mp3Name) {
+  const wav = `assets/audio/${wavName}`;
+  const mp3 = mp3Name ? `assets/audio/${mp3Name}` : null;
+
+  if (isLocalDev()) {
+    return unique([
+      `/web/${wav}`,
+      `./web/${wav}`,
+      ...assetCandidates(wav),
+      ...(mp3 ? [`/web/${mp3}`, `./web/${mp3}`, ...assetCandidates(mp3)] : []),
+    ]);
+  }
+
   return unique([
-    ...assetCandidates(`assets/audio/${wavName}`),
-    ...(mp3Name ? assetCandidates(`assets/audio/${mp3Name}`) : []),
+    ...assetCandidates(wav),
+    ...(mp3 ? assetCandidates(mp3) : []),
   ]);
 }
 
@@ -777,18 +800,16 @@ hit: audioCandidates("hit.wav"),
   }
 
   function step(dt) {
-    if (input.consumePause() && state.mode === "playing") {
-      state.paused = !state.paused;
-      loop.setPaused(state.paused);
-    }
-
     if (state.mode !== "playing") {
-      if ((state.mode === "menu" || state.mode === "gameover") && input.consumeJump()) {
-        startGame();
-      }
-      return;
-    }
-
+    if (state.mode === "menu") {
+    input.consumeJump();
+    return;
+  }
+    if (state.mode === "gameover" && input.consumeJump()) {
+    startGame();
+  }
+   return;
+  }
     if (state.paused) return;
 
     if (input.consumeJump()) {
@@ -879,6 +900,10 @@ hit: audioCandidates("hit.wav"),
 }
 
 boot();
+
+
+
+
 
 
 
