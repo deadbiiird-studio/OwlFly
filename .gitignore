@@ -15,3 +15,4 @@ keystore.jks
 *.bak
 # Android Studio local workspace files
 android/.idea/
+.vscode/
