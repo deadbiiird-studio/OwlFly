@@ -1,6 +1,22 @@
 import { FRACTURE, GAME, OWL } from "../core/constants.js";
 import { getTheme } from "../core/themes.js";
 
+export const VISION_OBSTACLE_SCALE = {
+  cloudMinHeight: 230,
+  cloudMaxHeight: 360,
+  cloudHeightFactor: 1.22,
+  cloudWidthFactor: 2.9,
+
+  buildingGroundInset: 8,
+  buildingMinBoxWidth: 300,
+  buildingMaxBoxWidth: 560,
+  buildingWidthFactor: 3.3,
+  buildingMinBoxHeight: 500,
+  buildingMaxBoxHeight: 760,
+  buildingHeightFactor: 2.25,
+  buildingHeightOffset: 150,
+};
+
 export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -136,9 +152,16 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
 
   const variant = ensureVisualVariant(obstacle, frames, "cloud", 6);
   const clusterScale = variant.scale ?? 1;
-  const clusterH = Math.max(92, Math.min(146, bounds.h * 0.62 * clusterScale));
+  const clusterH = Math.max(
+    VISION_OBSTACLE_SCALE.cloudMinHeight,
+    Math.min(
+      VISION_OBSTACLE_SCALE.cloudMaxHeight,
+      bounds.h * VISION_OBSTACLE_SCALE.cloudHeightFactor * clusterScale
+    )
+  );
   const y = Math.max(0, bounds.y + bounds.h - clusterH);
-  const baseW = bounds.w * 1.5 * (variant.widthScale ?? 1);
+  const baseW =
+    bounds.w * VISION_OBSTACLE_SCALE.cloudWidthFactor * (variant.widthScale ?? 1);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
 
   if (isImgReady(frame)) {
@@ -185,14 +208,27 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
 
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
-  const groundAnchorY = GAME.BASE_HEIGHT - 18;
-  const spriteH = Math.max(166, Math.min(320, bounds.h * (variant.heightScale ?? 1) + 44));
-  const spriteW = Math.max(104, Math.min(228, bounds.w * (variant.widthScale ?? 1) * 1.52));
+  const groundAnchorY = GAME.BASE_HEIGHT - VISION_OBSTACLE_SCALE.buildingGroundInset;
+  const spriteH = Math.max(
+    VISION_OBSTACLE_SCALE.buildingMinBoxHeight,
+    Math.min(
+      VISION_OBSTACLE_SCALE.buildingMaxBoxHeight,
+      bounds.h * (variant.heightScale ?? 1) * VISION_OBSTACLE_SCALE.buildingHeightFactor +
+        VISION_OBSTACLE_SCALE.buildingHeightOffset
+    )
+  );
+  const spriteW = Math.max(
+    VISION_OBSTACLE_SCALE.buildingMinBoxWidth,
+    Math.min(
+      VISION_OBSTACLE_SCALE.buildingMaxBoxWidth,
+      bounds.w * (variant.widthScale ?? 1) * VISION_OBSTACLE_SCALE.buildingWidthFactor
+    )
+  );
   const x = bounds.x + bounds.w * 0.5 - spriteW * 0.5;
   const y = groundAnchorY - spriteH;
 
   if (isImgReady(frame)) {
-    drawContainImage(ctx, frame, { x, y, w: spriteW, h: spriteH });
+    drawImageContainBottom(ctx, frame, { x, y, w: spriteW, h: spriteH });
   } else {
     drawFallbackBuilding(ctx, x + spriteW * 0.5, y, spriteW, spriteH, theme);
   }
@@ -447,6 +483,16 @@ function drawPauseOverlay(ctx) {
   ctx.restore();
 }
 
+function drawImageContainBottom(ctx, img, bounds) {
+  const iw = Math.max(1, img.naturalWidth || img.width || 1);
+  const ih = Math.max(1, img.naturalHeight || img.height || 1);
+  const scale = Math.min(bounds.w / iw, bounds.h / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = bounds.x + (bounds.w - dw) * 0.5;
+  const dy = bounds.y + bounds.h - dh;
+  ctx.drawImage(img, dx, dy, dw, dh);
+}
 function drawContainImage(ctx, img, bounds) {
   const iw = Math.max(1, img.naturalWidth || img.width || 1);
   const ih = Math.max(1, img.naturalHeight || img.height || 1);

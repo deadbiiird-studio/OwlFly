@@ -14,4 +14,10 @@ keystore.jks
 *.jks
 *.bak
 # Android Studio local workspace files
-android/.idea/
+android/.idea/tooling/eval/gate-results.json
+tooling/eval/gate-results.test.json
+src/render/*.bak-*
+*.patch
+APPLY_ME.md
+
+/tooling/eval/gate-results*.json

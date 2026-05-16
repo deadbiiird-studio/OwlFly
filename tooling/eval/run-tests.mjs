@@ -1,9 +1,9 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
-const roots = ["tooling/eval/tests", "tooling/eval"];
+const roots = ["tests", "tooling/eval/tests", "tooling/eval"];
 
 function safeReadDir(dir) {
   try {

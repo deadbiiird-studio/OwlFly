@@ -13,7 +13,11 @@
     "test:spawner": "node --test tests/spawner.test.mjs",
     "eval": "node tooling/eval/sim.mjs --seeds 200 --time 90 --bot humanish_lag",
     "eval:golden": "node tooling/eval/sim.mjs --golden --time 90 --bot humanish_lag",
-    "eval:repro": "node tooling/eval/repro.mjs --seed 101 --time 30"
+    "eval:repro": "node tooling/eval/repro.mjs --seed 101 --time 30",
+    "test:unit": "node --test tests/*.test.mjs",
+    "test:eval": "node tooling/eval/run-tests.mjs",
+    "eval:gate": "node tooling/eval/gate.mjs --seeds 40 --time 45 --bot humanish_lag",
+    "quality": "npm run build && npm run test && npm run eval:gate"
   },
   "devDependencies": {
     "vite": "^5.4.0"
