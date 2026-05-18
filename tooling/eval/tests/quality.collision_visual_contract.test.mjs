@@ -53,7 +53,8 @@ test("quality collision: obstacle hitboxes stay inside their visual bounds and o
     assertInside(`top hitbox ${JSON.stringify(c)}`, rects.top, visual.top);
     assertInside(`bottom hitbox ${JSON.stringify(c)}`, rects.bottom, visual.bottom);
 
-    assert.ok(rects.top.y + rects.top.h <= obstacle.topH + EPS, "top hitbox must not enter readable gap");
+    const topSafeInset = OBSTACLE.CLOUD_GAP_SAFE_INSET ?? 0;
+    assert.ok(rects.top.y + rects.top.h <= obstacle.topH - topSafeInset + EPS, "top hitbox must preserve configured gap-side grace");
     assert.ok(rects.bottom.y + EPS >= obstacle.topH + obstacle.gap, "bottom hitbox must not enter readable gap");
     assert.equal(Math.round(rects.bottom.y + rects.bottom.h), GAME.BASE_HEIGHT, "bottom hitbox should remain bottom anchored");
   }

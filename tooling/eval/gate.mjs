@@ -107,6 +107,7 @@ function printGate(report, checks, outputPath) {
   console.log(`score avg=${report.summary.scoreAvg} p50=${report.summary.scoreP50} p90=${report.summary.scoreP90}`);
   console.log(`duration avg=${report.summary.durationAvg}s gapMin=${report.summary.gapMinOverall} shiftP95Avg=${report.summary.centerShiftP95Avg}`);
   console.log(`deaths=${JSON.stringify(report.summary.deaths)}`);
+  console.log(`deathContexts=${JSON.stringify(report.summary.deathContexts || {})}`);
   console.log("");
 
   for (const check of checks) {

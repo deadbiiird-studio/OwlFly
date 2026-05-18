@@ -12,13 +12,15 @@ const GAME = {
   FPS_CAP: 60,
   FIXED_DT: 1 / 60,
   MAX_CATCHUP_STEPS: 5,
-};const WORLD = {
+};
+const WORLD = {
   GRAVITY: 1700,
   JUMP_IMPULSE: 525,
   MAX_FALL_SPEED: 1100,
   ROT_UP: -0.55,
   ROT_DOWN: 1.35,
-};const OWL = {
+};
+const OWL = {
   X: 140,
   RADIUS: 18,
   HIT_RADIUS_SCALE: 0.8,
@@ -26,10 +28,11 @@ const GAME = {
   HEIGHT: 34,
   RENDER_W: 64,
   RENDER_Y_OFFSET: -2,
-};const OBSTACLE = {
+};
+const OBSTACLE = {
   WIDTH: 78,
-  MIN_GAP: 176,
-  MAX_GAP: 262,
+  MIN_GAP: 208,
+  MAX_GAP: 296,
   MIN_TOP: 110,
   MIN_BOTTOM: 140,
   BASE_SPEED: 245,
@@ -37,13 +40,18 @@ const GAME = {
 
   CLOUD_HITBOX_HEIGHT: 84,
   CLOUD_HITBOX_INSET_X: 8,
+  CLOUD_GAP_SAFE_INSET: 10,
 
   TORNADO_HITBOX_HEIGHT: 150,
+  BUILDING_HITBOX_HEIGHT: 118,
   TORNADO_HITBOX_INSET_X: 10,
+  BUILDING_HITBOX_INSET_X: 10,
 
   CLOUD_VISUAL_MIN_HEIGHT: 92,
   TORNADO_VISUAL_MIN_HEIGHT: 170,
+  BUILDING_VISUAL_MIN_HEIGHT: 172,
   GROUND_VISUAL_INSET: 18,
+  BUILDING_GROUND_VISUAL_INSET: 8,
 
   CLOUD_SWELL_SCALE_MIN: 1.12,
   CLOUD_SWELL_SCALE_MAX: 1.22,
@@ -52,7 +60,8 @@ const GAME = {
   TORNADO_SURGE_SCALE_MAX: 1.34,
   TORNADO_SURGE_HITBOX_BONUS_MIN: 16,
   TORNADO_SURGE_HITBOX_BONUS_MAX: 28,
-};const SPAWN = {
+};
+const SPAWN = {
   BASE_INTERVAL: 1.32,
   MIN_INTERVAL: 1.02,
 
@@ -72,11 +81,13 @@ const GAME = {
 
   CLOUD_SWELL_EVERY: 4,
   TORNADO_SURGE_EVERY: 6,
-};const DIFFICULTY = {
+};
+const DIFFICULTY = {
   SPEED_RAMP_PER_SEC: 5.5,
   GAP_SHRINK_PER_SEC: 0.55,
   INTERVAL_SHRINK_PER_SEC: 0.006,
-};const FRACTURE = {
+};
+const FRACTURE = {
   TRIGGER_EVERY_PASSES: 6,
   TRANSITION_DURATION: 0.72,
   GLIDE_DURATION: 4.4,
@@ -94,18 +105,22 @@ const GAME = {
   REWARD_POINTS: 1,
   REWARD_TRACK_TOP: 180,
   REWARD_TRACK_BOTTOM: 620,
-};const AUDIO = {
+};
+const AUDIO = {
   MASTER: 1.0,
   SFX: 0.9,
   MUSIC: 0.25,
   FLAP: 0.75,
   SCORE: 0.35,
   HIT: 0.95,
-};const STORAGE_KEYS = {
+};
+const STORAGE_KEYS = {
   HIGH_SCORE: "owlfly_highscore_v1",
   SETTINGS: "owlfly_settings_v1",
   PROFILE: "owlfly_profile_v1",
 };
+
+
 
 // ===== FILE: src/core/rng.js =====
 
@@ -1869,7 +1884,8 @@ function clamp(value, min, max) {
     const gapTopY = this.topH;
     const gapBottomY = this.topH + this.gap;
 
-    const topAvailableHeight = Math.max(0, gapTopY);
+    const topGapSafeInset = Math.max(0, OBSTACLE.CLOUD_GAP_SAFE_INSET ?? 0);
+    const topAvailableHeight = Math.max(0, gapTopY - topGapSafeInset);
     const topHitboxHeight = clampToAvailable(
       OBSTACLE.CLOUD_HITBOX_HEIGHT,
       topAvailableHeight
@@ -1883,7 +1899,7 @@ function clamp(value, min, max) {
 
     const top = {
       x: this.x + OBSTACLE.CLOUD_HITBOX_INSET_X,
-      y: Math.max(0, gapTopY - topHitboxHeight),
+      y: Math.max(0, gapTopY - topGapSafeInset - topHitboxHeight),
       w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.CLOUD_HITBOX_INSET_X * 2),
       h: topHitboxHeight,
     };

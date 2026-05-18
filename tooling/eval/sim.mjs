@@ -1,4 +1,4 @@
-﻿import { WORLD, OWL, GAME } from "../../src/core/constants.js";
+import { WORLD, OWL, GAME } from "../../src/core/constants.js";
 import { RNG } from "../../src/core/rng.js";
 import { Difficulty } from "../../src/engine/difficulty.js";
 import { circleAabbIntersect } from "../../src/engine/collision.js";
@@ -67,12 +67,48 @@ function circleFor(owl) {
   return { cx: owl.x, cy: owl.y, r: owl.radius };
 }
 
+function classifyObstacleDeath({ circle, obstacle, rects, hitTop }) {
+  const gapTopY = obstacle.topH;
+  const gapBottomY = obstacle.topH + obstacle.gap;
+  const gapCenterY = obstacle.getGapCenterY?.() ?? (gapTopY + obstacle.gap * 0.5);
+  const rect = hitTop ? rects.top : rects.bottom;
+
+  const circleEdgeY = hitTop ? circle.cy - circle.r : circle.cy + circle.r;
+  const obstacleEdgeY = hitTop ? rect.y + rect.h : rect.y;
+  const penetrationPx = hitTop
+    ? obstacleEdgeY - circleEdgeY
+    : circleEdgeY - obstacleEdgeY;
+
+  const nearGapEdgePx = 18;
+  const nearCenterBand = obstacle.gap * 0.28;
+  const nearGapEdge = Math.abs(penetrationPx) <= nearGapEdgePx;
+  const nearPlayableLane = Math.abs(circle.cy - gapCenterY) <= nearCenterBand;
+
+  let kind = hitTop ? "top_fair_hit" : "bottom_fair_hit";
+  if (nearGapEdge && nearPlayableLane) {
+    kind = hitTop ? "top_gap_edge_brush" : "bottom_gap_edge_brush";
+  } else if (nearGapEdge) {
+    kind = hitTop ? "top_edge_brush" : "bottom_edge_brush";
+  }
+
+  return {
+    kind,
+    obstacle: hitTop ? "top" : "bottom",
+    penetrationPx: round(penetrationPx, 3),
+    gapTopY: round(gapTopY, 3),
+    gapBottomY: round(gapBottomY, 3),
+    gapCenterY: round(gapCenterY, 3),
+    owlY: round(circle.cy, 3),
+  };
+}
+
 function summarizeRun({
   seed,
   bot,
   score,
   elapsed,
   death,
+  deathContext = null,
   gapCenters,
   gapSizes,
 }) {
@@ -87,6 +123,7 @@ function summarizeRun({
     score,
     durationSec: round(elapsed, 3),
     death,
+    deathContext,
     spawns: gapCenters.length,
     gapAvg: round(mean(gapSizes), 3),
     gapMin: gapSizes.length ? Math.min(...gapSizes) : 0,
@@ -162,6 +199,12 @@ function runOne(seed, options) {
 
       if (hitTop || hitBottom) {
         death = hitTop ? "top_obstacle" : "bottom_obstacle";
+        const deathContext = classifyObstacleDeath({
+          circle: c,
+          obstacle: o,
+          rects,
+          hitTop,
+        });
         elapsed += dt;
 
         return summarizeRun({
@@ -170,6 +213,7 @@ function runOne(seed, options) {
           score,
           elapsed,
           death,
+          deathContext,
           gapCenters,
           gapSizes,
         });
@@ -201,9 +245,14 @@ function aggregate(runs, options) {
   const shiftP95s = runs.map((r) => r.centerShiftP95);
   const gapMins = runs.map((r) => r.gapMin);
   const deathCounts = {};
+  const deathContextCounts = {};
 
   for (const r of runs) {
     deathCounts[r.death] = (deathCounts[r.death] ?? 0) + 1;
+    const contextKind = r.deathContext?.kind;
+    if (contextKind) {
+      deathContextCounts[contextKind] = (deathContextCounts[contextKind] ?? 0) + 1;
+    }
   }
 
   const failingSeeds = runs
@@ -213,6 +262,7 @@ function aggregate(runs, options) {
       death: r.death,
       score: r.score,
       durationSec: r.durationSec,
+      deathContext: r.deathContext ?? null,
     }));
 
   return {
@@ -231,6 +281,7 @@ function aggregate(runs, options) {
       gapMinOverall: gapMins.length ? Math.min(...gapMins) : 0,
       failures: failingSeeds.length,
       deaths: deathCounts,
+      deathContexts: deathContextCounts,
     },
     failingSeeds,
     runs,
@@ -272,6 +323,7 @@ function main() {
     `gapMin overall=${report.summary.gapMinOverall} failures=${report.summary.failures}`
   );
   console.log(`deaths=${JSON.stringify(report.summary.deaths)}`);
+  console.log(`deathContexts=${JSON.stringify(report.summary.deathContexts || {})}`);
 
   if (report.failingSeeds.length) {
     console.log("failingSeeds=");

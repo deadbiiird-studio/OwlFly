@@ -114,7 +114,8 @@ export class ObstaclePair {
     const gapTopY = this.topH;
     const gapBottomY = this.topH + this.gap;
 
-    const topAvailableHeight = Math.max(0, gapTopY);
+    const topGapSafeInset = Math.max(0, OBSTACLE.CLOUD_GAP_SAFE_INSET ?? 0);
+    const topAvailableHeight = Math.max(0, gapTopY - topGapSafeInset);
     const topHitboxHeight = clampToAvailable(
       OBSTACLE.CLOUD_HITBOX_HEIGHT,
       topAvailableHeight
@@ -128,7 +129,7 @@ export class ObstaclePair {
 
     const top = {
       x: this.x + OBSTACLE.CLOUD_HITBOX_INSET_X,
-      y: Math.max(0, gapTopY - topHitboxHeight),
+      y: Math.max(0, gapTopY - topGapSafeInset - topHitboxHeight),
       w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.CLOUD_HITBOX_INSET_X * 2),
       h: topHitboxHeight,
     };
