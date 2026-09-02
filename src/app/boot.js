@@ -751,7 +751,11 @@ hit: audioCandidates("hit.wav"),
   }
 
   function maybeTriggerFracture() {
-    return false;
+    if (state.playPhase !== "normal") return false;
+    if (state.passesSinceFracture < FRACTURE.TRIGGER_EVERY_PASSES) return false;
+
+    beginFracture();
+    return true;
   }
 
   function crash() {
@@ -866,9 +870,14 @@ hit: audioCandidates("hit.wav"),
       if (!o.passed && o.x + top.w < c.cx - c.r) {
         o.passed = true;
         scoring.onPassObstacle();
+        state.passesSinceFracture += 1;
         uiHud.setScore(scoring.score);
         playSfx("score", { gain: 1.0 });
         handleProgress({ type: "score", score: scoring.score });
+
+        if (maybeTriggerFracture()) {
+          return;
+        }
       }
     }
   }
