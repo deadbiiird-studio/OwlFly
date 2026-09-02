@@ -765,10 +765,6 @@ hit: audioCandidates("hit.wav"),
     }
   }
 
-  function maybeTriggerFracture() {
-    return false;
-  }
-
   function crash() {
     owl.kill();
     scoring.onCrash();
@@ -842,7 +838,6 @@ hit: audioCandidates("hit.wav"),
       if (state.playPhase === "normal") {
         owl.y = c.r + 2;
         owl.vy = Math.max(0, owl.vy * 0.25);
-        beginFracture();
         return;
       }
 
