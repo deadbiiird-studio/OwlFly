@@ -48,6 +48,7 @@ $files = @(
   "engine\entities\obstaclePair.js",
   "systems\scoring.js",
   "systems\spawner.js",
+  "render\environmentGeometry.js",
   "render\renderer.js",
   "ui\menu.js",
   "ui\hud.js",
