@@ -1,9 +1,13 @@
 import { GAME, OBSTACLE } from "../../core/constants.js";
 import { BUILDING_COLLISION_PROFILES, CLOUD_COLLISION_PROFILES } from "../obstacleCollisionProfiles.js";
+import {
+  BUILDING_GAP_VISUAL_REACH,
+  fitBuildingSpriteHeight,
+} from "../obstacleVisualFit.js";
 
 let nextVisualSpawnId = 1;
 
-export const BUILDING_GAP_COLLISION_REACH = 80;
+export const BUILDING_GAP_COLLISION_REACH = BUILDING_GAP_VISUAL_REACH;
 
 const COLLISION_RENDER_SCALE = {
   cloudMinHeight: 230,
@@ -97,7 +101,7 @@ function makeBuildingBands(obstacle, bounds) {
     BUILDING_COLLISION_PROFILES[variant.frameIndex] ||
     BUILDING_COLLISION_PROFILES[0];
   const groundAnchorY = GAME.BASE_HEIGHT - COLLISION_RENDER_SCALE.buildingGroundInset;
-  const spriteH = Math.max(
+  const nominalSpriteH = Math.max(
     COLLISION_RENDER_SCALE.buildingMinBoxHeight,
     Math.min(
       COLLISION_RENDER_SCALE.buildingMaxBoxHeight,
@@ -116,6 +120,13 @@ function makeBuildingBands(obstacle, bounds) {
         COLLISION_RENDER_SCALE.buildingWidthFactor
     )
   );
+  const spriteH = fitBuildingSpriteHeight({
+    frameIndex: variant.frameIndex,
+    nominalHeight: nominalSpriteH,
+    spriteWidth: spriteW,
+    groundAnchorY,
+    gapBottomY: obstacle.topH + obstacle.gap,
+  });
   const box = {
     x: bounds.x + bounds.w * 0.5 - spriteW * 0.5,
     y: groundAnchorY - spriteH,
