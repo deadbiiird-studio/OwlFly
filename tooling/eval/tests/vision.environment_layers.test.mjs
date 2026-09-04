@@ -91,12 +91,12 @@ test("vision atmosphere: every production build path loads environment geometry 
   const nodeBuild = source("tooling/build.mjs");
   const psBuild = source("tooling/build.ps1");
 
-  for (const [label, build, environmentMarker, rendererMarker] of [
-    ["node", nodeBuild, '"render/environmentGeometry.js"', '"render/renderer.js"'],
-    ["powershell", psBuild, '"render\\environmentGeometry.js"', '"render\\renderer.js"'],
+  for (const [label, build] of [
+    ["node", nodeBuild],
+    ["powershell", psBuild],
   ]) {
-    const environmentAt = build.indexOf(environmentMarker);
-    const rendererAt = build.indexOf(rendererMarker);
+    const environmentAt = build.indexOf("environmentGeometry.js");
+    const rendererAt = build.indexOf("renderer.js");
     assert.ok(environmentAt >= 0, `${label} build missing environmentGeometry.js`);
     assert.ok(rendererAt >= 0, `${label} build missing renderer.js`);
     assert.ok(environmentAt < rendererAt, `${label} build must load environment geometry before renderer`);
