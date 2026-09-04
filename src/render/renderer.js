@@ -1,5 +1,11 @@
 import { FRACTURE, GAME, OWL } from "../core/constants.js";
 import { getTheme } from "../core/themes.js";
+import { fitBuildingSpriteHeight } from "../engine/obstacleVisualFit.js";
+import {
+  ENVIRONMENT_LAYER_CONTRACT,
+  ENVIRONMENT_LAYER_ORDER,
+  getCityLayerSegments,
+} from "./environmentGeometry.js";
 
 export const VISION_OBSTACLE_SCALE = {
   cloudMinHeight: 230,
@@ -98,6 +104,7 @@ export class Renderer {
     drawSky(ctx, t, theme);
     drawAmbientClouds(ctx, t, theme);
     drawFarGlow(ctx, theme);
+    drawCityDepthLayers(ctx, t, theme, reducedMotion);
     drawGround(ctx, t, theme);
 
     for (const obstacle of spawner.active) {
@@ -209,7 +216,7 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
   const groundAnchorY = GAME.BASE_HEIGHT - VISION_OBSTACLE_SCALE.buildingGroundInset;
-  const spriteH = Math.max(
+  const nominalSpriteH = Math.max(
     VISION_OBSTACLE_SCALE.buildingMinBoxHeight,
     Math.min(
       VISION_OBSTACLE_SCALE.buildingMaxBoxHeight,
@@ -224,6 +231,13 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
       bounds.w * (variant.widthScale ?? 1) * VISION_OBSTACLE_SCALE.buildingWidthFactor
     )
   );
+  const spriteH = fitBuildingSpriteHeight({
+    frameIndex: variant.frameIndex,
+    nominalHeight: nominalSpriteH,
+    spriteWidth: spriteW,
+    groundAnchorY,
+    gapBottomY: obstacle.topH + obstacle.gap,
+  });
   const x = bounds.x + bounds.w * 0.5 - spriteW * 0.5;
   const y = groundAnchorY - spriteH;
 
@@ -444,6 +458,60 @@ function drawFarGlow(ctx, theme) {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, GAME.BASE_WIDTH, GAME.BASE_HEIGHT);
   ctx.restore();
+}
+
+function drawCityDepthLayers(ctx, t, theme, reducedMotion) {
+  const colors = {
+    far: theme?.ridges?.far || "#0a1a2c",
+    mid: theme?.ridges?.mid || "#091425",
+    near: theme?.ridges?.mid || theme?.ground?.base || "#1a0f19",
+  };
+
+  for (const layerId of ENVIRONMENT_LAYER_ORDER) {
+    const layer = ENVIRONMENT_LAYER_CONTRACT[layerId];
+    if (!layer) continue;
+
+    const segments = getCityLayerSegments(layerId, t, {
+      reducedMotion,
+      viewportWidth: GAME.BASE_WIDTH,
+    });
+
+    ctx.save();
+    ctx.globalAlpha = layer.alpha;
+    ctx.fillStyle = colors[layerId] || colors.mid;
+
+    for (const segment of segments) {
+      drawCitySegment(ctx, segment);
+    }
+
+    ctx.restore();
+  }
+}
+
+function drawCitySegment(ctx, segment) {
+  const { x, y, w, h, roofType } = segment;
+  const baseY = y + h;
+
+  ctx.beginPath();
+  ctx.moveTo(x, baseY);
+  ctx.lineTo(x, y + (roofType === 0 ? 0 : 6));
+
+  if (roofType === 1) {
+    ctx.lineTo(x + w * 0.22, y + 6);
+    ctx.lineTo(x + w * 0.22, y);
+    ctx.lineTo(x + w * 0.78, y);
+    ctx.lineTo(x + w * 0.78, y + 6);
+  } else if (roofType === 2) {
+    ctx.lineTo(x + w * 0.34, y + 6);
+    ctx.lineTo(x + w * 0.34, y + 2);
+    ctx.lineTo(x + w * 0.66, y + 2);
+    ctx.lineTo(x + w * 0.66, y + 6);
+  }
+
+  ctx.lineTo(x + w, y + (roofType === 0 ? 0 : 6));
+  ctx.lineTo(x + w, baseY);
+  ctx.closePath();
+  ctx.fill();
 }
 
 function drawGround(ctx, t, theme) {
