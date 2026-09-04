@@ -1,48 +1,37 @@
 # Atmosphere City A2 — Readability Instrumentation & Acceptance Tightening
 
 ## Status
-IMPLEMENTED ON `atmosphere-city-a2` — awaiting target-machine verification.
+**APPROVED on `atmosphere-city-a2` — 98/100.**
 
 Parent checkpoint: Atmosphere City A1 @ `1aee2abe8b9f0052a2bfc5da351605d9f3187a53`
-A1 observed score: 96/100 — APPROVED
+
+A1 observed score: **96/100 — APPROVED**
+
+A2 target-machine verification and human visual review are complete. The approved checkpoint is recorded in `agent-board/ATMOSPHERE_CITY_A2_CHECKPOINT.md`.
 
 ---
 
 ## Goal
-Make future atmosphere changes prove that they remain readable before they are allowed to alter the live world.
+Make future OwlFly atmosphere changes prove that they remain readable before they are allowed to alter the live world.
 
-A2 deliberately adds **measurement and rejection capability**, not more scenery.
-
-The purpose is to prevent repeats of the A1 human-veto failure where a visually plausible addition could make the route look unfair even while gameplay geometry remained technically legal.
+A2 deliberately adds **measurement and rejection capability**, not more scenery. Its purpose is to prevent a repeat of the A1 human-veto failure where a visually plausible addition could make the route look unfair even while gameplay geometry remained technically legal.
 
 ---
 
-## Current Design Position Before A2
-A1 is visually and mechanically approved:
+## Design Position
+A1 established the approved visual/mechanical baseline:
 
-- far / mid / near city depth exists;
-- parallax is deterministic;
-- reduced motion freezes the city layers;
-- gap-aware building visual fit prevents tall towers from fake-closing the route;
-- build, tests, eval gate, and human playtest all passed;
-- gameplay truth remains protected.
+- deterministic far / mid / near city depth;
+- ordered parallax;
+- reduced-motion parity;
+- gap-aware building visual fit;
+- preserved gameplay truth.
 
-Current noticed position:
-> a cleaner, deeper Cozy City flight with believable building/cloud openings and stable gameplay.
+A2 adds the policy and tooling needed to reject later atmosphere work that exceeds explicit readability budgets.
 
-The remaining risk is that future windows, haze, signs, rooftop props, weather, and district detail could slowly erode that readability unless the project has explicit budgets.
+Expected engineering/design position after A2:
 
----
-
-## Expected Position After A2
-A2 should not materially change what the player sees.
-
-The change is in what the project is capable of rejecting.
-
-Expected engineering/design position:
-> every future atmosphere proposal must fit inside measurable scenery-alpha, motion, density, roof-language, and flight-field budgets before human review even begins.
-
-A2 converts “this seems visually safe” into a repeatable gate.
+> every future atmosphere proposal must fit inside measurable scenery-alpha, motion, density, roof-language, and flight-field budgets before human review begins.
 
 ---
 
@@ -60,12 +49,10 @@ Defines tooling-only readability limits for:
 - per-layer segment-count budget;
 - visible horizontal scenery-density budget.
 
-The policy intentionally does **not** participate in runtime rendering. It observes and rejects; it does not change gameplay or A1 visuals.
+The policy observes and rejects unsafe states. It does not participate in runtime rendering or modify gameplay truth.
 
 ### `tooling/eval/visual-readability.mjs`
-Samples the committed environment at multiple times, viewport widths, and reduced-motion states and fails if any state exceeds the readability policy.
-
-Current sample matrix:
+Samples the committed environment across:
 
 - viewport widths: 360, 480, 720;
 - time samples: 0, 3.5, 11, 29, 61 seconds;
@@ -74,13 +61,13 @@ Current sample matrix:
 That produces 30 sampled environment states per gate run.
 
 ### `tooling/eval/tests/quality.visual_readability_budget.test.mjs`
-Regression tests prove both sides of the contract:
+Regression coverage proves that:
 
-- the sealed A1 environment is expected to pass;
+- the sealed A1 environment passes;
 - alpha creep is rejected;
 - scenery entering the protected flight field is rejected;
-- parallax layers collapsing toward the same speed are rejected;
-- the visual gate is wired into the repository quality command.
+- collapsed parallax-speed separation is rejected;
+- the visual gate remains wired into the repository quality command.
 
 ### `package.json`
 Adds:
@@ -89,21 +76,21 @@ Adds:
 npm run eval:visual
 ```
 
-and extends `npm run quality` to include the visual-readability gate after build, tests, and gameplay eval.
+and extends `npm run quality` to include the visual-readability gate after build, tests, and gameplay evaluation.
 
 ---
 
-## A2 Design Gate — Preliminary Score
+## Final Design Gate
 
 | Category | Weight | Score | Reason |
 |---|---:|---:|---|
-| Identity coherence | 20 | 18 | Does not add identity directly, but protects the visual language that future identity work depends on. |
-| Gameplay readability | 20 | 20 | This phase exists specifically to enforce readability budgets before visual expansion. |
-| Baseline preservation | 20 | 20 | Tooling-only instrumentation; no runtime behavior or sealed A1 rendering is changed. |
-| Architecture / maintainability | 15 | 15 | Readability policy and audit are isolated, deterministic, and testable. |
-| Future leverage | 15 | 15 | Every later atmosphere/detail phase can reuse the same gate and add new budgets. |
+| Identity coherence | 20 | 18 | Protects the visual language that later authored identity depends on. |
+| Gameplay readability | 20 | 20 | Explicitly enforces readability budgets before visual expansion. |
+| Baseline preservation | 20 | 20 | Tooling-only instrumentation; sealed A1 runtime behavior is unchanged. |
+| Architecture / maintainability | 15 | 15 | Policy and audit are isolated, deterministic, and testable. |
+| Future leverage | 15 | 15 | Later atmosphere phases can reuse and extend the same gate. |
 | Mobile / performance fit | 10 | 10 | No runtime cost; evaluation runs offline in tooling. |
-| **Preliminary Total** | **100** | **98** | **ADMITTED FOR TARGET-MACHINE RETEST.** |
+| **Final Total** | **100** | **98** | **APPROVED.** |
 
 Hard vetoes:
 
@@ -116,76 +103,81 @@ Hard vetoes:
 
 ---
 
-## Erroneous / Low-Value Routes Rejected
+## Target-Machine Verification
+Chromebook/Linux verification completed successfully:
 
-### Add windows/lights immediately — 86/100 — REJECT FOR A2
-Visually attractive, but skips the safety layer specifically requested after the A1 visual-fairness defect.
+- `npm run quality` — **PASS**
+- `npm run build` — **PASS**
+- `npm run test` — **62/62 PASS**, 0 failures
+- `npm run eval:gate` — **PASS** across 40 runs
+- `npm run eval:visual` — **PASS** across 30 sampled environment states
 
-### Put readability clamps directly into runtime renderer — 83/100 — REJECT
-Would silently alter visuals instead of failing unsafe proposals during development. A2 should reveal a bad change, not mask it.
+Gameplay eval remained stable:
 
-### Screenshot-only manual review — 78/100 — REJECT AS SOLE GATE
-Human review remains necessary, but screenshot-only acceptance does not catch deterministic density/motion regressions consistently across times and widths.
+- score avg: `8.5`
+- p50: `6`
+- p90: `17`
+- average survival: `13.009s`
+- gapMin: `216`
+- shiftP95Avg: `36.7`
+- deaths: `36 top / 4 bottom`
+- boundary deaths: `0`
 
-### Computer-vision screenshot scoring now — 84/100 — DEFER
-Potentially useful later, but adds heavy dependencies and threshold ambiguity before simpler geometry-level budgets are exhausted.
+Visual-readability worst observed values:
 
-### Generic “background complexity score” — 72/100 — REJECT
-A single blended number can hide a hard failure. A2 keeps distinct vetoes for intrusion, alpha, speed, density, and roof language.
+- far: alpha `0.14`, speed `5.0`, visible coverage <= `0.741`, top >= `516.4`
+- mid: alpha `0.20`, speed `11.0`, visible coverage <= `0.745`, top >= `551.1`
+- near: alpha `0.25`, speed `20.0`, visible coverage <= `0.787`, top >= `600.4`
 
-### Auto-widen gameplay gaps when scenery gets busy — 12/100 — REJECT
-Directly violates the design contract. Visual mistakes are fixed in the visual layer, not compensated through gameplay.
+All sampled states remained inside the A2 budgets.
+
+## Human Visual Gate
+Final production playtest verdict: **playing really well**.
+
+No new visual confusion, gameplay degradation, or stutter was reported. The human veto is closed.
+
+---
+
+## Rejected Routes
+
+- **Add windows/lights immediately — 86/100:** deferred because it would skip the requested safety layer.
+- **Runtime readability clamps — 83/100:** rejected because unsafe proposals should fail rather than be silently normalized.
+- **Screenshot-only review — 78/100:** insufficient as the sole gate across motion, time, and viewport states.
+- **Computer-vision screenshot scoring — 84/100:** potentially useful later, but unnecessary before simpler deterministic budgets are exhausted.
+- **Generic background-complexity score — 72/100:** rejected because a blended score can conceal hard failures.
+- **Auto-widen gameplay gaps for busy scenery — 12/100:** rejected because visual mistakes must not be compensated through gameplay.
 
 ---
 
 ## Self-Inflicted-Fault Controls
 
-1. A2 lives on its own branch from the sealed A1 commit.
-2. No runtime source file is modified by A2 instrumentation.
-3. No physics, collision, scoring, spawn, difficulty, or asset file is touched.
-4. Policy failure is explicit; unsafe changes do not get auto-normalized into hiding.
-5. The gate samples multiple times and viewport widths to avoid one-frame/one-screen approval bias.
-6. Reduced-motion is part of the same acceptance matrix.
-7. Negative tests deliberately prove that the gate rejects known bad changes.
-8. `npm run quality` now includes visual readability, reducing the chance that it is forgotten during later passes.
-9. Human review remains a hard veto after automated approval.
-10. Future additions must extend the policy rather than bypassing it.
+1. A2 remains isolated from runtime rendering and gameplay source.
+2. No physics, collision, scoring, spawn, difficulty, or asset file is modified by the instrumentation.
+3. Policy failures are explicit; unsafe changes are not auto-normalized.
+4. Multiple times and viewport widths avoid one-frame/one-screen approval bias.
+5. Reduced-motion is part of the same acceptance matrix.
+6. Negative tests prove known unsafe changes are rejected.
+7. `npm run quality` includes visual readability so the gate is difficult to bypass accidentally.
+8. Human review remains a hard veto after automated approval.
+9. Future additions must extend the policy rather than bypass it.
 
 ---
 
-## Verification Required
-On the target machine after switching to `atmosphere-city-a2`:
+## Protected Surfaces
+Do not casually reopen:
 
-```bash
-npm run build
-npm run test
-npm run eval:gate
-npm run eval:visual
-```
+- A1 city composition and gap-aware visual fit;
+- collision profiles;
+- owl physics;
+- obstacle gaps/spawn cadence;
+- scoring/difficulty;
+- Cozy City PNGs.
 
-Or run the combined command:
-
-```bash
-npm run quality
-```
-
-Expected result:
-
-- existing build remains clean;
-- all previous tests remain green;
-- gameplay eval remains within the accepted A1 neighborhood;
-- visual-readability gate passes all 30 sampled states;
-- no runtime visual change should be noticeable from A2 itself.
-
-Final disposition:
-
-- >=90 and all gates pass: CHECKPOINT A2 and authorize authored city-detail work.
-- 80–89: revise A2 instrumentation only.
-- <80 or any hard veto: revert A2.
+Any change to those surfaces requires an independent >=90 review and explicit checkpoint revision.
 
 ---
 
-## Next Approved Work If A2 Passes
-The next visible branch should be **Atmosphere City A3 — authored distant-city character**.
+## Final Disposition
+**CHECKPOINT A2 APPROVED.**
 
-A3 may introduce restrained warm-window constellations and more authored skyline character, but only inside the A2 budgets and without modifying the sealed gameplay surfaces.
+The next authorized visible phase is **Atmosphere City A3 — authored distant-city character**. A3 may add restrained city identity only inside the A2 budgets and may not compensate for visual clutter by modifying gameplay.
