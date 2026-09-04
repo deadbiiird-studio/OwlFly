@@ -62,7 +62,7 @@ for (const report of reports) {
         maxAlpha: 0,
         maxSpeedPxPerSec: 0,
         maxSegmentCount: 0,
-        maxWidthCoverageRatio: 0,
+        maxVisibleWidthCoverageRatio: 0,
         minTopY: Infinity,
       };
     }
@@ -70,9 +70,9 @@ for (const report of reports) {
     w.maxAlpha = Math.max(w.maxAlpha, metrics.alpha || 0);
     w.maxSpeedPxPerSec = Math.max(w.maxSpeedPxPerSec, metrics.speedPxPerSec || 0);
     w.maxSegmentCount = Math.max(w.maxSegmentCount, metrics.segmentCount || 0);
-    w.maxWidthCoverageRatio = Math.max(
-      w.maxWidthCoverageRatio,
-      metrics.widthCoverageRatio || 0
+    w.maxVisibleWidthCoverageRatio = Math.max(
+      w.maxVisibleWidthCoverageRatio,
+      metrics.visibleWidthCoverageRatio || 0
     );
     w.minTopY = Math.min(w.minTopY, metrics.minTopY);
   }
@@ -82,7 +82,7 @@ console.log("OwlFly visual-readability gate");
 for (const [layerId, metrics] of Object.entries(worst)) {
   console.log(
     `${layerId}: alpha=${metrics.maxAlpha.toFixed(2)} speed=${metrics.maxSpeedPxPerSec.toFixed(1)} ` +
-      `segments<=${metrics.maxSegmentCount} coverage<=${metrics.maxWidthCoverageRatio.toFixed(3)} ` +
+      `segments<=${metrics.maxSegmentCount} visibleCoverage<=${metrics.maxVisibleWidthCoverageRatio.toFixed(3)} ` +
       `top>=${Number.isFinite(metrics.minTopY) ? metrics.minTopY.toFixed(1) : "n/a"}`
   );
 }
