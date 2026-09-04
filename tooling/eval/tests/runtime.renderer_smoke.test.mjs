@@ -102,6 +102,20 @@ test("runtime renderer: production bundle includes sprite collision profiles bef
   assert.ok(cloudProfilesAt < obstaclePairAt, "cloud collision profiles must load before ObstaclePair");
 });
 
+test("runtime renderer: production bundle includes gap-aware visual fit before ObstaclePair and Renderer", () => {
+  const bundlePath = path.join(ROOT, "web", "game.js");
+  assert.ok(fs.existsSync(bundlePath), "web/game.js missing; run npm run build first");
+  const bundle = fs.readFileSync(bundlePath, "utf8");
+
+  const visualFitAt = bundle.indexOf("function fitBuildingSpriteHeight");
+  const obstaclePairAt = bundle.indexOf("class ObstaclePair");
+  const rendererAt = bundle.indexOf("class Renderer");
+
+  assert.ok(visualFitAt >= 0, "production bundle missing fitBuildingSpriteHeight");
+  assert.ok(obstaclePairAt > visualFitAt, "visual fit must load before ObstaclePair");
+  assert.ok(rendererAt > visualFitAt, "visual fit must load before Renderer");
+});
+
 test("runtime renderer: production bundle includes atmosphere geometry before Renderer", () => {
   const bundlePath = path.join(ROOT, "web", "game.js");
   assert.ok(fs.existsSync(bundlePath), "web/game.js missing; run npm run build first");
