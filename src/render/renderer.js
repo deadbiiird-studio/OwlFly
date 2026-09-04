@@ -1,5 +1,6 @@
 import { FRACTURE, GAME, OWL } from "../core/constants.js";
 import { getTheme } from "../core/themes.js";
+import { fitBuildingSpriteHeight } from "../engine/obstacleVisualFit.js";
 import {
   ENVIRONMENT_LAYER_CONTRACT,
   ENVIRONMENT_LAYER_ORDER,
@@ -215,7 +216,7 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
   const groundAnchorY = GAME.BASE_HEIGHT - VISION_OBSTACLE_SCALE.buildingGroundInset;
-  const spriteH = Math.max(
+  const nominalSpriteH = Math.max(
     VISION_OBSTACLE_SCALE.buildingMinBoxHeight,
     Math.min(
       VISION_OBSTACLE_SCALE.buildingMaxBoxHeight,
@@ -230,6 +231,13 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
       bounds.w * (variant.widthScale ?? 1) * VISION_OBSTACLE_SCALE.buildingWidthFactor
     )
   );
+  const spriteH = fitBuildingSpriteHeight({
+    frameIndex: variant.frameIndex,
+    nominalHeight: nominalSpriteH,
+    spriteWidth: spriteW,
+    groundAnchorY,
+    gapBottomY: obstacle.topH + obstacle.gap,
+  });
   const x = bounds.x + bounds.w * 0.5 - spriteW * 0.5;
   const y = groundAnchorY - spriteH;
 
