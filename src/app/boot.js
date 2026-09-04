@@ -209,19 +209,21 @@ function rewardSpriteCandidates() {
 }
 
 async function loadFrameSet(count, candidateFactory, label) {
-  const frames = [];
+  const frames = await Promise.all(
+    Array.from({ length: count }, async (_, offset) => {
+      const index = offset + 1;
+      const candidates = candidateFactory(index);
+      const frame = await loadOptionalImage(candidates);
 
-  for (let i = 1; i <= count; i += 1) {
-    const frame = await loadOptionalImage(candidateFactory(i));
-    if (frame) {
-      frames.push(frame);
-      continue;
-    }
+      if (!frame) {
+        console.warn(`${label} sprite ${index} missing. Checked:`, candidates);
+      }
 
-    console.warn(`${label} sprite ${i} missing. Checked:`, candidateFactory(i));
-  }
+      return frame;
+    })
+  );
 
-  return frames;
+  return frames.filter(Boolean);
 }
 
 async function preloadSprites(renderer) {
@@ -243,8 +245,10 @@ async function preloadSprites(renderer) {
   renderer.setGlideOwlFrames(g0 || f0, g1 || f1, g2 || f2);
   renderer.setRewardSprite(rewardSprite);
 
-  const clouds = await loadFrameSet(6, cloudFrameCandidates, "Cloud");
-  const buildings = await loadFrameSet(13, buildingFrameCandidates, "Building");
+  const [clouds, buildings] = await Promise.all([
+    loadFrameSet(6, cloudFrameCandidates, "Cloud"),
+    loadFrameSet(13, buildingFrameCandidates, "Building"),
+  ]);
 
   renderer.setObstacleSprites({ clouds, buildings });
 }
@@ -302,7 +306,7 @@ export function boot() {
   window.addEventListener("resize", syncCanvasSize);
   window.addEventListener("orientationchange", syncCanvasSize);
 
-  preloadSprites(renderer).catch((error) => {
+  const spritesReady = preloadSprites(renderer).catch((error) => {
     console.warn("Sprite preload failed:", error);
   });
 
@@ -473,7 +477,18 @@ hit: audioCandidates("hit.wav"),
     resetPhaseState();
   }
 
-  function startGame() {
+  let startingGame = false;
+
+  async function startGame() {
+    if (startingGame || state.mode === "playing") return;
+
+    startingGame = true;
+    try {
+      await spritesReady;
+    } finally {
+      startingGame = false;
+    }
+
     input.consumeJump();
 
     hardResetRun();
@@ -750,10 +765,6 @@ hit: audioCandidates("hit.wav"),
     }
   }
 
-  function maybeTriggerFracture() {
-    return false;
-  }
-
   function crash() {
     owl.kill();
     scoring.onCrash();
@@ -827,7 +838,6 @@ hit: audioCandidates("hit.wav"),
       if (state.playPhase === "normal") {
         owl.y = c.r + 2;
         owl.vy = Math.max(0, owl.vy * 0.25);
-        beginFracture();
         return;
       }
 
