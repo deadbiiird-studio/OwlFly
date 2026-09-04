@@ -12,19 +12,22 @@ export const READABILITY_POLICY = Object.freeze({
       maxAlpha: 0.14,
       maxSpeedPxPerSec: 6,
       maxSegmentsPer480: 20,
-      maxWidthCoverageRatio: 1.12,
+      offscreenSegmentAllowance: 5,
+      maxVisibleWidthCoverageRatio: 0.90,
     }),
     mid: Object.freeze({
       maxAlpha: 0.20,
       maxSpeedPxPerSec: 13,
       maxSegmentsPer480: 16,
-      maxWidthCoverageRatio: 1.22,
+      offscreenSegmentAllowance: 5,
+      maxVisibleWidthCoverageRatio: 0.90,
     }),
     near: Object.freeze({
       maxAlpha: 0.25,
       maxSpeedPxPerSec: 22,
       maxSegmentsPer480: 14,
-      maxWidthCoverageRatio: 1.38,
+      offscreenSegmentAllowance: 5,
+      maxVisibleWidthCoverageRatio: 0.90,
     }),
   }),
 });
@@ -65,11 +68,27 @@ export function auditEnvironmentReadability({
     }
 
     const widthScale = Math.max(1, viewportWidth) / 480;
-    const segmentBudget = Math.ceil(policy.maxSegmentsPer480 * widthScale);
-    const widthCoverage = segments.reduce((sum, segment) => sum + Math.max(0, segment?.w || 0), 0);
-    const widthCoverageRatio = widthCoverage / Math.max(1, viewportWidth);
+    const baseVisibleBudget = Math.max(
+      1,
+      policy.maxSegmentsPer480 - policy.offscreenSegmentAllowance
+    );
+    const segmentBudget =
+      Math.ceil(baseVisibleBudget * widthScale) + policy.offscreenSegmentAllowance;
+
+    const visibleWidthCoverage = segments.reduce((sum, segment) => {
+      if (!Number.isFinite(segment?.x) || !(segment?.w > 0)) return sum;
+      const left = Math.max(0, segment.x);
+      const right = Math.min(viewportWidth, segment.x + segment.w);
+      return sum + Math.max(0, right - left);
+    }, 0);
+    const visibleWidthCoverageRatio =
+      visibleWidthCoverage / Math.max(1, viewportWidth);
     const minTopY = segments.length
-      ? Math.min(...segments.map((segment) => Number.isFinite(segment?.y) ? segment.y : Infinity))
+      ? Math.min(
+          ...segments.map((segment) =>
+            Number.isFinite(segment?.y) ? segment.y : Infinity
+          )
+        )
       : Infinity;
 
     metrics.totalParallaxSpeedPxPerSec += layer.speedPxPerSec;
@@ -78,7 +97,7 @@ export function auditEnvironmentReadability({
       speedPxPerSec: layer.speedPxPerSec,
       segmentCount: segments.length,
       segmentBudget,
-      widthCoverageRatio,
+      visibleWidthCoverageRatio,
       minTopY,
     };
 
@@ -106,9 +125,9 @@ export function auditEnvironmentReadability({
       failures.push(`${layerId}: ${segments.length} segments exceed budget ${segmentBudget}`);
     }
 
-    if (widthCoverageRatio > policy.maxWidthCoverageRatio) {
+    if (visibleWidthCoverageRatio > policy.maxVisibleWidthCoverageRatio) {
       failures.push(
-        `${layerId}: width coverage ${widthCoverageRatio.toFixed(3)} exceeds ${policy.maxWidthCoverageRatio}`
+        `${layerId}: visible width coverage ${visibleWidthCoverageRatio.toFixed(3)} exceeds ${policy.maxVisibleWidthCoverageRatio}`
       );
     }
 
