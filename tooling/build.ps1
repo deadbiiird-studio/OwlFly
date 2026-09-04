@@ -45,6 +45,7 @@ $files = @(
   "engine\gameLoop.js",
   "engine\entities\owl.js",
   "engine\obstacleCollisionProfiles.js",
+  "engine\obstacleVisualFit.js",
   "engine\entities\obstaclePair.js",
   "systems\scoring.js",
   "systems\spawner.js",
