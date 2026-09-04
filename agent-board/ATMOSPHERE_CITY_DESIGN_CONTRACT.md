@@ -76,6 +76,8 @@ All future revisions in this design path must strengthen that sentence or be rej
 - Add authored repetition before random clutter.
 - Preserve the owl and obstacle gameplay baseline unless a future mechanic receives its own independent 90+ design approval.
 - Existing theme IDs/unlock logic stay stable during this pass; visual reinterpretation is safer than persistence-breaking renames.
+- **Hazard art must not visually occupy large areas that gameplay deliberately treats as open.** If render and collision communicate different route widths, the rendering layer is guilty until proven otherwise.
+- **Human readability can veto a green automated gate.** No phase is checkpointed solely because tests and eval pass.
 
 ---
 
@@ -108,6 +110,7 @@ In addition, it is automatically rejected even with a high total if:
 - It introduces a second source of truth for gameplay geometry.
 - It requires large shared-file refactors before proving visual value.
 - It cannot be tested, visually reviewed, or rolled back independently.
+- It leaves a known route-signaling mismatch where visible hazard mass materially disagrees with lethal geometry.
 
 ---
 
@@ -132,6 +135,9 @@ Why 97:
 - enormous identity gain;
 - low gameplay risk when kept in renderer/theme lanes;
 - creates infrastructure used by every later approved route.
+
+### A1 corrective clause
+A1 is not considered checkpointed merely because the technical gate passes. The human-reported almost-unwinnable building/cloud presentation exposed a render-vs-collision honesty defect. The approved correction is a shared gap-aware building visual fit, scored 95/100, that scales only problematic tall/low-gap building presentations while keeping spawn-gap, physics, scoring, and Cozy City art unchanged.
 
 ## Phase B — Living City Detail System — **95/100 — APPROVED AFTER A**
 
@@ -208,6 +214,24 @@ Examples:
 
 No physics change is implied. This is character feedback, not a new control system.
 
+## Candidate: Rare Over-Cloud Route — **UNSCORED IMPLEMENTATION / CAPTURED CONCEPT**
+
+The owl may eventually be allowed to pass above selected floating cloud formations.
+
+This is **not** part of the current A1 correction because an always-open over-cloud route would alter the established top-obstacle collision model.
+
+For future admission it must score >=90 and meet these conditions:
+
+- rare, selected formations rather than every cloud;
+- pre-commit visual telegraphing that the cloud is floating rather than ceiling-like;
+- route cannot conflict with screen/top boundary rules;
+- no ambiguity about which clouds permit overflight;
+- same input grammar as the normal run;
+- independent fairness/eval coverage;
+- rollback does not affect ordinary cloud obstacles.
+
+Until that contract exists, top-cloud semantics remain unchanged.
+
 ---
 
 # 6. Low-Value / Erroneous Routes
@@ -218,306 +242,76 @@ These routes are explicitly rejected unless new evidence changes their score abo
 |---|---:|---|---|
 | Full owl redesign now | 58 | REJECT | Current owl is readable; replacing it spends risk where the world is weaker. |
 | New physics / flap model during atmosphere pass | 34 | REJECT | Destroys proven gameplay baseline for no environment benefit. |
-| Make every building enterable | 79 | REJECT | Removes rarity, multiplies state/collision complexity, weakens exterior pacing. |
-| Multiple unrelated biomes immediately | 68 | REJECT | Dilutes Cozy City identity before one world is complete. |
-| Heavy random prop generation | 71 | REJECT | Creates clutter, inconsistent screenshots, harder testing, low authorship. |
-| Gameplay-changing rain/wind now | 73 | REJECT | Turns atmosphere into difficulty before visual language is proven. |
-| Dense rain/fog covering hazards | 49 | REJECT | Direct readability failure. |
-| 3D/pseudo-3D renderer overhaul | 62 | REJECT | High architecture/performance cost; current Canvas layering can achieve needed depth. |
-| Dynamic light/shadow simulation per sprite | 83 | DEFER | Attractive but poor cost/value before basic atmosphere hierarchy is complete. |
-| New currency/shop/meta layer | 54 | REJECT | Does not solve current world-identity problem. |
-| Large renderer rewrite before visual prototype | 57 | REJECT | Refactor risk without evidence that current structure blocks the target. |
-| Dozens of new obstacle types | 66 | REJECT | More content before environmental coherence; increases fairness/test surface. |
-| Random collectibles added for visual interest | 76 | REJECT | Adds gameplay noise instead of improving the world layer. |
-| Expanding fracture/glide spectacle during this pass | 65 | DEFER | Different design lane; risks competing with the environment work. |
-
-Rejected does not mean "never." It means "not justified by the current design contract."
+| Every building enterable | 79 | REJECT | Removes rarity and multiplies state/asset/collision complexity. |
+| Multiple unrelated biomes now | 68 | REJECT | Dilutes Cozy City before it develops a strong identity. |
+| Gameplay-affecting wind/rain now | 73 | REJECT | Atmosphere should communicate place before becoming a difficulty modifier. |
+| Dense procedural prop spam | 71 | REJECT | Adds clutter, non-authored repetition, and readability risk. |
+| 3D / pseudo-3D overhaul | 62 | REJECT | High implementation risk for depth that 2D parallax can provide. |
+| New currency/shop layer now | 54 | REJECT | Does not address the current world-design deficit. |
+| Dynamic per-sprite lighting now | 83 | DEFER | Attractive but premature before environment hierarchy is stable. |
+| More obstacle types now | 66 | REJECT | Adds content before the current city becomes coherent. |
+| Widen gameplay gaps to compensate for misleading art | 22 | REJECT | Treats rendering error as a physics problem and damages the proven baseline. |
+| Keep tall art and simply make the invisible collision more forgiving | 31 | REJECT | Increases render/collision dishonesty rather than fixing it. |
+| Make every cloud freely overflyable now | 72 | REJECT FOR CURRENT PHASE | Changes top-obstacle semantics globally and makes ceiling/floating-cloud language ambiguous. |
 
 ---
 
-# 7. Fault-Minimization Plan
+# 7. Revision Decision Rule
 
-The pass must actively reduce self-inflicted defects.
+Every revision or addition is first classified into one of these lanes:
 
-## 7.1 Branch isolation
+1. **Presentation correction** — fixes misleading visual hierarchy without changing core gameplay truth.
+2. **Environment addition** — background/world identity only; must remain non-collidable.
+3. **Gameplay mechanic** — changes route choice, collision semantics, scoring, controls, or state flow; requires its own 90+ mechanic contract.
+4. **Infrastructure/refactor** — allowed only when it removes a demonstrated source of drift or enables an already-approved phase.
 
-- `collision-fidelity-pass` remains the protected known-good gameplay baseline.
-- `atmosphere-city-pass` carries environment work.
-- No experimental visual branch gets merged into the baseline simply because it looks promising.
-
-## 7.2 One-lane commits
-
-Prefer commits that affect one concern:
-
-- environment architecture;
-- visual asset hookup;
-- theme data;
-- tests;
-- build manifest.
-
-Do not mix gameplay tuning with atmosphere commits.
-
-## 7.3 Gameplay truth stays outside visual interpretation
-
-The atmosphere system cannot write:
-
-- obstacle gap;
-- obstacle speed;
-- collision geometry;
-- owl velocity;
-- score;
-- spawn pacing.
-
-If a visual addition seems to require gameplay changes to remain fair, first simplify the visual addition.
-
-## 7.4 Build-path parity
-
-Any new source module required by the classic production bundle must be represented in:
-
-- Node build path;
-- PowerShell build path;
-- production-bundle regression test.
-
-This directly prevents a repeat of the collision-profile bundle omission that was caught in the previous pass.
-
-## 7.5 Asset path discipline
-
-Every new environment asset must have:
-
-- one canonical repo path;
-- preload/fallback behavior when required;
-- production request verification;
-- no duplicate renamed copies unless technically necessary.
-
-## 7.6 Deterministic visuals
-
-Ambient variation should be derived from stable seeds, fixed layer definitions, or time-based motion rather than uncontrolled random regeneration every frame.
-
-Benefits:
-
-- reproducible screenshots;
-- stable testing;
-- fewer "why did that look different?" bugs;
-- easier performance diagnosis.
-
-## 7.7 Readability ownership
-
-Foreground gameplay objects own:
-
-- strongest silhouette contrast;
-- sharpest edges;
-- highest local salience.
-
-Background owns:
-
-- softer contrast;
-- slower motion;
-- lower detail density;
-- atmospheric color.
-
-No decorative skyline roof edge may look more dangerous than a real building obstacle.
-
-## 7.8 Reduced-motion parity
-
-Atmospheric motion must gracefully simplify or freeze when reduced-motion is active. No feature is accepted if disabling its motion destroys the entire scene.
-
-## 7.9 Regression gates after every meaningful slice
-
-Minimum:
-
-```bash
-npm run build
-npm run test
-npm run eval:gate
-```
-
-Runtime:
-
-- load production `web/` build;
-- confirm all new assets return 200;
-- inspect console/network errors;
-- play deliberate near-misses;
-- compare readability against the locked baseline.
-
-## 7.10 Rollback before expansion
-
-Each phase must produce a named checkpoint before the next phase begins.
-
-No Phase B implementation begins while Phase A is visually unresolved.
+The agreed design path decides the lane before implementation. A feature does not get reclassified after code exists merely to justify keeping it.
 
 ---
 
-# 8. Phase A Implementation Map
+# 8. Self-Inflicted Fault Prevention Rules
 
-## Slice A1 — Environment geometry contract
-
-Define pure layer specifications before drawing more detail:
-
-- depth index;
-- parallax speed;
-- base vertical band;
-- opacity range;
-- silhouette/detail density;
-- theme color source.
-
-Target layers:
-
-- far skyline;
-- mid skyline;
-- near non-collision city.
-
-No assets required to prove this slice; simple deterministic Canvas silhouettes are acceptable as structural placeholders.
-
-## Slice A2 — Corridor contrast contract
-
-Add tests/helpers that make the environment hierarchy explicit where feasible.
-
-Acceptance:
-
-- obstacle rendering still uses current foreground sprite path;
-- atmosphere does not alter `getRects()`, sprite collision bands, owl physics, scoring, or spawn logic;
-- reduced-motion mode still renders a coherent static scene.
-
-## Slice A3 — Far skyline
-
-Build a low-contrast distant skyline with:
-
-- small building rhythm;
-- occasional tower/spire;
-- sparse window constellations;
-- atmospheric haze;
-- slow parallax.
-
-Avoid individual foreground-like building sprites here.
-
-## Slice A4 — Mid skyline
-
-Add a second city band with:
-
-- more readable roof rhythm;
-- still no collision implication;
-- modest window grouping;
-- enough difference from far skyline to create clear depth.
-
-## Slice A5 — Near non-collision details
-
-Use restraint:
-
-- utility wires;
-- rooftop props;
-- signs;
-- water tanks;
-- vents;
-- rare moving lights.
-
-This layer receives the strictest readability review because it sits closest to gameplay hazards.
-
-## Slice A6 — First atmosphere state
-
-One state only.
-
-Preferred first state: **gentle wind / drifting haze**, because it communicates flight without visually covering the corridor.
-
-Rain is deferred until the hierarchy is proven.
-
-## Slice A7 — Theme reconciliation prototype
-
-Apply the city layers to `night` first.
-
-Only after night passes visual review should the same layer architecture receive sunrise/dusk/fog/neon palette interpretations.
+- One branch per design phase or corrective lane.
+- One source of truth for any geometry used by both rendering and collision.
+- No duplicate magic constants across renderer/engine when the values must stay synchronized.
+- Every new production source file must be added to both Node and PowerShell build manifests.
+- Every new build dependency gets an ordering test.
+- Deterministic visuals before random visuals.
+- Visual density added one class at a time.
+- Automated gates never waive human readability failures.
+- Human feedback must identify the guilty layer before compensation occurs elsewhere.
+- A passed checkpoint is not casually reopened.
+- A failed >=90 proposal is revised or reverted before advancing.
+- Gameplay baseline remains available as a clean rollback target.
 
 ---
 
-# 9. Acceptance Score for Phase A
-
-Phase A itself is not complete unless the resulting build scores at least 90/100 in review.
-
-## Completion review rubric
-
-| Review measure | Weight |
-|---|---:|
-| Screenshot has a unique OwlFly city identity | 20 |
-| Flight corridor is readable immediately | 20 |
-| Hazard silhouettes dominate decorative silhouettes | 15 |
-| Parallax creates obvious depth without distraction | 15 |
-| Existing gameplay/eval baseline remains healthy | 15 |
-| Mobile/reduced-motion behavior remains coherent | 10 |
-| Architecture is reusable by later districts | 5 |
-| **Total** | **100** |
-
-Hard fail:
-
-- any gameplay regression attributable to atmosphere;
-- new production asset 404s;
-- visual layer mistaken for a collision hazard during playtest;
-- test/eval regression left unexplained;
-- feature implemented outside the design contract without a new 90+ score.
-
----
-
-# 10. A&R Loop — Standing Analysis and Review Process
-
-Every meaningful addition gets a mini A&R before being accepted.
+# 9. A&R Operating Loop
 
 ## Analysis
+For every material change:
 
-1. What design problem is this solving?
-2. Which approved phase does it serve?
-3. What existing layer/files does it touch?
-4. What could regress?
-5. Is there a smaller implementation?
-6. Does it duplicate an existing primitive?
-7. What evidence will prove value?
-8. Preliminary Design Gate score.
+- state the current noticed position;
+- state the expected noticed position;
+- identify the exact deficiency being solved;
+- classify the change lane;
+- score it before implementation;
+- list low-value alternatives;
+- map impacted files/systems;
+- identify likely self-inflicted faults;
+- define the smallest reviewable implementation;
+- define rollback.
 
 ## Review
+After implementation:
 
-1. Build/test/eval evidence.
-2. Production-runtime evidence.
-3. Visual readability evidence.
-4. Performance/reduced-motion sanity.
-5. Final Design Gate score.
-6. Keep / revise / reject.
-7. Rollback point recorded.
+- build;
+- run tests;
+- run eval gate;
+- inspect production runtime;
+- perform human visual/playability review;
+- compare against the pre-change position;
+- rescore from observed evidence;
+- checkpoint, revise, or revert.
 
-A revision does not get grandfathered in because an earlier version was approved. Material revisions are rescored.
-
----
-
-# 11. Decision Authority for Future Revisions
-
-When a new idea appears, use this order:
-
-1. **North Star:** Does it strengthen the living layered Cozy City flight identity?
-2. **Phase fit:** Is it needed in the current phase?
-3. **Readability:** Can it exist without weakening hazard/owl clarity?
-4. **Baseline:** Can gameplay truth remain unchanged?
-5. **Architecture:** Can it fit existing lanes without duplicate truth/refactor sprawl?
-6. **Future leverage:** Does it help later approved phases?
-7. **Score:** Does it achieve >= 90/100 with no veto failure?
-8. **Evidence:** Is there a test/playtest/visual review that can prove success?
-
-If the answer fails at any required step, the idea is deferred or rejected.
-
----
-
-# 12. Definition of Done for the Atmosphere City Pass
-
-The branch is complete only when all of the following are true:
-
-- Phase A city layering exists and reads clearly on a mobile viewport.
-- The scene has at least three distinct non-gameplay depth layers.
-- Parallax hierarchy is obvious but subordinate to gameplay.
-- One restrained atmosphere state is integrated.
-- Existing theme IDs and unlocks remain compatible.
-- Night city is coherent; other theme palettes may be reconciled only after the same architecture proves reusable.
-- Collision, physics, spawn pacing, score logic, and current Cozy City obstacle artwork remain intact.
-- Production build contains all new source dependencies.
-- Required build/test/eval gates pass.
-- No required asset requests 404.
-- Reduced-motion mode remains coherent.
-- Human playtest confirms obstacle/flight readability is not worse than the collision-fidelity baseline.
-- Final design review score is >= 90/100.
-
-**Expected noticed position after completion:**
-> OwlFly no longer looks like an endless flyer that happens to use city buildings. It looks like a deliberately authored flight through a living atmospheric city, with enough structural depth to support future districts and rare enterable buildings without redesigning the foundation again.
+No phase advances solely because implementation is complete.
