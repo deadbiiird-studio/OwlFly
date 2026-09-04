@@ -86,6 +86,22 @@ test("runtime renderer: production bundle has no unresolved draw helper calls", 
   assert.deepEqual(missing, [], `production bundle missing draw helper(s): ${missing.join(", ")}`);
 });
 
+test("runtime renderer: production bundle includes sprite collision profiles before ObstaclePair", () => {
+  const bundlePath = path.join(ROOT, "web", "game.js");
+  assert.ok(fs.existsSync(bundlePath), "web/game.js missing; run npm run build first");
+  const bundle = fs.readFileSync(bundlePath, "utf8");
+
+  const buildingProfilesAt = bundle.indexOf("const BUILDING_COLLISION_PROFILES");
+  const cloudProfilesAt = bundle.indexOf("const CLOUD_COLLISION_PROFILES");
+  const obstaclePairAt = bundle.indexOf("class ObstaclePair");
+
+  assert.ok(buildingProfilesAt >= 0, "production bundle missing BUILDING_COLLISION_PROFILES");
+  assert.ok(cloudProfilesAt >= 0, "production bundle missing CLOUD_COLLISION_PROFILES");
+  assert.ok(obstaclePairAt >= 0, "production bundle missing ObstaclePair");
+  assert.ok(buildingProfilesAt < obstaclePairAt, "building collision profiles must load before ObstaclePair");
+  assert.ok(cloudProfilesAt < obstaclePairAt, "cloud collision profiles must load before ObstaclePair");
+});
+
 test("runtime renderer: a normal frame renders with sprite arrays and no browser canvas implementation", () => {
   const renderer = new Renderer(makeCanvas());
   renderer.setOwlFrames(makeReadyImage(), makeReadyImage(), makeReadyImage());
