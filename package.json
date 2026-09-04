@@ -17,7 +17,8 @@
     "test:unit": "node --test tests/*.test.mjs",
     "test:eval": "node tooling/eval/run-tests.mjs",
     "eval:gate": "node tooling/eval/gate.mjs --seeds 40 --time 45 --bot humanish_lag",
-    "quality": "npm run build && npm run test && npm run eval:gate"
+    "eval:visual": "node tooling/eval/visual-readability.mjs",
+    "quality": "npm run build && npm run test && npm run eval:gate && npm run eval:visual"
   },
   "devDependencies": {
     "vite": "^5.4.0"
