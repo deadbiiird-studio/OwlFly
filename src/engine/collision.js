@@ -1,3 +1,11 @@
+function circleRectIntersect(cx, cy, r, rect) {
+  const closestX = clamp(cx, rect.x, rect.x + rect.w);
+  const closestY = clamp(cy, rect.y, rect.y + rect.h);
+  const dx = cx - closestX;
+  const dy = cy - closestY;
+  return dx * dx + dy * dy <= r * r;
+}
+
 export function aabbIntersect(a, b) {
   return (
     a.x < b.x + b.w &&
@@ -8,14 +16,22 @@ export function aabbIntersect(a, b) {
 }
 
 export function circleAabbIntersect(cx, cy, r, rect) {
-  const closestX = clamp(cx, rect.x, rect.x + rect.w);
-  const closestY = clamp(cy, rect.y, rect.y + rect.h);
-  const dx = cx - closestX;
-  const dy = cy - closestY;
-  return dx * dx + dy * dy <= r * r;
+  if (Array.isArray(rect?.bands) && rect.bands.length) {
+    return rect.bands.some((band) =>
+      circleRectIntersect(cx, cy, r, band)
+    );
+  }
+
+  return circleRectIntersect(cx, cy, r, rect);
 }
 
-export function forgivingCircleAabbIntersect(cx, cy, r, rect, forgiveness = 0.92) {
+export function forgivingCircleAabbIntersect(
+  cx,
+  cy,
+  r,
+  rect,
+  forgiveness = 0.92
+) {
   const rr = Math.max(1, r * forgiveness);
   return circleAabbIntersect(cx, cy, rr, rect);
 }
