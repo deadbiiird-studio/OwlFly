@@ -25,4 +25,3 @@ OwlFly is a modular, production-ready endless flyer built with **vanilla JavaScr
 ```bash
 npm install
 npm run dev
-```
