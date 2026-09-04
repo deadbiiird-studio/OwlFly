@@ -1,10 +1,11 @@
 # Atmosphere City A1 — Analysis & Review
 
 ## Status
-IMPLEMENTED ON `atmosphere-city-pass` — awaiting local build/test/eval/playtest before checkpoint approval.
+IMPLEMENTED ON `atmosphere-city-pass` — technical gate passed, human visual gate found a gap-readability defect, corrective revision now awaiting retest.
 
 Design contract: `agent-board/ATMOSPHERE_CITY_DESIGN_CONTRACT.md`
 Protected gameplay baseline: `collision-fidelity-pass` @ `3305fe6a60895f21ab4c6646695321accf31658f`
+Gap correction: `agent-board/ATMOSPHERE_CITY_A1_GAP_REVISION.md`
 
 ---
 
@@ -48,11 +49,46 @@ A1 is not expected to finish the environment identity by itself. It establishes 
 - City silhouettes use quiet flat/stepped roofs only; A1 deliberately excludes antennas, spires, windows, signs, wires, and lights.
 - Node and PowerShell production build manifests load environment geometry before the renderer.
 - Added dedicated atmosphere geometry/build-order tests and a production-bundle dependency guard.
-- No collision, physics, scoring, spawn, difficulty, obstacle-profile, or Cozy City PNG files were changed.
+- No collision, physics, scoring, spawn, difficulty, obstacle-profile, or Cozy City PNG files were changed by the original A1 environment layer.
 
 ---
 
-## A1 Design Gate — Preliminary Score
+## Technical Gate Result
+Target-machine verification passed:
+
+- `npm run build` — PASS
+- `npm run test` — 50/50 PASS
+- `npm run eval:gate` — PASS across 40 runs
+
+Observed eval values stayed aligned with the protected collision-fidelity baseline:
+
+- score avg: 7.575
+- p50: 5
+- p90: 17
+- average survival: 11.944s
+- gapMin: 215
+- shiftP95Avg: 35.175
+- deaths: 35 top / 5 bottom
+- boundary deaths: 0
+
+This confirmed that the atmosphere geometry did not materially disturb gameplay truth.
+
+---
+
+## Human Visual Gate Finding
+A tall Cozy City building/cloud combination was reported as looking almost unwinnable.
+
+That report overruled the green technical gate because the design contract makes readability a hard veto.
+
+Root cause analysis found that some tall building sprites could visually occupy much more of the opening than their collision contour. In a legal low-gap combination, visible alpha clearance could collapse to roughly 1–2px while the effective collision route remained dramatically larger.
+
+A corrective, gap-aware building visual-fit rule has now been implemented and is documented in `ATMOSPHERE_CITY_A1_GAP_REVISION.md`.
+
+A1 therefore remains **UNAPPROVED** until that correction is rebuilt, tested, eval-gated, and visually reviewed on the target machine.
+
+---
+
+## Original A1 Design Gate — Preliminary Score
 
 | Category | Weight | Score | Reason |
 |---|---:|---:|---|
@@ -64,13 +100,7 @@ A1 is not expected to finish the environment identity by itself. It establishes 
 | Mobile / performance fit | 10 | 9 | Small deterministic Canvas paths only; runtime performance still requires local confirmation. |
 | **Preliminary Total** | **100** | **97** | **ADMITTED; final approval pending runtime verification.** |
 
-Hard-veto checks:
-- Readability >= 18/20: PASS.
-- Baseline preservation >= 18/20: PASS.
-- Architecture >= 13/15: PASS.
-- No gameplay compensation for visuals: PASS.
-- No second gameplay-geometry truth: PASS.
-- Independently testable/rollbackable: PASS.
+The human visual finding temporarily blocks this score from becoming a checkpoint score.
 
 ---
 
@@ -101,18 +131,20 @@ Would violate the visual/gameplay boundary and create fake hazards or a second c
 1. **Branch isolation** — all atmosphere work remains on `atmosphere-city-pass`.
 2. **Protected baseline** — `collision-fidelity-pass` remains untouched.
 3. **One new source primitive** — environment geometry has one visual source of truth.
-4. **No gameplay edits** — collision/physics/scoring/spawn lanes remain outside A1.
+4. **No gameplay edits in original A1** — collision/physics/scoring/spawn lanes remain outside the atmosphere layer.
 5. **Deterministic generation** — same time + layer produces the same skyline.
 6. **Reduced-motion contract** — animation can freeze without a second layout.
 7. **Build-path symmetry** — Node and PowerShell manifests changed together.
 8. **Bundle-order guard** — production bundle must declare environment geometry before `Renderer`.
 9. **Density restraint** — no decorative windows/props until depth itself is approved.
-10. **Rollback checkpoint** — A1 can be abandoned by returning to the atmosphere branch's design-contract commit or the protected gameplay baseline.
+10. **Rollback checkpoint** — A1 can be abandoned by returning to the protected gameplay baseline.
+11. **Human veto honored** — a green automated gate does not override a visible fairness/readability defect.
+12. **Correct the guilty layer** — the gap was not widened and owl physics were not touched to compensate for misleading building art.
 
 ---
 
 ## Verification Required For Final A1 Approval
-Run locally from `atmosphere-city-pass`:
+Run locally from `atmosphere-city-pass` after pulling the gap correction:
 
 ```bash
 npm run build
@@ -129,11 +161,12 @@ python3 -m http.server 8080 -d web
 Review criteria:
 - skyline movement clearly reads far < mid < near;
 - decorative skyline never looks collidable;
+- tall building/cloud combinations visibly leave a believable route;
 - owl/cloud/building hazards remain visually dominant;
 - no new stutter on target hardware;
 - reduced-motion remains stationary;
-- existing gameplay feel is unchanged;
-- no runtime or asset errors caused by A1.
+- existing gameplay feel is unchanged or improved;
+- no runtime or asset errors caused by A1 or its correction.
 
 Final disposition after evidence:
 - >= 90 and no veto: CHECKPOINT A1 and advance to A2.
