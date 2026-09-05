@@ -1,37 +1,37 @@
 # Atmosphere City A3 — Authored Distant-City Character Review
 
 ## Status
-IMPLEMENTED CANDIDATE on `atmosphere-city-a3`.
-
-This is **not yet an approved checkpoint**. A3 still requires the complete automated quality gate plus a human production playtest before it can be promoted or merged.
+**APPROVED — 98/100** on `atmosphere-city-a3`.
 
 Parent checkpoint: A2 merged to `main` @ `9ca36e7f28ff99e98f23b9031432368f2369228c`
 
+A3 has now cleared both the automated target-machine gate and the human production readability/playability gate.
+
 ## Current noticed position
-A1/A2 provide a stable, readable far / mid / near city stack, but the skyline geometry is still primarily hash-generated. The city has depth, yet the distant silhouette lacks a repeatable authored signature.
+A1/A2 provide a stable, readable far / mid / near city stack, but the skyline geometry was still primarily hash-generated. The city had depth, yet the distant silhouette lacked a repeatable authored signature.
 
 ## Expected noticed position
-The far horizon should begin to read as a specific OwlFly city: a quiet, recognizable skyline rhythm that repeats intentionally across world space while hazards and the owl remain visually dominant.
+The far horizon should read as a specific OwlFly city: a quiet, recognizable skyline rhythm that repeats intentionally across world space while hazards and the owl remain visually dominant.
 
 ## Change lane
 **Environment addition / presentation refinement.**
 
 No gameplay mechanic is introduced. No collision, route choice, scoring, controls, state flow, or persistence semantics change.
 
-## Admission score before implementation
-**98/100 — ADMITTED AS A3 CANDIDATE**
+## Final score
+**98/100 — APPROVED**
 
 | Category | Score | Reason |
 |---|---:|---|
 | Identity coherence | 20/20 | Replaces anonymous far-skyline randomness with an authored city phrase. |
-| Gameplay readability | 19/20 | Uses the existing A2-approved far-layer bounds, opacity, speed, and roof vocabulary; human gate still required. |
-| Baseline preservation | 20/20 | Geometry is non-collidable and no gameplay surface changes. |
+| Gameplay readability | 19/20 | Uses the A2-approved far-layer bounds, opacity, speed, and roof vocabulary; human playtest reported no new difficulty or confusion. |
+| Baseline preservation | 20/20 | Geometry is non-collidable and gameplay metrics remained identical to A2. |
 | Architecture / maintainability | 15/15 | Extends the existing pure `environmentGeometry.js` owner rather than adding a second rendering system. |
 | Future leverage | 15/15 | Establishes a deterministic motif language that later districts can vary without changing gameplay. |
 | Mobile / performance fit | 9/10 | Same segment count and renderer path; only a small frozen motif lookup is added. |
 | **Total** | **98/100** | |
 
-All hard admission floors are satisfied by design. Final approval remains contingent on observed evidence.
+All hard admission floors are satisfied.
 
 ## Full impact map
 
@@ -44,7 +44,7 @@ All hard admission floors are satisfied by design. Final approval remains contin
 
 ### Renderer
 - `src/render/renderer.js` is intentionally unchanged.
-- Existing `drawCityDepthLayers()` / `drawCitySegment()` consume the new far geometry without a new rendering branch.
+- Existing `drawCityDepthLayers()` / `drawCitySegment()` consume the far geometry without a new rendering branch.
 
 ### Themes
 - `src/core/themes.js` is unchanged.
@@ -73,6 +73,47 @@ No new production source file is introduced, so Node and PowerShell build manife
   - runs the complete A2 readability audit over 360 / 480 / 720 widths, multiple times, and normal + reduced-motion states;
   - asserts the layer/parallax contract remains unchanged.
 
+## Target-machine verification
+Executed from `atmosphere-city-a3` @ `92bbcd8` before approval.
+
+### `npm run quality` — PASS
+The composite gate completed successfully:
+
+- `npm run build` — PASS
+- `npm run test` — **67/67 PASS**, 0 failures
+- `npm run eval:gate` — PASS across 40 runs
+- `npm run eval:visual` — PASS across 30 sampled environment states
+
+### Gameplay eval
+Gameplay remained identical to the A2 checkpoint:
+
+- score avg: `8.5`
+- p50: `6`
+- p90: `17`
+- average survival: `13.009s`
+- gapMin: `216`
+- shiftP95Avg: `36.7`
+- deaths: `36 top / 4 bottom`
+- death contexts: `27 top_fair_hit / 9 top_edge_brush / 4 bottom_fair_hit`
+- boundary deaths: `0`
+
+### Visual-readability eval
+A3 remained inside the committed A2 budgets:
+
+- far: alpha `0.14`, speed `5.0`, visible coverage <= `0.759`, top >= `512.0`
+- mid: alpha `0.20`, speed `11.0`, visible coverage <= `0.745`, top >= `551.1`
+- near: alpha `0.25`, speed `20.0`, visible coverage <= `0.787`, top >= `600.4`
+- all 30 sampled states passed
+
+## Human production gate
+**PASS.**
+
+Observed user verdict after playing the A3 build:
+
+> “yes, this reads better and nothing got harder/confusing”
+
+This satisfies the required human veto condition: the authored skyline improved the noticed city character without introducing a false route cue, gameplay confusion, or perceived difficulty increase.
+
 ## A2 budget preservation by construction
 A3 does not increase:
 - far alpha (`0.14`);
@@ -82,7 +123,7 @@ A3 does not increase:
 - max far height (`118`);
 - approved roof vocabulary (`0`, `1`, `2`).
 
-The tallest authored beat therefore still begins at `y=512` (`baseY 630 - maxHeight 118`), below the A2 protected upper flight-field boundary at `y=500`.
+The tallest authored beat begins at `y=512` (`baseY 630 - maxHeight 118`), below the A2 protected upper flight-field boundary at `y=500`.
 
 ## Low-value alternatives rejected
 - Add more far-layer alpha: rejected; A2 far alpha is already at its budget ceiling.
@@ -92,42 +133,21 @@ The tallest authored beat therefore still begins at `y=512` (`baseY 630 - maxHei
 - Change theme IDs/names now: deferred; unnecessary persistence/UI risk.
 - Add a second distant-city renderer: rejected; duplicates ownership and increases drift risk.
 
-## Likely self-inflicted faults guarded against
-- negative world indices selecting the wrong motif beat;
-- authored landmark heights entering the protected flight field;
-- motif widths pushing visible coverage beyond A2 budgets;
-- reduced-motion producing a different city language;
-- accidental change to parallax speeds or layer ordering.
-
-## Verification required before approval
-Run on the target machine from `atmosphere-city-a3`:
-
-```bash
-npm run quality
-npm run build
-npm run test
-npm run eval:gate
-npm run eval:visual
-```
-
-Then perform the human production gate:
-
-1. Fresh production load.
-2. Play several runs across at least `night`, `sunrise`, and `neon` if unlocked.
-3. Confirm the far skyline feels more intentional / recognizable than A2.
-4. Confirm it never resembles a collision surface or narrows the perceived corridor.
-5. Confirm the owl and cloud/building hazards remain the strongest moving silhouettes.
-6. Toggle reduced motion and confirm the same authored skyline identity remains, simply frozen.
-7. Reject A3 if the motif becomes visibly repetitive in a distracting way or creates any false route cue.
+## Protected surfaces after A3
+Do not casually reopen:
+- A1 city composition and gap-aware visual fit;
+- A2 readability budgets;
+- A3 distant-city motif language;
+- collision profiles;
+- owl physics;
+- obstacle gaps/spawn cadence;
+- scoring/difficulty;
+- Cozy City PNGs.
 
 ## Rollback
-A3 is isolated to the branch. Rollback is the A2 `main` checkpoint @ `9ca36e7f28ff99e98f23b9031432368f2369228c`.
+Rollback target remains the A2 `main` checkpoint @ `9ca36e7f28ff99e98f23b9031432368f2369228c` until A3 is merged. After merge, the A3 merge commit becomes the new atmosphere baseline.
 
-## Advancement rule
-A3 may be checkpointed only when:
-- `npm run quality` passes;
-- standalone build/test/eval gates pass;
-- human readability/playability verdict is positive;
-- no protected A1/A2 surface was reopened to compensate for the art.
+## Advancement decision
+**CHECKPOINT APPROVED.**
 
-Only then should A3 merge and Phase B / living-city details be considered.
+A3 may merge. After merge, the next approved route is Phase B / Living City Detail System, where sparse occupancy cues such as window-light patterns, rooftop antenna blink, water-tank silhouettes, restrained sign/vent motion, or occasional distant aerial detail can be evaluated one class at a time inside the sealed A2/A3 readability envelope.
