@@ -1,9 +1,28 @@
-// Atmosphere City A1 — pure visual geometry for non-collision city depth.
+// Atmosphere City A1/A3 — pure visual geometry for non-collision city depth.
 // This module deliberately owns no gameplay truth. It produces deterministic
 // background skyline geometry only; obstacles, collision, scoring and physics
 // remain elsewhere.
 
 export const ENVIRONMENT_LAYER_ORDER = Object.freeze(["far", "mid", "near"]);
+
+// A3 replaces hash-random far-skyline proportions with one authored repeating
+// city phrase. The phrase is intentionally quiet: it reuses the A2-approved
+// roof vocabulary, preserves the existing far-layer bounds, and adds identity
+// through rhythm rather than opacity, speed, clutter, or gameplay changes.
+export const DISTANT_CITY_MOTIF = Object.freeze([
+  Object.freeze({ height: 0.34, width: 0.42, roofType: 0 }),
+  Object.freeze({ height: 0.48, width: 0.68, roofType: 1 }),
+  Object.freeze({ height: 0.26, width: 0.36, roofType: 0 }),
+  Object.freeze({ height: 0.64, width: 0.54, roofType: 2 }),
+  Object.freeze({ height: 0.42, width: 0.88, roofType: 0 }),
+  Object.freeze({ height: 0.82, width: 0.60, roofType: 1 }),
+  Object.freeze({ height: 0.54, width: 0.44, roofType: 0 }),
+  Object.freeze({ height: 0.30, width: 0.76, roofType: 0 }),
+  Object.freeze({ height: 1.00, width: 0.50, roofType: 2 }),
+  Object.freeze({ height: 0.58, width: 0.72, roofType: 1 }),
+  Object.freeze({ height: 0.40, width: 0.48, roofType: 0 }),
+  Object.freeze({ height: 0.72, width: 0.84, roofType: 1 }),
+]);
 
 export const ENVIRONMENT_LAYER_CONTRACT = Object.freeze({
   far: Object.freeze({
@@ -62,6 +81,25 @@ export function getCityLayerSegments(
   for (let j = 0; j < count; j += 1) {
     const worldIndex = firstIndex + j;
     const x = worldIndex * layer.step - distance;
+
+    if (layerId === "far") {
+      const motifIndex = wrapIndex(worldIndex, DISTANT_CITY_MOTIF.length);
+      const motif = DISTANT_CITY_MOTIF[motifIndex];
+      const w = lerp(layer.widthMin, layer.widthMax, motif.width);
+      const h = lerp(layer.minHeight, layer.maxHeight, motif.height);
+
+      segments.push({
+        x,
+        y: layer.baseY - h,
+        w,
+        h,
+        roofType: motif.roofType,
+        worldIndex,
+        motifIndex,
+      });
+      continue;
+    }
+
     const widthHash = environmentHash01(worldIndex, layerSalt(layerId, 1));
     const heightHash = environmentHash01(worldIndex, layerSalt(layerId, 2));
     const roofHash = environmentHash01(worldIndex, layerSalt(layerId, 3));
@@ -100,6 +138,10 @@ function layerSalt(layerId, channel) {
 function environmentHash01(value, salt = 0) {
   const x = Math.sin(value * 127.1 + salt * 311.7) * 43758.5453123;
   return x - Math.floor(x);
+}
+
+function wrapIndex(value, length) {
+  return ((value % length) + length) % length;
 }
 
 function lerp(a, b, t) {
