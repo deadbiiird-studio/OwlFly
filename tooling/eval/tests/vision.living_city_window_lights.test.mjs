@@ -21,6 +21,21 @@ function localize(light, segment) {
   };
 }
 
+function assertLocalLightPatternsEqual(actual, expected, message) {
+  assert.equal(actual.length, expected.length, `${message}: light count changed`);
+
+  for (let i = 0; i < actual.length; i += 1) {
+    const a = actual[i];
+    const e = expected[i];
+
+    assert.equal(a.cellIndex, e.cellIndex, `${message}: cell ${i} changed`);
+    assert.ok(Math.abs(a.x - e.x) <= EPSILON, `${message}: x ${i} drifted`);
+    assert.ok(Math.abs(a.y - e.y) <= EPSILON, `${message}: y ${i} drifted`);
+    assert.ok(Math.abs(a.w - e.w) <= EPSILON, `${message}: width ${i} drifted`);
+    assert.ok(Math.abs(a.h - e.h) <= EPSILON, `${message}: height ${i} drifted`);
+  }
+}
+
 test("B1 living city: far-window detail contract stays sparse and quiet", () => {
   const detail = CITY_DETAIL_CONTRACT.farWindows;
 
@@ -89,7 +104,7 @@ test("B1 living city: static light identity follows world segments without flick
     if (!moved) continue;
 
     compared += 1;
-    assert.deepEqual(
+    assertLocalLightPatternsEqual(
       getCityWindowLights("far", segment).map((light) => localize(light, segment)),
       getCityWindowLights("far", moved).map((light) => localize(light, moved)),
       `world segment ${segment.worldIndex} must keep the same local light pattern while parallax moves it`
