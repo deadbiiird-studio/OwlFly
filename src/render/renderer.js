@@ -2,9 +2,11 @@ import { FRACTURE, GAME, OWL } from "../core/constants.js";
 import { getTheme } from "../core/themes.js";
 import { fitBuildingSpriteHeight } from "../engine/obstacleVisualFit.js";
 import {
+  CITY_DETAIL_CONTRACT,
   ENVIRONMENT_LAYER_CONTRACT,
   ENVIRONMENT_LAYER_ORDER,
   getCityLayerSegments,
+  getCityWindowLights,
 } from "./environmentGeometry.js";
 
 export const VISION_OBSTACLE_SCALE = {
@@ -484,6 +486,10 @@ function drawCityDepthLayers(ctx, t, theme, reducedMotion) {
       drawCitySegment(ctx, segment);
     }
 
+    if (layerId === "far") {
+      drawCityWindowLights(ctx, segments, theme);
+    }
+
     ctx.restore();
   }
 }
@@ -512,6 +518,22 @@ function drawCitySegment(ctx, segment) {
   ctx.lineTo(x + w, baseY);
   ctx.closePath();
   ctx.fill();
+}
+
+function drawCityWindowLights(ctx, segments, theme) {
+  const detail = CITY_DETAIL_CONTRACT.farWindows;
+  ctx.save();
+  ctx.globalAlpha = detail.alpha;
+  ctx.fillStyle = theme?.city?.windowLight || "#ffd27d";
+
+  for (const segment of segments) {
+    const lights = getCityWindowLights("far", segment);
+    for (const light of lights) {
+      ctx.fillRect(light.x, light.y, light.w, light.h);
+    }
+  }
+
+  ctx.restore();
 }
 
 function drawGround(ctx, t, theme) {
