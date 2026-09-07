@@ -1,6 +1,6 @@
-// Atmosphere City A1/A3 — pure visual geometry for non-collision city depth.
+// Atmosphere City A1/A3 + Living City B1 — pure visual geometry for non-collision city depth.
 // This module deliberately owns no gameplay truth. It produces deterministic
-// background skyline geometry only; obstacles, collision, scoring and physics
+// background skyline/detail geometry only; obstacles, collision, scoring and physics
 // remain elsewhere.
 
 export const ENVIRONMENT_LAYER_ORDER = Object.freeze(["far", "mid", "near"]);
@@ -63,6 +63,23 @@ export const ENVIRONMENT_LAYER_CONTRACT = Object.freeze({
   }),
 });
 
+// B1 adds one living-city detail class only: tiny static far-city windows.
+// The contract is intentionally conservative so the lights read as occupancy,
+// never as route cues or hazard geometry. No animation/flicker is admitted here.
+export const CITY_DETAIL_CONTRACT = Object.freeze({
+  farWindows: Object.freeze({
+    maxPerSegment: 4,
+    sideInset: 4,
+    roofClearance: 12,
+    bottomInset: 8,
+    minWidth: 1.5,
+    maxWidth: 2.2,
+    height: 3,
+    alpha: 0.20,
+    litThreshold: 0.30,
+  }),
+});
+
 export function getCityLayerSegments(
   layerId,
   t = 0,
@@ -117,6 +134,53 @@ export function getCityLayerSegments(
   }
 
   return segments;
+}
+
+export function getCityWindowLights(layerId, segment) {
+  if (layerId !== "far" || !segment || !Number.isFinite(segment.worldIndex)) return [];
+
+  const detail = CITY_DETAIL_CONTRACT.farWindows;
+  const usableW = segment.w - detail.sideInset * 2;
+  const usableH = segment.h - detail.roofClearance - detail.bottomInset;
+  if (usableW < detail.minWidth || usableH < detail.height) return [];
+
+  const cols = Math.max(1, Math.min(3, Math.floor(usableW / 6)));
+  const rows = Math.max(1, Math.min(7, Math.floor(usableH / 11)));
+  const cellW = usableW / cols;
+  const cellH = usableH / rows;
+  const lights = [];
+
+  for (let row = 0; row < rows && lights.length < detail.maxPerSegment; row += 1) {
+    for (let col = 0; col < cols && lights.length < detail.maxPerSegment; col += 1) {
+      const cellIndex = row * cols + col;
+      const lit = environmentHash01(segment.worldIndex * 17 + cellIndex, 97);
+      if (lit >= detail.litThreshold) continue;
+
+      const widthT = environmentHash01(segment.worldIndex * 29 + cellIndex, 113);
+      const w = lerp(detail.minWidth, detail.maxWidth, widthT);
+      const x =
+        segment.x +
+        detail.sideInset +
+        col * cellW +
+        Math.max(0, (cellW - w) * 0.5);
+      const y =
+        segment.y +
+        detail.roofClearance +
+        row * cellH +
+        Math.max(0, (cellH - detail.height) * 0.5);
+
+      lights.push({
+        x,
+        y,
+        w,
+        h: detail.height,
+        worldIndex: segment.worldIndex,
+        cellIndex,
+      });
+    }
+  }
+
+  return lights;
 }
 
 export function getEnvironmentLayerSnapshot(
