@@ -18,6 +18,14 @@ test("P2 UI: HUD exposes pressed-state controls and polite score feedback", asyn
   assert.match(source, /setAttribute\("aria-label", `Score \$\{next\}`\)/);
 });
 
+test("P2 UI: in-game reduced motion suppresses score animation", async () => {
+  const source = await read("src/ui/hud.js");
+
+  assert.match(source, /this\._reducedMotion = !!reducedMotion/);
+  assert.match(source, /increased && !this\._reducedMotion/);
+  assert.match(source, /classList\.remove\("scorePill--pulse"\)/);
+});
+
 test("P2 UI: game-over view is a labelled dialog with restart focus", async () => {
   const source = await read("src/ui/gameOver.js");
 
