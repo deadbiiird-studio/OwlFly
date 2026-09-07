@@ -26,6 +26,18 @@ test("P2 UI: in-game reduced motion suppresses score animation", async () => {
   assert.match(source, /classList\.remove\("scorePill--pulse"\)/);
 });
 
+test("P2 UI: live quick-setting buttons synchronize visual state before callbacks", async () => {
+  const source = await read("src/ui/hud.js");
+
+  const muteSync = source.indexOf("this.setMuted(next);");
+  const muteCallback = source.indexOf("this._onToggleMute?.();");
+  const motionSync = source.indexOf("this.setReducedMotion(next);");
+  const motionCallback = source.indexOf("this._onToggleRM?.();");
+
+  assert.ok(muteSync >= 0 && muteCallback > muteSync, "mute UI must update before app callback");
+  assert.ok(motionSync >= 0 && motionCallback > motionSync, "motion UI must update before app callback");
+});
+
 test("P2 UI: game-over view is a labelled dialog with restart focus", async () => {
   const source = await read("src/ui/gameOver.js");
 
