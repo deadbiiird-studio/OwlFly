@@ -1,8 +1,18 @@
 import { BUILDING_COLLISION_PROFILES } from "./obstacleCollisionProfiles.js";
 
+// Foreground obstacle art-direction contract. These values govern presentation
+// only; collision contours and gameplay gap geometry remain untouched.
+export const OBSTACLE_PRESENTATION_CONTRACT = Object.freeze({
+  buildingGapReach: 72,
+  previousBuildingGapReach: 80,
+  maxReachTightening: 8,
+  minimumRenderedBuildingHeight: 96,
+});
+
 // Keep the rendered rooftop and the lethal rooftop contour in the same visual
-// neighborhood. This is a presentation constraint, not a new gameplay rule.
-export const BUILDING_GAP_VISUAL_REACH = 80;
+// neighborhood. P4 tightens the family by only 8px from the sealed A1 value.
+export const BUILDING_GAP_VISUAL_REACH =
+  OBSTACLE_PRESENTATION_CONTRACT.buildingGapReach;
 
 export function getBuildingProfileTopEdge(frameIndex = 0) {
   const profile =
@@ -43,7 +53,7 @@ export function fitBuildingSpriteHeight({
   const targetTopY = safeGapBottomY - safeReach;
   const denominator = Math.max(0.08, 1 - profileTop);
   const maxImageHeightByGap = Math.max(
-    96,
+    OBSTACLE_PRESENTATION_CONTRACT.minimumRenderedBuildingHeight,
     (safeGroundAnchorY - targetTopY) / denominator
   );
 
@@ -54,8 +64,9 @@ export function fitBuildingSpriteHeight({
     widthLimitedImageHeight
   );
 
-  // If width already keeps the image below the gap-side cap, retain the
-  // existing visual size. Otherwise let box height become the limiting axis.
+  // Width-limited or already-honest buildings retain their exact prior size.
+  // Only sprites whose visible rooftop would exceed the shared presentation
+  // reach are reduced, keeping the change local and rollback-friendly.
   if (nominalImageHeight <= maxImageHeightByGap) {
     return safeNominalHeight;
   }
