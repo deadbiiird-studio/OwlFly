@@ -65,8 +65,17 @@ export class HudUI {
     this._rmBtn = this.el.querySelector("#rmBtn");
     this._toastEl = this.el.querySelector("#toast");
 
-    this._muteBtn?.addEventListener("click", () => this._onToggleMute?.());
-    this._rmBtn?.addEventListener("click", () => this._onToggleRM?.());
+    this._muteBtn?.addEventListener("click", () => {
+      const next = this._muteBtn?.getAttribute("aria-pressed") !== "true";
+      this.setMuted(next);
+      this._onToggleMute?.();
+    });
+
+    this._rmBtn?.addEventListener("click", () => {
+      const next = !this._reducedMotion;
+      this.setReducedMotion(next);
+      this._onToggleRM?.();
+    });
   }
 
   setScore(score) {
