@@ -8,6 +8,7 @@ export class HudUI {
     this._toastTimer = 0;
     this._scorePulseTimer = 0;
     this._score = 0;
+    this._reducedMotion = false;
     this._onToggleMute = null;
     this._onToggleRM = null;
   }
@@ -16,6 +17,7 @@ export class HudUI {
     this._onToggleMute = onToggleMute || null;
     this._onToggleRM = onToggleRM || null;
     this._score = 0;
+    this._reducedMotion = !!reducedMotion;
 
     this.el.classList.remove("hidden");
     this.el.innerHTML = `
@@ -78,7 +80,7 @@ export class HudUI {
     this._pill.textContent = String(next);
     this._pill.setAttribute("aria-label", `Score ${next}`);
 
-    if (changed && increased) {
+    if (changed && increased && !this._reducedMotion) {
       this._pill.classList.remove("scorePill--pulse");
       void this._pill.offsetWidth;
       this._pill.classList.add("scorePill--pulse");
@@ -102,9 +104,16 @@ export class HudUI {
   }
 
   setReducedMotion(reducedMotion) {
+    this._reducedMotion = !!reducedMotion;
+    if (this._reducedMotion) {
+      clearTimeout(this._scorePulseTimer);
+      this._scorePulseTimer = 0;
+      this._pill?.classList.remove("scorePill--pulse");
+    }
+
     if (!this._rmBtn) return;
 
-    const on = !!reducedMotion;
+    const on = this._reducedMotion;
     this._rmBtn.setAttribute("aria-pressed", on ? "true" : "false");
     this._rmBtn.setAttribute("aria-label", on ? "Use full motion" : "Reduce motion");
     this._rmBtn.title = on ? "Use full motion" : "Reduce motion";
@@ -144,6 +153,7 @@ export class HudUI {
     this._toastTimer = 0;
     this._scorePulseTimer = 0;
     this._score = 0;
+    this._reducedMotion = false;
     this._onToggleMute = null;
     this._onToggleRM = null;
   }
