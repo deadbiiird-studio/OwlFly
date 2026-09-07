@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import {
   SOUND_POLICY,
   getCuePlaybackRate,
+  normalizeEventGain,
 } from "../../../src/core/audio.js";
 
 test("P3 audio: cue policy keeps rapid SFX bounded", () => {
@@ -32,6 +33,17 @@ test("P3 audio: impact cue stays pitch-stable", () => {
   }
 });
 
+test("P3 audio: app premix is normalized so master and SFX are not squared", () => {
+  const master = 0.5;
+  const sfx = 0.8;
+  const eventGain = 0.75;
+  const callerGain = master * sfx * eventGain;
+
+  assert.ok(Math.abs(normalizeEventGain(callerGain, master, sfx) - eventGain) < 1e-12);
+  assert.equal(normalizeEventGain(eventGain, master, sfx, "event"), eventGain);
+  assert.equal(normalizeEventGain(0, 0, sfx), 0);
+});
+
 test("P3 audio: production audio code does not use runtime Math.random for cue identity", async () => {
   const url = new URL("../../../src/core/audio.js", import.meta.url);
   const source = await readFile(url, "utf8");
@@ -41,4 +53,5 @@ test("P3 audio: production audio code does not use runtime Math.random for cue i
   assert.match(source, /_activeVoices/);
   assert.match(source, /linearRampToValueAtTime/);
   assert.match(source, /HTMLAudio pool fallback/);
+  assert.match(source, /normalizeEventGain/);
 });
