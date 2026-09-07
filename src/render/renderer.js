@@ -1,6 +1,10 @@
 import { FRACTURE, GAME, OWL } from "../core/constants.js";
 import { getTheme } from "../core/themes.js";
-import { fitBuildingSpriteHeight } from "../engine/obstacleVisualFit.js";
+import {
+  OBSTACLE_PRESENTATION_CONTRACT,
+  fitBuildingSpriteHeight,
+  getObstacleGapEdge,
+} from "../engine/obstacleVisualFit.js";
 import {
   CITY_DETAIL_CONTRACT,
   ENVIRONMENT_LAYER_CONTRACT,
@@ -205,11 +209,7 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
     );
   }
 
-  ctx.save();
-  ctx.globalAlpha = 0.1;
-  ctx.fillStyle = theme?.clouds?.top || "rgba(255,255,255,0.22)";
-  ctx.fillRect(bounds.x + 8, y + clusterH - 6, Math.max(18, bounds.w - 16), 6);
-  ctx.restore();
+  drawSharedGapEdge(ctx, "cloud", bounds, theme);
 }
 
 function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
@@ -251,6 +251,21 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
 
   drawBuildingGroundShadow(ctx, bounds, spriteW, theme);
   drawBuildingGroundCap(ctx, bounds, spriteW, groundAnchorY, theme);
+  drawSharedGapEdge(ctx, "building", bounds, theme);
+}
+
+function drawSharedGapEdge(ctx, kind, bounds, theme) {
+  const edge = getObstacleGapEdge(kind, bounds);
+  if (!edge) return;
+
+  ctx.save();
+  ctx.globalAlpha = OBSTACLE_PRESENTATION_CONTRACT.gapEdgeAlpha;
+  ctx.fillStyle =
+    kind === "cloud"
+      ? theme?.clouds?.top || "rgba(235,245,255,0.5)"
+      : theme?.mist?.a || "rgba(220,235,255,0.35)";
+  ctx.fillRect(edge.x, edge.y, edge.w, edge.h);
+  ctx.restore();
 }
 
 function drawRewards(ctx, rewards, rewardSprite, t, reducedMotion, theme, playPhase) {
