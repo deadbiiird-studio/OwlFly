@@ -27,6 +27,25 @@ export function getCuePlaybackRate(key, serial = 0, variationOverride = null) {
   return 1 + RATE_PATTERN[index] * variation;
 }
 
+// Current OwlFly app wiring historically passes gain after multiplying the global
+// master and SFX sliders. WebAudio already applies those sliders in its gain graph,
+// so blindly multiplying them again squares the mix. This helper recovers the
+// caller's event-level gain. New direct callers can opt into event gain explicitly
+// with { gainMode: "event" } while the legacy app path remains correct.
+export function normalizeEventGain(
+  callerGain,
+  master = 1,
+  sfx = 1,
+  gainMode = "premixed"
+) {
+  const gain = clamp01(Number(callerGain));
+  if (gainMode === "event") return gain;
+
+  const mixProduct = clamp01(Number(master)) * clamp01(Number(sfx));
+  if (mixProduct <= 0) return gain <= 0 ? 0 : gain;
+  return clamp01(gain / mixProduct);
+}
+
 export class AudioBank {
   constructor(map, mix = {}) {
     this._map = map || {};
@@ -58,7 +77,6 @@ export class AudioBank {
     this._canWav = wavOk !== "";
     this._canMp3 = mp3Ok !== "";
 
-    // HTMLAudio pools (always available as fallback)
     this._pools = {};
     this._chosen = {};
 
@@ -95,12 +113,10 @@ export class AudioBank {
     if (this._primed) return;
     this._primed = true;
 
-    // 1) Touch HTMLAudio pools (permission unlock in gesture)
     for (const pool of Object.values(this._pools)) {
       for (const a of pool) touchAudio(a);
     }
 
-    // 2) WebAudio unlock (better latency + reliable)
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
 
@@ -112,7 +128,6 @@ export class AudioBank {
       this._gainSfx.connect(this._gainMaster);
       this._gainMaster.connect(this._ctx.destination);
 
-      // iOS/Safari: play a tiny silent tick
       const osc = this._ctx.createOscillator();
       const g = this._ctx.createGain();
       g.gain.value = 0.0001;
@@ -126,19 +141,16 @@ export class AudioBank {
 
       this._applyGains();
 
-      // Fire-and-forget load (decode in background)
       for (const k of Object.keys(this._chosen)) {
         this._ensureLoaded(k);
       }
     } catch {
-      // fail open; HTMLAudio fallback still works
       this._ctx = null;
       this._gainMaster = null;
       this._gainSfx = null;
     }
   }
 
-  // Expose WebAudio context + master gain so background music can share the same output chain.
   getContext() {
     return this._ctx;
   }
@@ -158,15 +170,21 @@ export class AudioBank {
     const active = this._activeVoices.get(key) || 0;
     if (active >= policy.maxVoices) return false;
 
-    const gain = clamp01(opts.gain ?? 1);
+    const eventGain = normalizeEventGain(
+      opts.gain ?? 1,
+      this._mix.master,
+      this._mix.sfx,
+      opts.gainMode || "premixed"
+    );
     const mixTrim = clamp01(this._perSoundTrim(key));
-    const finalGain = clamp01(gain * this._mix.master * this._mix.sfx * mixTrim);
-    if (finalGain <= 0) return false;
+    const cueGain = clamp01(eventGain * mixTrim);
+    if (cueGain <= 0) return false;
 
     const serial = this._sequence++;
     const rate = resolvePlaybackRate(key, serial, opts, policy);
 
-    // Prefer WebAudio if buffer exists.
+    // WebAudio receives event-level gain here. Master and SFX are applied exactly
+    // once by the shared gain graph in _applyGains().
     if (this._ctx && this._gainSfx) {
       const buf = this._buffers.get(key);
       if (buf) {
@@ -181,7 +199,7 @@ export class AudioBank {
         const startAt = this._ctx.currentTime;
         const attackEnd = startAt + 0.004;
         g.gain.setValueAtTime(0.0001, startAt);
-        g.gain.linearRampToValueAtTime(Math.max(0.0001, finalGain), attackEnd);
+        g.gain.linearRampToValueAtTime(Math.max(0.0001, cueGain), attackEnd);
 
         src.connect(g).connect(this._gainSfx);
         src.onended = () => this._releaseVoice(key);
@@ -195,16 +213,19 @@ export class AudioBank {
         }
       }
 
-      // If not yet loaded, start load in background.
       this._ensureLoaded(key);
     }
 
-    // Fallback: HTMLAudio pool.
+    // HTMLAudio does not traverse the WebAudio gain graph, so apply the global
+    // mix once here. This keeps both backends perceptually aligned.
     const pool = this._pools[key];
     if (!pool || pool.length === 0) return false;
 
     const a = pool.find((node) => node.paused || node.ended);
     if (!a) return false;
+
+    const fallbackGain = clamp01(cueGain * this._mix.master * this._mix.sfx);
+    if (fallbackGain <= 0) return false;
 
     this._lastPlayAt.set(key, now);
     this._claimVoice(key);
@@ -220,7 +241,7 @@ export class AudioBank {
 
     try {
       a.currentTime = 0;
-      a.volume = finalGain;
+      a.volume = fallbackGain;
       a.playbackRate = rate;
       a.addEventListener("ended", release, { once: true });
       a.addEventListener("pause", release, { once: true });
@@ -253,13 +274,10 @@ export class AudioBank {
   _applyGains() {
     const master = this._muted ? 0 : clamp01(this._mix.master);
     if (this._gainMaster) this._gainMaster.gain.value = master;
-
-    // SFX gain is separate so music can share master while retaining its own level.
     if (this._gainSfx) this._gainSfx.gain.value = clamp01(this._mix.sfx);
   }
 
   _perSoundTrim(key) {
-    // Map keys to trims without requiring callers to know mix shape.
     if (key === "jump" || key === "flap") return this._mix.flap;
     if (key === "score") return this._mix.score;
     if (key === "hit") return this._mix.hit;
@@ -392,5 +410,6 @@ function hashString(value) {
 }
 
 function clamp01(x) {
-  return Math.max(0, Math.min(1, x));
+  const n = Number.isFinite(Number(x)) ? Number(x) : 0;
+  return Math.max(0, Math.min(1, n));
 }
