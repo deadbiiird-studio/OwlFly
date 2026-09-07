@@ -1,11 +1,13 @@
 # Living City B1 — Sparse Deterministic Window Lights Review
 
 ## Status
-IMPLEMENTED CANDIDATE on `living-city-b1-window-lights`.
+AUTOMATED GATE PASS — HUMAN PRODUCTION GATE PENDING on `living-city-b1-window-lights`.
 
-This is **not yet an approved checkpoint**. B1 requires the target-machine quality gate plus a human production playtest before merge.
+B1 has now passed the complete target-machine automated quality gate. It is **not yet an approved checkpoint** because the governing design contract still requires a positive human production/readability verdict before merge.
 
 Parent checkpoint: A3 merged to `main` @ `a28156c58e7ee76f35762c1f5c06857a333fa384`.
+
+Current candidate head verified on target machine: `aba6cb5030047c64a3ec3f0410e6de6aa6c1ca40`.
 
 ## Current noticed position
 A3 gives the distant city an intentional authored silhouette rhythm, but the skyline remains visually unoccupied. It reads as a designed place, not yet a living place.
@@ -31,7 +33,7 @@ No gameplay mechanic is introduced.
 | Mobile / performance fit | 9/10 | Maximum four tiny rectangles per far segment; no assets, animation, or new production module. |
 | **Total** | **97/100** | |
 
-All hard design floors are satisfied by construction. Final approval remains contingent on observed evidence.
+All hard design floors are satisfied by construction. Final approval remains contingent on the human production gate.
 
 ## Implementation
 
@@ -63,6 +65,34 @@ Default light color is restrained warm `#ffd27d`. No theme IDs, names, unlocks, 
 - local light patterns do not reshuffle while parallax moves world segments;
 - A3 parallax/layer values remain sealed;
 - renderer consumes geometry-owned detail and introduces no `Math.random()` placement.
+
+The first target-machine run exposed an overly strict exact-float assertion in the parallax-stability test. The actual light patterns were identical except for floating-point noise at approximately 1e-15. Production code was left untouched; the regression was corrected to use a 1e-9 tolerance while still requiring identical light count, cell identity, and effectively identical local geometry.
+
+## Target-machine automated evidence — PASS
+Executed on the OwlFly target machine from `living-city-b1-window-lights` at `aba6cb5`:
+
+- `npm run quality` — PASS
+- build — PASS
+- test — **73/73 PASS** across 18 test files
+- `eval:gate` — PASS across 40 runs
+- `eval:visual` — PASS across 30 sampled environment states
+- `npm run dev` — Vite served successfully at local development runtime
+
+Gameplay metrics remain identical to the sealed A3 baseline:
+- score average: `8.5`
+- p50: `6`
+- p90: `17`
+- average survival: `13.009s`
+- gap minimum: `216`
+- shift P95 average: `36.7`
+- deaths: `36 top / 4 bottom`
+- boundary deaths: `0`
+
+Visual-readability metrics remain inside the sealed A2/A3 envelope:
+- far: alpha `0.14`, speed `5.0`, visible coverage <= `0.759`, top >= `512.0`
+- mid: alpha `0.20`, speed `11.0`, visible coverage <= `0.745`, top >= `551.1`
+- near: alpha `0.25`, speed `20.0`, visible coverage <= `0.787`, top >= `600.4`
+- all 30 sampled environment states passed
 
 ## Explicitly untouched
 - owl physics;
@@ -103,26 +133,9 @@ Those remain separate detail classes so density can be reviewed one layer at a t
 - detail appearing on mid/near layers before far-layer density is approved;
 - accidentally changing the sealed A3 parallax contract.
 
-## Verification required before approval
-On the target OwlFly machine:
-
-```bash
-git fetch origin
-git switch living-city-b1-window-lights
-git pull --ff-only
-npm run quality
-```
-
-Expected test count is the A3 baseline plus the new B1 test file/tests.
-
-Then run:
-
-```bash
-npm run dev
-```
-
-Human production gate:
-1. Play several normal runs.
+## Remaining verification before approval
+Human production gate only:
+1. Play several normal runs from the currently running dev build.
 2. Confirm the windows make the distance feel occupied/alive.
 3. Confirm the lights never resemble collectibles, hazards, openings, or a route boundary.
 4. Confirm owl/cloud/building hazards remain visually dominant.
@@ -137,8 +150,8 @@ Rollback target is the sealed A3 checkpoint on `main` @ `a28156c58e7ee76f35762c1
 
 ## Advancement rule
 B1 may merge only when:
-- `npm run quality` passes on the target machine;
-- human readability/playability verdict is positive;
+- `npm run quality` passes on the target machine — **SATISFIED**;
+- human readability/playability verdict is positive — **PENDING**;
 - the added detail clearly increases city life without increasing gameplay ambiguity;
 - no sealed A1/A2/A3 gameplay/readability surface was reopened.
 
