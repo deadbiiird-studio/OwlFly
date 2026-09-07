@@ -7,6 +7,9 @@ export const OBSTACLE_PRESENTATION_CONTRACT = Object.freeze({
   previousBuildingGapReach: 80,
   maxReachTightening: 8,
   minimumRenderedBuildingHeight: 96,
+  gapEdgeThickness: 2,
+  gapEdgeInset: 7,
+  gapEdgeAlpha: 0.14,
 });
 
 // Keep the rendered rooftop and the lethal rooftop contour in the same visual
@@ -72,6 +75,36 @@ export function fitBuildingSpriteHeight({
   }
 
   return Math.min(safeNominalHeight, maxImageHeightByGap);
+}
+
+export function getObstacleGapEdge(kind, bounds) {
+  if (!bounds) return null;
+
+  const x = finiteOr(bounds.x, 0);
+  const y = finiteOr(bounds.y, 0);
+  const w = Math.max(0, finiteOr(bounds.w, 0));
+  const h = Math.max(0, finiteOr(bounds.h, 0));
+  const inset = Math.min(
+    OBSTACLE_PRESENTATION_CONTRACT.gapEdgeInset,
+    Math.max(0, w * 0.25)
+  );
+  const thickness = Math.min(
+    OBSTACLE_PRESENTATION_CONTRACT.gapEdgeThickness,
+    h
+  );
+  const edgeW = Math.max(0, w - inset * 2);
+  if (edgeW <= 0 || thickness <= 0) return null;
+
+  const edgeY = kind === "building"
+    ? y
+    : y + Math.max(0, h - thickness);
+
+  return {
+    x: x + inset,
+    y: edgeY,
+    w: edgeW,
+    h: thickness,
+  };
 }
 
 function clampIndex(value, max) {
