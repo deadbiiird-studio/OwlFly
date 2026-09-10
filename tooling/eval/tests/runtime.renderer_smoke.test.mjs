@@ -74,6 +74,20 @@ test("runtime renderer: helper draw calls referenced by renderer.js are defined"
   assert.deepEqual(missing, [], `missing renderer helper(s): ${missing.join(", ")}`);
 });
 
+test("runtime renderer: collision debug overlay is query-gated and uses live geometry", () => {
+  const renderer = fs.readFileSync(
+    path.join(ROOT, "src", "render", "renderer.js"),
+    "utf8"
+  );
+
+  assert.match(renderer, /debugHitboxes/);
+  assert.match(renderer, /mode === "playing"/);
+  assert.match(renderer, /owl\.getCircle\(\)/);
+  assert.match(renderer, /obstacle\.getRects\(\)/);
+  assert.match(renderer, /top\?\.bands/);
+  assert.match(renderer, /bottom\?\.bands/);
+});
+
 test("runtime renderer: production bundle has no unresolved draw helper calls", () => {
   const bundlePath = path.join(ROOT, "web", "game.js");
   assert.ok(fs.existsSync(bundlePath), "web/game.js missing; run npm run build first");

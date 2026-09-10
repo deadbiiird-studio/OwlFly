@@ -31,8 +31,8 @@ const OWL = {
 };
 const OBSTACLE = {
   WIDTH: 78,
-  MIN_GAP: 208,
-  MAX_GAP: 296,
+  MIN_GAP: 196,
+  MAX_GAP: 268,
   MIN_TOP: 110,
   MIN_BOTTOM: 140,
   BASE_SPEED: 245,
@@ -67,11 +67,11 @@ const SPAWN = {
 
   EASY_INJECTION_EVERY: 10,
   EASY_INJECTION_COUNT: 3,
-  EASY_GAP_BONUS: 60,
+  EASY_GAP_BONUS: 45,
   EASY_SPEED_PENALTY: 30,
 
   OPENING_OBSTACLES: 4,
-  OPENING_GAP_BONUS: 35,
+  OPENING_GAP_BONUS: 20,
   OPENING_SPEED_PENALTY: 35,
   OPENING_CENTER_SHIFT_PX: 55,
   CENTER_EDGE_MARGIN_PX: 28,
@@ -154,7 +154,8 @@ function loadHighScore() {
   const raw = localStorage.getItem(STORAGE_KEYS.HIGH_SCORE);
   const n = raw ? Number(raw) : 0;
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
-}function saveHighScore(score) {
+}
+function saveHighScore(score) {
   const n = Math.max(0, Math.floor(score));
   localStorage.setItem(STORAGE_KEYS.HIGH_SCORE, String(n));
 }
@@ -171,7 +172,8 @@ const DEFAULT_SETTINGS = {
     score: AUDIO.SCORE,
     hit: AUDIO.HIT,
   },
-};function loadSettings() {
+};
+function loadSettings() {
   const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
   if (!raw) return structuredCloneFallback(DEFAULT_SETTINGS);
 
@@ -198,7 +200,8 @@ const DEFAULT_SETTINGS = {
   } catch {
     return structuredCloneFallback(DEFAULT_SETTINGS);
   }
-}function saveSettings(settings) {
+}
+function saveSettings(settings) {
   const safe = {
     muted: !!settings?.muted,
     reducedMotion: !!settings?.reducedMotion,
@@ -241,7 +244,8 @@ function structuredCloneFallback(x) {
 // Submission-safe hybrid audio:
 // - primes on first gesture (mobile policy)
 // - WebAudio for low-latency SFX when available
-// - HTMLAudio pool fallback (covers slow decode + older WebViews)class AudioBank {
+// - HTMLAudio pool fallback (covers slow decode + older WebViews)
+class AudioBank {
   constructor(map, mix = {}) {
     this._map = map || {};
 
@@ -537,7 +541,8 @@ function clamp01(x) {
 // Lightweight procedural background music (WebAudio).
 // - Original, simple, upbeat loop (no copyrighted melody)
 // - Starts only after user gesture (call start after AudioContext is primed)
-// - Theme-aware key/tempoclass MusicLoop {
+// - Theme-aware key/tempo
+class MusicLoop {
   constructor({ ctx, destination, volume = 0.25, enabled = true } = {}) {
     this._ctx = ctx || null;
     this._dest = destination || null;
@@ -951,7 +956,8 @@ const DEFAULT_PROFILE = {
     bestScore: 0,
     totalScore: 0,
   },
-};function loadProfile() {
+};
+function loadProfile() {
   const raw = localStorage.getItem(STORAGE_KEYS.PROFILE);
   if (!raw) return clone(DEFAULT_PROFILE);
 
@@ -962,10 +968,12 @@ const DEFAULT_PROFILE = {
   } catch {
     return clone(DEFAULT_PROFILE);
   }
-}function saveProfile(profile) {
+}
+function saveProfile(profile) {
   const safe = mergeProfile(profile);
   localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(safe));
-}function getUnlockedThemes(profile) {
+}
+function getUnlockedThemes(profile) {
   const arr = profile?.unlockedThemes;
   if (!Array.isArray(arr)) return ["night"];
   const out = [];
@@ -975,7 +983,8 @@ const DEFAULT_PROFILE = {
   }
   if (!out.includes("night")) out.unshift("night");
   return out;
-}function isAchievementEarned(profile, id) {
+}
+function isAchievementEarned(profile, id) {
   return !!profile?.achievements?.[id];
 }
 
@@ -984,7 +993,8 @@ const DEFAULT_PROFILE = {
  *
  * Returns:
  *  { profile, earned: Achievement[], unlockedThemes: string[] }
- */function applyProgressEvent(profile, evt) {
+ */
+function applyProgressEvent(profile, evt) {
   const p = mergeProfile(profile);
 
   const earned = [];
@@ -1047,7 +1057,8 @@ const DEFAULT_PROFILE = {
   }
 
   return { profile: p, earned, unlockedThemes };
-}function getAchievementProgress(profile, achievementId) {
+}
+function getAchievementProgress(profile, achievementId) {
   const p = mergeProfile(profile);
   const a = ACHIEVEMENTS.find((x) => x.id === achievementId);
   if (!a) return { current: 0, target: 1, pct: 0, earned: false };
@@ -1417,10 +1428,12 @@ const THEMES = [
       alpha: 0.30,
     },
   },
-];function getTheme(themeId) {
+];
+function getTheme(themeId) {
   const id = String(themeId || "").trim();
   return THEMES.find((t) => t.id === id) || THEMES[0];
-}function getThemePreview(theme) {
+}
+function getThemePreview(theme) {
   const t = theme || THEMES[0];
   return {
     a: t.sky?.top || "#000",
@@ -1444,7 +1457,8 @@ const THEMES = [
 
 const FLAP_GRAVITY_RECOVERY_BOOST = 1.12;
 const FAST_FALL_EXTRA = 1.08;
-const UPWARD_VELOCITY_SOFT_CAP = 1.18;function applyGravity(vy, dt, gravityScale = 1, maxFallScale = 1) {
+const UPWARD_VELOCITY_SOFT_CAP = 1.18;
+function applyGravity(vy, dt, gravityScale = 1, maxFallScale = 1) {
   const s = Number.isFinite(gravityScale) ? gravityScale : 1;
   const fallCapScale = Number.isFinite(maxFallScale) ? maxFallScale : 1;
 
@@ -1460,12 +1474,14 @@ const UPWARD_VELOCITY_SOFT_CAP = 1.18;function applyGravity(vy, dt, gravityScal
   if (nextVy > maxFall) nextVy = maxFall;
 
   return nextVy;
-}function jumpImpulse(impulseScale = 1) {
+}
+function jumpImpulse(impulseScale = 1) {
   const s = Number.isFinite(impulseScale) ? impulseScale : 1;
   const raw = -WORLD.JUMP_IMPULSE * s;
   const riseCap = -WORLD.JUMP_IMPULSE * s * UPWARD_VELOCITY_SOFT_CAP;
   return Math.max(raw, riseCap);
-}function rotationForVelocity(vy, upScale = 1, downScale = 1) {
+}
+function rotationForVelocity(vy, upScale = 1, downScale = 1) {
   const safeUpScale = Number.isFinite(upScale) ? upScale : 1;
   const safeDownScale = Number.isFinite(downScale) ? downScale : 1;
 
@@ -1484,6 +1500,13 @@ const UPWARD_VELOCITY_SOFT_CAP = 1.18;function applyGravity(vy, dt, gravityScal
 
 // ===== FILE: src/engine/collision.js =====
 
+function circleRectIntersect(cx, cy, r, rect) {
+  const closestX = clamp(cx, rect.x, rect.x + rect.w);
+  const closestY = clamp(cy, rect.y, rect.y + rect.h);
+  const dx = cx - closestX;
+  const dy = cy - closestY;
+  return dx * dx + dy * dy <= r * r;
+}
 function aabbIntersect(a, b) {
   return (
     a.x < b.x + b.w &&
@@ -1491,16 +1514,27 @@ function aabbIntersect(a, b) {
     a.y < b.y + b.h &&
     a.y + a.h > b.y
   );
-}function circleAabbIntersect(cx, cy, r, rect) {
-  const closestX = clamp(cx, rect.x, rect.x + rect.w);
-  const closestY = clamp(cy, rect.y, rect.y + rect.h);
-  const dx = cx - closestX;
-  const dy = cy - closestY;
-  return dx * dx + dy * dy <= r * r;
-}function forgivingCircleAabbIntersect(cx, cy, r, rect, forgiveness = 0.92) {
+}
+function circleAabbIntersect(cx, cy, r, rect) {
+  if (Array.isArray(rect?.bands) && rect.bands.length) {
+    return rect.bands.some((band) =>
+      circleRectIntersect(cx, cy, r, band)
+    );
+  }
+
+  return circleRectIntersect(cx, cy, r, rect);
+}
+function forgivingCircleAabbIntersect(
+  cx,
+  cy,
+  r,
+  rect,
+  forgiveness = 0.92
+) {
   const rr = Math.max(1, r * forgiveness);
   return circleAabbIntersect(cx, cy, rr, rect);
-}function resolveHitSide(cx, cy, rect) {
+}
+function resolveHitSide(cx, cy, rect) {
   const left = Math.abs(cx - rect.x);
   const right = Math.abs(cx - (rect.x + rect.w));
   const top = Math.abs(cy - rect.y);
@@ -1517,6 +1551,7 @@ function aabbIntersect(a, b) {
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
+
 
 // ===== FILE: src/engine/difficulty.js =====
 
@@ -1661,13 +1696,15 @@ class GameLoop {
 // ===== FILE: src/engine/entities/owl.js =====
 
 
+
 const DEFAULT_FLIGHT_PROFILE = {
   gravityScale: 1,
   jumpScale: 1,
   maxFallScale: 1,
   rotUpScale: 1,
   rotDownScale: 1,
-};class Owl {
+};
+class Owl {
   constructor() {
     this.reset();
   }
@@ -1769,10 +1806,116 @@ const DEFAULT_FLIGHT_PROFILE = {
 }
 
 
+// ===== FILE: src/engine/obstacleCollisionProfiles.js =====
+
+// Generated from the committed OwlFly obstacle PNG alpha silhouettes.
+// Each band is normalized as [x0, x1, edgeY]. Building edgeY is the
+// collision top; cloud edgeY is the collision bottom. Profiles intentionally
+// sit a few source pixels inside the visible alpha to preserve arcade fairness.
+const BUILDING_COLLISION_PROFILES = [{"width":213,"height":320,"bands":[[0.1925,0.2441,0.3094],[0.2535,0.3286,0.2188],[0.338,0.4085,0.1906],[0.4178,0.493,0.2625],[0.5023,0.5775,0.2406],[0.5869,0.662,0.2875],[0.6714,0.7418,0.25],[0.7512,0.8122,0.3969]]},{"width":213,"height":320,"bands":[[0.23,0.2441,0.3719],[0.2535,0.3286,0.3219],[0.338,0.4085,0.325],[0.4178,0.493,0.1406],[0.5023,0.5775,0.1031],[0.5869,0.662,0.1437],[0.6714,0.7418,0.2875],[0.7512,0.77,0.3812]]},{"width":213,"height":320,"bands":[[0.2113,0.2441,0.9062],[0.2535,0.3286,0.2219],[0.338,0.4085,0.1656],[0.4178,0.493,0.0594],[0.5023,0.5775,0.1656],[0.5869,0.662,0.175],[0.6714,0.7418,0.2219],[0.7512,0.7793,0.2625]]},{"width":213,"height":320,"bands":[[0.1972,0.2441,0.3875],[0.2535,0.3286,0.325],[0.338,0.4085,0.2281],[0.4178,0.493,0.2594],[0.5023,0.5775,0.2687],[0.5869,0.662,0.2969],[0.6714,0.7418,0.3563],[0.7512,0.8075,0.5062]]},{"width":213,"height":320,"bands":[[0.216,0.2441,0.8781],[0.2535,0.3286,0.2781],[0.338,0.4085,0.225],[0.4178,0.493,0.1062],[0.5023,0.5775,0.125],[0.5869,0.662,0.225],[0.6714,0.7418,0.3312],[0.7512,0.784,0.875]]},{"width":213,"height":320,"bands":[[0.1972,0.2441,0.4219],[0.2535,0.3286,0.325],[0.338,0.4085,0.3469],[0.4178,0.493,0.2094],[0.5023,0.5775,0.1625],[0.5869,0.662,0.1938],[0.6714,0.7418,0.3656],[0.7512,0.8028,0.4062]]},{"width":213,"height":320,"bands":[[0.23,0.2441,0.3844],[0.2535,0.3286,0.2844],[0.338,0.4085,0.2687],[0.4178,0.493,0.2281],[0.5023,0.5775,0.2375],[0.5869,0.662,0.0969],[0.6714,0.7418,0.25],[0.7512,0.7653,0.2781]]},{"width":213,"height":320,"bands":[[0.2254,0.2441,0.9094],[0.2535,0.3286,0.3656],[0.338,0.4085,0.1844],[0.4178,0.493,0.0688],[0.5023,0.5775,0.2562],[0.5869,0.662,0.2875],[0.6714,0.7418,0.3187],[0.7512,0.7606,0.9187]]},{"width":213,"height":320,"bands":[[0.1784,0.2441,0.3937],[0.2535,0.3286,0.3125],[0.338,0.4085,0.2594],[0.4178,0.493,0.2531],[0.5023,0.5775,0.2437],[0.5869,0.662,0.1594],[0.6714,0.7418,0.1469],[0.7512,0.8028,0.4344]]},{"width":213,"height":320,"bands":[[0.1831,0.2441,0.3594],[0.2535,0.3286,0.3125],[0.338,0.4085,0.2437],[0.4178,0.493,0.2469],[0.5023,0.5775,0.325],[0.5869,0.662,0.2313],[0.6714,0.7418,0.2562],[0.7512,0.8263,0.4375]]},{"width":213,"height":320,"bands":[[0.169,0.2441,0.275],[0.2535,0.3286,0.1969],[0.338,0.4085,0.1625],[0.4178,0.493,0.0437],[0.5023,0.5775,0.1625],[0.5869,0.662,0.2094],[0.6714,0.7418,0.275],[0.7512,0.8075,0.575]]},{"width":213,"height":320,"bands":[[0.169,0.2441,0.3281],[0.2535,0.3286,0.3187],[0.338,0.4085,0.2437],[0.4178,0.493,0.2656],[0.5023,0.5775,0.3063],[0.5869,0.662,0.1187],[0.6714,0.7418,0.2531],[0.7512,0.8263,0.3438],[0.8357,0.8451,0.4469]]},{"width":213,"height":320,"bands":[[0.1878,0.2441,0.7625],[0.2535,0.3286,0.4],[0.338,0.4085,0.35],[0.4178,0.493,0.1969],[0.5023,0.5775,0.0938],[0.5869,0.662,0.2313],[0.6714,0.7418,0.2969],[0.7512,0.8122,0.7594]]}];
+const CLOUD_COLLISION_PROFILES = [{"width":140,"height":210,"bands":[[0.0429,0.0714,0.5857],[0.0857,0.1571,0.6095],[0.1714,0.2429,0.619],[0.2571,0.3214,0.6238],[0.3357,0.4071,0.6238],[0.4214,0.4929,0.6286],[0.5071,0.5714,0.6286],[0.5857,0.6571,0.6286],[0.6714,0.7429,0.6238],[0.7571,0.8214,0.619],[0.8357,0.9071,0.6095],[0.9214,0.9571,0.5905]]},{"width":140,"height":210,"bands":[[0.05,0.0714,0.5762],[0.0857,0.1571,0.5952],[0.1714,0.2429,0.6048],[0.2571,0.3214,0.6095],[0.3357,0.4071,0.6095],[0.4214,0.4929,0.6095],[0.5071,0.5714,0.6095],[0.5857,0.6571,0.6095],[0.6714,0.7429,0.6095],[0.7571,0.8214,0.6048],[0.8357,0.9071,0.5905],[0.9214,0.9571,0.5762]]},{"width":140,"height":210,"bands":[[0.0571,0.0714,0.5762],[0.0857,0.1571,0.5952],[0.1714,0.2429,0.6048],[0.2571,0.3214,0.6095],[0.3357,0.4071,0.6143],[0.4214,0.4929,0.6238],[0.5071,0.5714,0.6238],[0.5857,0.6571,0.619],[0.6714,0.7429,0.6143],[0.7571,0.8214,0.6143],[0.8357,0.9071,0.6048],[0.9214,0.9571,0.5905]]},{"width":140,"height":210,"bands":[[0.0857,0.1571,0.5714],[0.1714,0.2429,0.5857],[0.2571,0.3214,0.5905],[0.3357,0.4071,0.6],[0.4214,0.4929,0.6],[0.5071,0.5714,0.6],[0.5857,0.6571,0.5952],[0.6714,0.7429,0.5952],[0.7571,0.8214,0.5905],[0.8357,0.9071,0.581],[0.9214,0.9357,0.5571]]},{"width":140,"height":210,"bands":[[0.0857,0.1571,0.6143],[0.1714,0.2429,0.619],[0.2571,0.3214,0.6286],[0.3357,0.4071,0.6286],[0.4214,0.4929,0.6381],[0.5071,0.5714,0.6429],[0.5857,0.6571,0.6429],[0.6714,0.7429,0.6381],[0.7571,0.8214,0.6381],[0.8357,0.9071,0.6333],[0.9214,0.9571,0.619]]},{"width":140,"height":210,"bands":[[0.05,0.0714,0.5714],[0.0857,0.1571,0.6],[0.1714,0.2429,0.6143],[0.2571,0.3214,0.6238],[0.3357,0.4071,0.6238],[0.4214,0.4929,0.6238],[0.5071,0.5714,0.6286],[0.5857,0.6571,0.6238],[0.6714,0.7429,0.6238],[0.7571,0.8214,0.6143],[0.8357,0.9071,0.6048],[0.9214,0.95,0.5857]]}];
+
+
+// ===== FILE: src/engine/obstacleVisualFit.js =====
+
+
+// Keep the rendered rooftop and the lethal rooftop contour in the same visual
+// neighborhood. This is a presentation constraint, not a new gameplay rule.
+const BUILDING_GAP_VISUAL_REACH = 80;
+function getBuildingProfileTopEdge(frameIndex = 0) {
+  const profile =
+    BUILDING_COLLISION_PROFILES[clampIndex(frameIndex, BUILDING_COLLISION_PROFILES.length)] ||
+    BUILDING_COLLISION_PROFILES[0];
+
+  if (!profile?.bands?.length) return 0;
+
+  let top = 1;
+  for (const band of profile.bands) {
+    const edgeY = Number(band?.[2]);
+    if (Number.isFinite(edgeY)) top = Math.min(top, edgeY);
+  }
+  return clamp(top, 0, 0.92);
+}
+function fitBuildingSpriteHeight({
+  frameIndex = 0,
+  nominalHeight,
+  spriteWidth,
+  groundAnchorY,
+  gapBottomY,
+  gapReach = BUILDING_GAP_VISUAL_REACH,
+} = {}) {
+  const profile =
+    BUILDING_COLLISION_PROFILES[clampIndex(frameIndex, BUILDING_COLLISION_PROFILES.length)] ||
+    BUILDING_COLLISION_PROFILES[0];
+
+  const safeNominalHeight = Math.max(1, finiteOr(nominalHeight, 1));
+  const safeSpriteWidth = Math.max(1, finiteOr(spriteWidth, 1));
+  const safeGroundAnchorY = finiteOr(groundAnchorY, 0);
+  const safeGapBottomY = finiteOr(gapBottomY, safeGroundAnchorY);
+  const safeReach = Math.max(0, finiteOr(gapReach, BUILDING_GAP_VISUAL_REACH));
+
+  if (!profile?.width || !profile?.height) return safeNominalHeight;
+
+  const profileTop = getBuildingProfileTopEdge(frameIndex);
+  const targetTopY = safeGapBottomY - safeReach;
+  const denominator = Math.max(0.08, 1 - profileTop);
+  const maxImageHeightByGap = Math.max(
+    96,
+    (safeGroundAnchorY - targetTopY) / denominator
+  );
+
+  const widthLimitedImageHeight =
+    safeSpriteWidth * (profile.height / Math.max(1, profile.width));
+  const nominalImageHeight = Math.min(
+    safeNominalHeight,
+    widthLimitedImageHeight
+  );
+
+  // If width already keeps the image below the gap-side cap, retain the
+  // existing visual size. Otherwise let box height become the limiting axis.
+  if (nominalImageHeight <= maxImageHeightByGap) {
+    return safeNominalHeight;
+  }
+
+  return Math.min(safeNominalHeight, maxImageHeightByGap);
+}
+
+function clampIndex(value, max) {
+  if (!Number.isFinite(value) || max <= 0) return 0;
+  return Math.max(0, Math.min(max - 1, value | 0));
+}
+
+function finiteOr(value, fallback) {
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+
 // ===== FILE: src/engine/entities/obstaclePair.js =====
 
 
+
+
 let nextVisualSpawnId = 1;
+const BUILDING_GAP_COLLISION_REACH = BUILDING_GAP_VISUAL_REACH;
+
+const COLLISION_RENDER_SCALE = {
+  cloudMinHeight: 230,
+  cloudMaxHeight: 360,
+  cloudHeightFactor: 1.22,
+  cloudWidthFactor: 2.9,
+  buildingGroundInset: 8,
+  buildingMinBoxWidth: 300,
+  buildingMaxBoxWidth: 560,
+  buildingWidthFactor: 3.3,
+  buildingMinBoxHeight: 500,
+  buildingMaxBoxHeight: 760,
+  buildingHeightFactor: 2.25,
+  buildingHeightOffset: 150,
+};
 
 function clampToAvailable(target, available) {
   return Math.max(0, Math.min(target, available));
@@ -1790,7 +1933,162 @@ function hash01(value, salt = 0) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
-}class ObstaclePair {
+}
+
+function ensureCollisionVisualVariant(obstacle, kind) {
+  const key = `${kind}:${obstacle.topH || 0}:${obstacle.gap || 0}`;
+  const storeKey = kind === "building" ? "_buildingVisualVariant" : "_cloudVisualVariant";
+  const current = obstacle[storeKey];
+  if (current && current.key === key) return current;
+
+  const buildingSizeBuckets = [
+    { widthScale: 0.9, heightScale: 0.86 },
+    { widthScale: 0.96, heightScale: 0.94 },
+    { widthScale: 1.0, heightScale: 1.0 },
+    { widthScale: 1.06, heightScale: 1.08 },
+    { widthScale: 1.12, heightScale: 1.16 },
+  ];
+  const cloudSizeBuckets = [
+    { widthScale: 0.94, scale: 0.94 },
+    { widthScale: 1.0, scale: 1.0 },
+    { widthScale: 1.06, scale: 1.05 },
+  ];
+
+  const variant = kind === "building"
+    ? {
+        key,
+        frameIndex: clampIndex(obstacle.buildingVariantIndex, BUILDING_COLLISION_PROFILES.length),
+        ...(buildingSizeBuckets[
+          clampIndex(obstacle.buildingSizeBucket, buildingSizeBuckets.length)
+        ] || buildingSizeBuckets[2]),
+      }
+    : {
+        key,
+        frameIndex: clampIndex(obstacle.cloudVariantIndex, CLOUD_COLLISION_PROFILES.length),
+        ...(cloudSizeBuckets[
+          clampIndex(obstacle.cloudScaleBucket, cloudSizeBuckets.length)
+        ] || cloudSizeBuckets[1]),
+      };
+
+  obstacle[storeKey] = variant;
+  return variant;
+}
+
+function containedImageRect(bounds, profile, bottomAnchored = false) {
+  const scale = Math.min(bounds.w / profile.width, bounds.h / profile.height);
+  const w = profile.width * scale;
+  const h = profile.height * scale;
+  return {
+    x: bounds.x + (bounds.w - w) * 0.5,
+    y: bottomAnchored
+      ? bounds.y + bounds.h - h
+      : bounds.y + (bounds.h - h) * 0.5,
+    w,
+    h,
+  };
+}
+
+function makeBuildingBands(obstacle, bounds) {
+  const variant = ensureCollisionVisualVariant(obstacle, "building");
+  const profile =
+    BUILDING_COLLISION_PROFILES[variant.frameIndex] ||
+    BUILDING_COLLISION_PROFILES[0];
+  const groundAnchorY = GAME.BASE_HEIGHT - COLLISION_RENDER_SCALE.buildingGroundInset;
+  const nominalSpriteH = Math.max(
+    COLLISION_RENDER_SCALE.buildingMinBoxHeight,
+    Math.min(
+      COLLISION_RENDER_SCALE.buildingMaxBoxHeight,
+      bounds.h *
+        (variant.heightScale ?? 1) *
+        COLLISION_RENDER_SCALE.buildingHeightFactor +
+        COLLISION_RENDER_SCALE.buildingHeightOffset
+    )
+  );
+  const spriteW = Math.max(
+    COLLISION_RENDER_SCALE.buildingMinBoxWidth,
+    Math.min(
+      COLLISION_RENDER_SCALE.buildingMaxBoxWidth,
+      bounds.w *
+        (variant.widthScale ?? 1) *
+        COLLISION_RENDER_SCALE.buildingWidthFactor
+    )
+  );
+  const spriteH = fitBuildingSpriteHeight({
+    frameIndex: variant.frameIndex,
+    nominalHeight: nominalSpriteH,
+    spriteWidth: spriteW,
+    groundAnchorY,
+    gapBottomY: obstacle.topH + obstacle.gap,
+  });
+  const box = {
+    x: bounds.x + bounds.w * 0.5 - spriteW * 0.5,
+    y: groundAnchorY - spriteH,
+    w: spriteW,
+    h: spriteH,
+  };
+  const image = containedImageRect(box, profile, true);
+  const bands = profile.bands.map(([x0, x1, edgeY]) => {
+    const visualY = image.y + edgeY * image.h;
+    const gapFloor =
+      obstacle.topH + obstacle.gap - BUILDING_GAP_COLLISION_REACH;
+    const y = Math.max(visualY, gapFloor);
+    return {
+      x: image.x + x0 * image.w,
+      y,
+      w: Math.max(1, (x1 - x0) * image.w),
+      h: Math.max(1, GAME.BASE_HEIGHT - y),
+    };
+  });
+  return { bands, spriteIndex: variant.frameIndex, imageBounds: image };
+}
+
+function makeCloudBands(obstacle, bounds) {
+  const variant = ensureCollisionVisualVariant(obstacle, "cloud");
+  const profile =
+    CLOUD_COLLISION_PROFILES[variant.frameIndex] || CLOUD_COLLISION_PROFILES[0];
+  const clusterScale = variant.scale ?? 1;
+  const clusterH = Math.max(
+    COLLISION_RENDER_SCALE.cloudMinHeight,
+    Math.min(
+      COLLISION_RENDER_SCALE.cloudMaxHeight,
+      bounds.h * COLLISION_RENDER_SCALE.cloudHeightFactor * clusterScale
+    )
+  );
+  const y = Math.max(0, bounds.y + bounds.h - clusterH);
+  const baseW =
+    bounds.w * COLLISION_RENDER_SCALE.cloudWidthFactor * (variant.widthScale ?? 1);
+  const boxes = [
+    { x: bounds.x - bounds.w * 0.28, y: y + 10, w: baseW, h: clusterH },
+    {
+      x: bounds.x - bounds.w * 0.04,
+      y,
+      w: baseW * 0.95,
+      h: clusterH * 1.02,
+    },
+    {
+      x: bounds.x + bounds.w * 0.22,
+      y: y + 12,
+      w: baseW * 0.9,
+      h: clusterH * 0.96,
+    },
+  ];
+
+  const bands = [];
+  for (const box of boxes) {
+    const image = containedImageRect(box, profile, false);
+    for (const [x0, x1, edgeY] of profile.bands) {
+      const bottomY = image.y + edgeY * image.h;
+      bands.push({
+        x: image.x + x0 * image.w,
+        y: 0,
+        w: Math.max(1, (x1 - x0) * image.w),
+        h: Math.max(1, bottomY),
+      });
+    }
+  }
+  return { bands, spriteIndex: variant.frameIndex };
+}
+class ObstaclePair {
   constructor() {
     this.active = false;
     this.passed = false;
@@ -1860,10 +2158,18 @@ function clamp(value, min, max) {
       : 0;
 
     const gapCenterY = topH + gap * 0.5;
-    const maxTop = Math.max(minTop, GAME.BASE_HEIGHT - minBottom - grownGap);
+    const maxTop = Math.max(
+      minTop,
+      GAME.BASE_HEIGHT - minBottom - grownGap
+    );
 
     this.gap = grownGap;
     this.topH = clamp(gapCenterY - grownGap * 0.5, minTop, maxTop);
+
+    // Seed the same visual cache that the renderer consumes so the collision
+    // profile and the drawn PNG always refer to the same variant and scale.
+    ensureCollisionVisualVariant(this, "cloud");
+    ensureCollisionVisualVariant(this, "building");
   }
 
   despawn() {
@@ -1884,14 +2190,20 @@ function clamp(value, min, max) {
     const gapTopY = this.topH;
     const gapBottomY = this.topH + this.gap;
 
-    const topGapSafeInset = Math.max(0, OBSTACLE.CLOUD_GAP_SAFE_INSET ?? 0);
+    const topGapSafeInset = Math.max(
+      0,
+      OBSTACLE.CLOUD_GAP_SAFE_INSET ?? 0
+    );
     const topAvailableHeight = Math.max(0, gapTopY - topGapSafeInset);
     const topHitboxHeight = clampToAvailable(
       OBSTACLE.CLOUD_HITBOX_HEIGHT,
       topAvailableHeight
     );
 
-    const bottomAvailableHeight = Math.max(0, GAME.BASE_HEIGHT - gapBottomY);
+    const bottomAvailableHeight = Math.max(
+      0,
+      GAME.BASE_HEIGHT - gapBottomY
+    );
     const bottomHitboxHeight = clampToAvailable(
       OBSTACLE.TORNADO_HITBOX_HEIGHT,
       bottomAvailableHeight
@@ -1899,17 +2211,37 @@ function clamp(value, min, max) {
 
     const top = {
       x: this.x + OBSTACLE.CLOUD_HITBOX_INSET_X,
-      y: Math.max(0, gapTopY - topGapSafeInset - topHitboxHeight),
-      w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.CLOUD_HITBOX_INSET_X * 2),
+      y: Math.max(
+        0,
+        gapTopY - topGapSafeInset - topHitboxHeight
+      ),
+      w: Math.max(
+        24,
+        OBSTACLE.WIDTH - OBSTACLE.CLOUD_HITBOX_INSET_X * 2
+      ),
       h: topHitboxHeight,
     };
 
     const bottom = {
       x: this.x + OBSTACLE.TORNADO_HITBOX_INSET_X,
       y: GAME.BASE_HEIGHT - bottomHitboxHeight,
-      w: Math.max(24, OBSTACLE.WIDTH - OBSTACLE.TORNADO_HITBOX_INSET_X * 2),
+      w: Math.max(
+        24,
+        OBSTACLE.WIDTH - OBSTACLE.TORNADO_HITBOX_INSET_X * 2
+      ),
       h: bottomHitboxHeight,
     };
+
+    const visual = this.getVisualBounds();
+    const cloudCollision = makeCloudBands(this, visual.top);
+    const buildingCollision = makeBuildingBands(this, visual.bottom);
+
+    // Preserve the legacy rectangle for scoring/eval contracts, while
+    // circleAabbIntersect consumes the sharper sprite-aware bands.
+    top.bands = cloudCollision.bands;
+    top.spriteIndex = cloudCollision.spriteIndex;
+    bottom.bands = buildingCollision.bands;
+    bottom.spriteIndex = buildingCollision.spriteIndex;
 
     return { top, bottom };
   }
@@ -1958,7 +2290,8 @@ function clamp(value, min, max) {
     ];
 
     const buildingScale =
-      buildingScalePresets[this.buildingSizeBucket] || buildingScalePresets[2];
+      buildingScalePresets[this.buildingSizeBucket] ||
+      buildingScalePresets[2];
 
     return {
       gapTopY,
@@ -1985,6 +2318,7 @@ function clamp(value, min, max) {
     return this.topH + this.gap / 2;
   }
 }
+
 
 // ===== FILE: src/systems/scoring.js =====
 
@@ -2296,6 +2630,218 @@ function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
+// ===== FILE: src/render/environmentGeometry.js =====
+
+// Atmosphere City A1/A3 + Living City B1 — pure visual geometry for non-collision city depth.
+// This module deliberately owns no gameplay truth. It produces deterministic
+// background skyline/detail geometry only; obstacles, collision, scoring and physics
+// remain elsewhere.
+const ENVIRONMENT_LAYER_ORDER = Object.freeze(["far", "mid", "near"]);
+
+// A3 replaces hash-random far-skyline proportions with one authored repeating
+// city phrase. The phrase is intentionally quiet: it reuses the A2-approved
+// roof vocabulary, preserves the existing far-layer bounds, and adds identity
+// through rhythm rather than opacity, speed, clutter, or gameplay changes.
+const DISTANT_CITY_MOTIF = Object.freeze([
+  Object.freeze({ height: 0.34, width: 0.42, roofType: 0 }),
+  Object.freeze({ height: 0.48, width: 0.68, roofType: 1 }),
+  Object.freeze({ height: 0.26, width: 0.36, roofType: 0 }),
+  Object.freeze({ height: 0.64, width: 0.54, roofType: 2 }),
+  Object.freeze({ height: 0.42, width: 0.88, roofType: 0 }),
+  Object.freeze({ height: 0.82, width: 0.60, roofType: 1 }),
+  Object.freeze({ height: 0.54, width: 0.44, roofType: 0 }),
+  Object.freeze({ height: 0.30, width: 0.76, roofType: 0 }),
+  Object.freeze({ height: 1.00, width: 0.50, roofType: 2 }),
+  Object.freeze({ height: 0.58, width: 0.72, roofType: 1 }),
+  Object.freeze({ height: 0.40, width: 0.48, roofType: 0 }),
+  Object.freeze({ height: 0.72, width: 0.84, roofType: 1 }),
+]);
+const ENVIRONMENT_LAYER_CONTRACT = Object.freeze({
+  far: Object.freeze({
+    id: "far",
+    depth: 0.08,
+    speedPxPerSec: 5,
+    baseY: 630,
+    minHeight: 48,
+    maxHeight: 118,
+    step: 34,
+    widthMin: 20,
+    widthMax: 29,
+    alpha: 0.14,
+  }),
+  mid: Object.freeze({
+    id: "mid",
+    depth: 0.18,
+    speedPxPerSec: 11,
+    baseY: 710,
+    minHeight: 70,
+    maxHeight: 160,
+    step: 46,
+    widthMin: 29,
+    widthMax: 39,
+    alpha: 0.20,
+  }),
+  near: Object.freeze({
+    id: "near",
+    depth: 0.32,
+    speedPxPerSec: 20,
+    baseY: 775,
+    minHeight: 80,
+    maxHeight: 175,
+    step: 58,
+    widthMin: 39,
+    widthMax: 49,
+    alpha: 0.25,
+  }),
+});
+
+// B1 adds one living-city detail class only: tiny static far-city windows.
+// The contract is intentionally conservative so the lights read as occupancy,
+// never as route cues or hazard geometry. No animation/flicker is admitted here.
+const CITY_DETAIL_CONTRACT = Object.freeze({
+  farWindows: Object.freeze({
+    maxPerSegment: 4,
+    sideInset: 4,
+    roofClearance: 12,
+    bottomInset: 8,
+    minWidth: 1.5,
+    maxWidth: 2.2,
+    height: 3,
+    alpha: 0.20,
+    litThreshold: 0.30,
+  }),
+});
+function getCityLayerSegments(
+  layerId,
+  t = 0,
+  { reducedMotion = false, viewportWidth = 480 } = {}
+) {
+  const layer = ENVIRONMENT_LAYER_CONTRACT[layerId];
+  if (!layer) return [];
+
+  const width = Math.max(1, Number.isFinite(viewportWidth) ? viewportWidth : 480);
+  const time = reducedMotion ? 0 : Math.max(0, Number.isFinite(t) ? t : 0);
+  const distance = time * layer.speedPxPerSec;
+  const firstIndex = Math.floor(distance / layer.step) - 2;
+  const count = Math.ceil(width / layer.step) + 5;
+  const segments = [];
+
+  for (let j = 0; j < count; j += 1) {
+    const worldIndex = firstIndex + j;
+    const x = worldIndex * layer.step - distance;
+
+    if (layerId === "far") {
+      const motifIndex = wrapIndex(worldIndex, DISTANT_CITY_MOTIF.length);
+      const motif = DISTANT_CITY_MOTIF[motifIndex];
+      const w = lerp(layer.widthMin, layer.widthMax, motif.width);
+      const h = lerp(layer.minHeight, layer.maxHeight, motif.height);
+
+      segments.push({
+        x,
+        y: layer.baseY - h,
+        w,
+        h,
+        roofType: motif.roofType,
+        worldIndex,
+        motifIndex,
+      });
+      continue;
+    }
+
+    const widthHash = environmentHash01(worldIndex, layerSalt(layerId, 1));
+    const heightHash = environmentHash01(worldIndex, layerSalt(layerId, 2));
+    const roofHash = environmentHash01(worldIndex, layerSalt(layerId, 3));
+    const w = lerp(layer.widthMin, layer.widthMax, widthHash);
+    const h = lerp(layer.minHeight, layer.maxHeight, heightHash);
+
+    segments.push({
+      x,
+      y: layer.baseY - h,
+      w,
+      h,
+      roofType: Math.min(2, Math.floor(roofHash * 3)),
+      worldIndex,
+    });
+  }
+
+  return segments;
+}
+function getCityWindowLights(layerId, segment) {
+  if (layerId !== "far" || !segment || !Number.isFinite(segment.worldIndex)) return [];
+
+  const detail = CITY_DETAIL_CONTRACT.farWindows;
+  const usableW = segment.w - detail.sideInset * 2;
+  const usableH = segment.h - detail.roofClearance - detail.bottomInset;
+  if (usableW < detail.minWidth || usableH < detail.height) return [];
+
+  const cols = Math.max(1, Math.min(3, Math.floor(usableW / 6)));
+  const rows = Math.max(1, Math.min(7, Math.floor(usableH / 11)));
+  const cellW = usableW / cols;
+  const cellH = usableH / rows;
+  const lights = [];
+
+  for (let row = 0; row < rows && lights.length < detail.maxPerSegment; row += 1) {
+    for (let col = 0; col < cols && lights.length < detail.maxPerSegment; col += 1) {
+      const cellIndex = row * cols + col;
+      const lit = environmentHash01(segment.worldIndex * 17 + cellIndex, 97);
+      if (lit >= detail.litThreshold) continue;
+
+      const widthT = environmentHash01(segment.worldIndex * 29 + cellIndex, 113);
+      const w = lerp(detail.minWidth, detail.maxWidth, widthT);
+      const x =
+        segment.x +
+        detail.sideInset +
+        col * cellW +
+        Math.max(0, (cellW - w) * 0.5);
+      const y =
+        segment.y +
+        detail.roofClearance +
+        row * cellH +
+        Math.max(0, (cellH - detail.height) * 0.5);
+
+      lights.push({
+        x,
+        y,
+        w,
+        h: detail.height,
+        worldIndex: segment.worldIndex,
+        cellIndex,
+      });
+    }
+  }
+
+  return lights;
+}
+function getEnvironmentLayerSnapshot(
+  t = 0,
+  { reducedMotion = false, viewportWidth = 480 } = {}
+) {
+  const out = {};
+  for (const id of ENVIRONMENT_LAYER_ORDER) {
+    out[id] = getCityLayerSegments(id, t, { reducedMotion, viewportWidth });
+  }
+  return out;
+}
+
+function layerSalt(layerId, channel) {
+  const base = layerId === "far" ? 19 : layerId === "mid" ? 43 : 71;
+  return base + channel * 13;
+}
+
+function environmentHash01(value, salt = 0) {
+  const x = Math.sin(value * 127.1 + salt * 311.7) * 43758.5453123;
+  return x - Math.floor(x);
+}
+
+function wrapIndex(value, length) {
+  return ((value % length) + length) % length;
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+
 // ===== FILE: src/render/renderer.js =====
 
 const VISION_OBSTACLE_SCALE = {
@@ -2312,7 +2858,8 @@ const VISION_OBSTACLE_SCALE = {
   buildingMaxBoxHeight: 760,
   buildingHeightFactor: 2.25,
   buildingHeightOffset: 150,
-};class Renderer {
+};
+class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d", { alpha: false });
@@ -2326,6 +2873,7 @@ const VISION_OBSTACLE_SCALE = {
       clouds: [],
       buildings: [],
     };
+    this.debugCollision = readCollisionDebugFlag();
   }
 
   dispose() {}
@@ -2393,6 +2941,7 @@ const VISION_OBSTACLE_SCALE = {
     drawSky(ctx, t, theme);
     drawAmbientClouds(ctx, t, theme);
     drawFarGlow(ctx, theme);
+    drawCityDepthLayers(ctx, t, theme, reducedMotion);
     drawGround(ctx, t, theme);
 
     for (const obstacle of spawner.active) {
@@ -2406,6 +2955,10 @@ const VISION_OBSTACLE_SCALE = {
 
     const owlFrames = playPhase === "glide" ? this.glideOwlFrames : this.owlFrames;
     drawOwl(ctx, owl, owlFrames, t, reducedMotion, theme, playPhase);
+
+    if (this.debugCollision && mode === "playing") {
+      drawCollisionDebug(ctx, owl, spawner);
+    }
 
     if (playPhase !== "normal") {
       drawFractureOverlay(ctx, {
@@ -2425,6 +2978,53 @@ const VISION_OBSTACLE_SCALE = {
 
     ctx.restore();
   }
+}
+
+function readCollisionDebugFlag() {
+  try {
+    const search = globalThis?.location?.search || "";
+    return new URLSearchParams(search).get("debugHitboxes") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function drawCollisionDebug(ctx, owl, spawner) {
+  if (!ctx || !owl || !spawner) return;
+
+  const circle = typeof owl.getCircle === "function" ? owl.getCircle() : null;
+  if (circle) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(126,243,210,0.95)";
+    ctx.fillStyle = "rgba(126,243,210,0.12)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(circle.cx, circle.cy, circle.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for (const obstacle of spawner.active || []) {
+    if (!obstacle?.active || typeof obstacle.getRects !== "function") continue;
+    const { top, bottom } = obstacle.getRects();
+    drawCollisionBands(ctx, top?.bands, "rgba(255,107,129,0.82)");
+    drawCollisionBands(ctx, bottom?.bands, "rgba(255,196,92,0.82)");
+  }
+}
+
+function drawCollisionBands(ctx, bands, color) {
+  if (!Array.isArray(bands)) return;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color.replace("0.82", "0.10");
+  ctx.lineWidth = 1;
+  for (const band of bands) {
+    ctx.fillRect(band.x, band.y, band.w, band.h);
+    ctx.strokeRect(band.x, band.y, band.w, band.h);
+  }
+  ctx.restore();
 }
 
 function drawObstaclePair(ctx, obstacle, sprites, t, reducedMotion, theme) {
@@ -2504,7 +3104,7 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
   const variant = ensureVisualVariant(obstacle, frames, "building", 13);
   const frame = pickIndexedFrame(frames, variant.frameIndex);
   const groundAnchorY = GAME.BASE_HEIGHT - VISION_OBSTACLE_SCALE.buildingGroundInset;
-  const spriteH = Math.max(
+  const nominalSpriteH = Math.max(
     VISION_OBSTACLE_SCALE.buildingMinBoxHeight,
     Math.min(
       VISION_OBSTACLE_SCALE.buildingMaxBoxHeight,
@@ -2519,6 +3119,13 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
       bounds.w * (variant.widthScale ?? 1) * VISION_OBSTACLE_SCALE.buildingWidthFactor
     )
   );
+  const spriteH = fitBuildingSpriteHeight({
+    frameIndex: variant.frameIndex,
+    nominalHeight: nominalSpriteH,
+    spriteWidth: spriteW,
+    groundAnchorY,
+    gapBottomY: obstacle.topH + obstacle.gap,
+  });
   const x = bounds.x + bounds.w * 0.5 - spriteW * 0.5;
   const y = groundAnchorY - spriteH;
 
@@ -2738,6 +3345,80 @@ function drawFarGlow(ctx, theme) {
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, GAME.BASE_WIDTH, GAME.BASE_HEIGHT);
+  ctx.restore();
+}
+
+function drawCityDepthLayers(ctx, t, theme, reducedMotion) {
+  const colors = {
+    far: theme?.ridges?.far || "#0a1a2c",
+    mid: theme?.ridges?.mid || "#091425",
+    near: theme?.ridges?.mid || theme?.ground?.base || "#1a0f19",
+  };
+
+  for (const layerId of ENVIRONMENT_LAYER_ORDER) {
+    const layer = ENVIRONMENT_LAYER_CONTRACT[layerId];
+    if (!layer) continue;
+
+    const segments = getCityLayerSegments(layerId, t, {
+      reducedMotion,
+      viewportWidth: GAME.BASE_WIDTH,
+    });
+
+    ctx.save();
+    ctx.globalAlpha = layer.alpha;
+    ctx.fillStyle = colors[layerId] || colors.mid;
+
+    for (const segment of segments) {
+      drawCitySegment(ctx, segment);
+    }
+
+    if (layerId === "far") {
+      drawCityWindowLights(ctx, segments, theme);
+    }
+
+    ctx.restore();
+  }
+}
+
+function drawCitySegment(ctx, segment) {
+  const { x, y, w, h, roofType } = segment;
+  const baseY = y + h;
+
+  ctx.beginPath();
+  ctx.moveTo(x, baseY);
+  ctx.lineTo(x, y + (roofType === 0 ? 0 : 6));
+
+  if (roofType === 1) {
+    ctx.lineTo(x + w * 0.22, y + 6);
+    ctx.lineTo(x + w * 0.22, y);
+    ctx.lineTo(x + w * 0.78, y);
+    ctx.lineTo(x + w * 0.78, y + 6);
+  } else if (roofType === 2) {
+    ctx.lineTo(x + w * 0.34, y + 6);
+    ctx.lineTo(x + w * 0.34, y + 2);
+    ctx.lineTo(x + w * 0.66, y + 2);
+    ctx.lineTo(x + w * 0.66, y + 6);
+  }
+
+  ctx.lineTo(x + w, y + (roofType === 0 ? 0 : 6));
+  ctx.lineTo(x + w, baseY);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawCityWindowLights(ctx, segments, theme) {
+  const detail = CITY_DETAIL_CONTRACT.farWindows;
+  ctx.save();
+  ctx.globalAlpha = detail.alpha;
+  ctx.fillStyle = theme?.city?.windowLight || "#ffd27d";
+
+  for (const segment of segments) {
+    const lights = getCityWindowLights("far", segment);
+    for (const light of lights) {
+      ctx.fillRect(light.x, light.y, light.w, light.h);
+    }
+  }
+
   ctx.restore();
 }
 
@@ -3564,6 +4245,23 @@ class GameOverUI {
 // ===== FILE: src/app/boot.js =====
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
 }
@@ -3749,19 +4447,21 @@ function rewardSpriteCandidates() {
 }
 
 async function loadFrameSet(count, candidateFactory, label) {
-  const frames = [];
+  const frames = await Promise.all(
+    Array.from({ length: count }, async (_, offset) => {
+      const index = offset + 1;
+      const candidates = candidateFactory(index);
+      const frame = await loadOptionalImage(candidates);
 
-  for (let i = 1; i <= count; i += 1) {
-    const frame = await loadOptionalImage(candidateFactory(i));
-    if (frame) {
-      frames.push(frame);
-      continue;
-    }
+      if (!frame) {
+        console.warn(`${label} sprite ${index} missing. Checked:`, candidates);
+      }
 
-    console.warn(`${label} sprite ${i} missing. Checked:`, candidateFactory(i));
-  }
+      return frame;
+    })
+  );
 
-  return frames;
+  return frames.filter(Boolean);
 }
 
 async function preloadSprites(renderer) {
@@ -3783,11 +4483,14 @@ async function preloadSprites(renderer) {
   renderer.setGlideOwlFrames(g0 || f0, g1 || f1, g2 || f2);
   renderer.setRewardSprite(rewardSprite);
 
-  const clouds = await loadFrameSet(6, cloudFrameCandidates, "Cloud");
-  const buildings = await loadFrameSet(13, buildingFrameCandidates, "Building");
+  const [clouds, buildings] = await Promise.all([
+    loadFrameSet(6, cloudFrameCandidates, "Cloud"),
+    loadFrameSet(13, buildingFrameCandidates, "Building"),
+  ]);
 
   renderer.setObstacleSprites({ clouds, buildings });
-}function boot() {
+}
+function boot() {
   if (window.__owlfly_booted) return;
   window.__owlfly_booted = true;
 
@@ -3840,7 +4543,7 @@ async function preloadSprites(renderer) {
   window.addEventListener("resize", syncCanvasSize);
   window.addEventListener("orientationchange", syncCanvasSize);
 
-  preloadSprites(renderer).catch((error) => {
+  const spritesReady = preloadSprites(renderer).catch((error) => {
     console.warn("Sprite preload failed:", error);
   });
 
@@ -4011,7 +4714,18 @@ hit: audioCandidates("hit.wav"),
     resetPhaseState();
   }
 
-  function startGame() {
+  let startingGame = false;
+
+  async function startGame() {
+    if (startingGame || state.mode === "playing") return;
+
+    startingGame = true;
+    try {
+      await spritesReady;
+    } finally {
+      startingGame = false;
+    }
+
     input.consumeJump();
 
     hardResetRun();
@@ -4288,10 +5002,6 @@ hit: audioCandidates("hit.wav"),
     }
   }
 
-  function maybeTriggerFracture() {
-    return false;
-  }
-
   function crash() {
     owl.kill();
     scoring.onCrash();
@@ -4365,7 +5075,6 @@ hit: audioCandidates("hit.wav"),
       if (state.playPhase === "normal") {
         owl.y = c.r + 2;
         owl.vy = Math.max(0, owl.vy * 0.25);
-        beginFracture();
         return;
       }
 

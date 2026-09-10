@@ -39,6 +39,7 @@ export class Renderer {
       clouds: [],
       buildings: [],
     };
+    this.debugCollision = readCollisionDebugFlag();
   }
 
   dispose() {}
@@ -121,6 +122,10 @@ export class Renderer {
     const owlFrames = playPhase === "glide" ? this.glideOwlFrames : this.owlFrames;
     drawOwl(ctx, owl, owlFrames, t, reducedMotion, theme, playPhase);
 
+    if (this.debugCollision && mode === "playing") {
+      drawCollisionDebug(ctx, owl, spawner);
+    }
+
     if (playPhase !== "normal") {
       drawFractureOverlay(ctx, {
         theme,
@@ -139,6 +144,53 @@ export class Renderer {
 
     ctx.restore();
   }
+}
+
+function readCollisionDebugFlag() {
+  try {
+    const search = globalThis?.location?.search || "";
+    return new URLSearchParams(search).get("debugHitboxes") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function drawCollisionDebug(ctx, owl, spawner) {
+  if (!ctx || !owl || !spawner) return;
+
+  const circle = typeof owl.getCircle === "function" ? owl.getCircle() : null;
+  if (circle) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(126,243,210,0.95)";
+    ctx.fillStyle = "rgba(126,243,210,0.12)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(circle.cx, circle.cy, circle.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for (const obstacle of spawner.active || []) {
+    if (!obstacle?.active || typeof obstacle.getRects !== "function") continue;
+    const { top, bottom } = obstacle.getRects();
+    drawCollisionBands(ctx, top?.bands, "rgba(255,107,129,0.82)");
+    drawCollisionBands(ctx, bottom?.bands, "rgba(255,196,92,0.82)");
+  }
+}
+
+function drawCollisionBands(ctx, bands, color) {
+  if (!Array.isArray(bands)) return;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color.replace("0.82", "0.10");
+  ctx.lineWidth = 1;
+  for (const band of bands) {
+    ctx.fillRect(band.x, band.y, band.w, band.h);
+    ctx.strokeRect(band.x, band.y, band.w, band.h);
+  }
+  ctx.restore();
 }
 
 function drawObstaclePair(ctx, obstacle, sprites, t, reducedMotion, theme) {
