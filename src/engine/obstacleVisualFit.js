@@ -3,17 +3,17 @@ import { BUILDING_COLLISION_PROFILES } from "./obstacleCollisionProfiles.js";
 // Foreground obstacle art-direction contract. These values govern presentation
 // only; collision contours and gameplay gap geometry remain untouched.
 export const OBSTACLE_PRESENTATION_CONTRACT = Object.freeze({
-  buildingGapReach: 72,
+  buildingGapReach: 80,
   previousBuildingGapReach: 80,
-  maxReachTightening: 8,
+  maxReachTightening: 0,
   minimumRenderedBuildingHeight: 96,
   gapEdgeThickness: 2,
   gapEdgeInset: 7,
   gapEdgeAlpha: 0.14,
 });
 
-// Keep the rendered rooftop and the lethal rooftop contour in the same visual
-// neighborhood. P4 tightens the family by only 8px from the sealed A1 value.
+// Keep the rendered rooftop and the lethal rooftop contour on the sealed A1
+// reach. P4 changes edge presentation only, never building fit or collision.
 export const BUILDING_GAP_VISUAL_REACH =
   OBSTACLE_PRESENTATION_CONTRACT.buildingGapReach;
 
@@ -67,9 +67,8 @@ export function fitBuildingSpriteHeight({
     widthLimitedImageHeight
   );
 
-  // Width-limited or already-honest buildings retain their exact prior size.
-  // Only sprites whose visible rooftop would exceed the shared presentation
-  // reach are reduced, keeping the change local and rollback-friendly.
+  // Preserve the existing width-limited fit. P4 adds a shared edge treatment
+  // without changing the building silhouette or its collision interpretation.
   if (nominalImageHeight <= maxImageHeightByGap) {
     return safeNominalHeight;
   }

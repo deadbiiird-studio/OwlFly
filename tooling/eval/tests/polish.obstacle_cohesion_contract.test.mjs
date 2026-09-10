@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { GAME } from "../../../src/core/constants.js";
 import { BUILDING_COLLISION_PROFILES } from "../../../src/engine/obstacleCollisionProfiles.js";
+import { BUILDING_GAP_COLLISION_REACH } from "../../../src/engine/entities/obstaclePair.js";
 import {
   BUILDING_GAP_VISUAL_REACH,
   OBSTACLE_PRESENTATION_CONTRACT,
@@ -21,17 +22,15 @@ function visibleProfileTop(frameIndex, boxHeight) {
   return GROUND - imageHeight + getBuildingProfileTopEdge(frameIndex) * imageHeight;
 }
 
-test("P4 obstacle cohesion: shared building reach only tightens the sealed envelope by 8px", () => {
+test("P4 obstacle cohesion: building fit and collision retain the sealed 80px reach", () => {
   assert.equal(OBSTACLE_PRESENTATION_CONTRACT.previousBuildingGapReach, 80);
-  assert.equal(BUILDING_GAP_VISUAL_REACH, 72);
-  assert.equal(
-    OBSTACLE_PRESENTATION_CONTRACT.previousBuildingGapReach - BUILDING_GAP_VISUAL_REACH,
-    OBSTACLE_PRESENTATION_CONTRACT.maxReachTightening
-  );
-  assert.ok(OBSTACLE_PRESENTATION_CONTRACT.maxReachTightening <= 8);
+  assert.equal(OBSTACLE_PRESENTATION_CONTRACT.buildingGapReach, 80);
+  assert.equal(OBSTACLE_PRESENTATION_CONTRACT.maxReachTightening, 0);
+  assert.equal(BUILDING_GAP_VISUAL_REACH, 80);
+  assert.equal(BUILDING_GAP_COLLISION_REACH, 80);
 });
 
-test("P4 obstacle cohesion: every building stays at or farther from the gap than the prior 80px rule", () => {
+test("P4 obstacle cohesion: every building preserves the sealed 80px fit", () => {
   const gaps = [468, 560, 660];
 
   for (let frameIndex = 0; frameIndex < BUILDING_COLLISION_PROFILES.length; frameIndex += 1) {
@@ -54,13 +53,11 @@ test("P4 obstacle cohesion: every building stays at or farther from the gap than
 
       const currentTop = visibleProfileTop(frameIndex, current);
       const previousTop = visibleProfileTop(frameIndex, previous);
-      assert.ok(
-        currentTop >= previousTop - 0.75,
-        `building ${frameIndex + 1} must not move farther into the flight gap`
-      );
+      assert.equal(current, previous);
+      assert.equal(currentTop, previousTop);
       assert.ok(
         currentTop >= gapBottomY - BUILDING_GAP_VISUAL_REACH - 0.75,
-        `building ${frameIndex + 1} must honor the shared 72px visual reach`
+        `building ${frameIndex + 1} must honor the sealed 80px visual reach`
       );
     }
   }
