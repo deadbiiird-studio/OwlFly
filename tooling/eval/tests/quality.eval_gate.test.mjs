@@ -22,6 +22,7 @@ test("quality eval gate: sim gate runs and writes a structured report", () => {
     encoding: "utf8",
   });
 
+  assert.ifError(result.error);
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.ok(fs.existsSync(output), "gate did not write its report");
 

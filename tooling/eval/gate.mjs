@@ -46,6 +46,7 @@ function runSim({ seeds, time, bot, seedStart }) {
     encoding: "utf8",
   });
 
+  if (result.error) throw result.error;
   if (result.status !== 0) {
     throw new Error(`sim failed with exit ${result.status}:\n${result.stderr || result.stdout}`);
   }

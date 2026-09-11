@@ -14,6 +14,7 @@ test("quality eval: obstacle deaths include actionable death context", () => {
     encoding: "utf8",
   });
 
+  assert.ifError(result.error);
   assert.equal(result.status, 0, result.stderr || result.stdout);
   const report = JSON.parse(result.stdout);
 
