@@ -1,0 +1,127 @@
+/* OwlFly P2 UI polish — intentionally layered over style.css. */
+
+.hudBar {
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  right: max(14px, env(safe-area-inset-right));
+}
+
+.hudScore {
+  padding: 6px 7px 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(5, 12, 24, 0.56);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+}
+
+.scorePill {
+  position: relative;
+  min-width: 58px;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  font-variant-numeric: tabular-nums;
+  transform-origin: center;
+}
+
+.scorePill--pulse {
+  animation: owlfly-score-pop 210ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes owlfly-score-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.14); box-shadow: 0 0 0 5px rgba(126, 243, 210, 0.08); }
+  100% { transform: scale(1); }
+}
+
+.hudIconBtn {
+  width: 48px;
+  height: 48px;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(5, 12, 24, 0.62);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hudIconBtn[aria-pressed="true"] {
+  border-color: rgba(126, 243, 210, 0.42);
+  background: rgba(126, 243, 210, 0.12);
+}
+
+.hudControlIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+button:focus-visible {
+  outline: 3px solid rgba(126, 243, 210, 0.72);
+  outline-offset: 3px;
+}
+
+#hud .toast {
+  bottom: max(24px, calc(env(safe-area-inset-bottom) + 14px));
+}
+
+.overPanel {
+  scroll-padding-block: 18px;
+}
+
+.scoreCard--best {
+  border-color: rgba(255, 211, 106, 0.5);
+  box-shadow: 0 0 0 1px rgba(255, 211, 106, 0.08) inset;
+}
+
+.scoreMeta {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 211, 106, 0.12);
+  color: #ffefbf;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.resultUnlocks {
+  text-align: left;
+}
+
+.resultActions {
+  margin-top: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  button,
+  .toast,
+  .menuToast,
+  .scorePill {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .hudLabel {
+    font-size: 0.76rem;
+  }
+
+  .hudBar {
+    gap: 8px;
+  }
+
+  .hudActions {
+    gap: 8px;
+  }
+}
