@@ -1,4 +1,4 @@
-// Atmosphere City A1/A3 + Living City B1 — pure visual geometry for non-collision city depth.
+// Atmosphere City A1/A3 + Living City B1/B2 — pure visual geometry for non-collision city depth.
 // This module deliberately owns no gameplay truth. It produces deterministic
 // background skyline/detail geometry only; obstacles, collision, scoring and physics
 // remain elsewhere.
@@ -63,9 +63,8 @@ export const ENVIRONMENT_LAYER_CONTRACT = Object.freeze({
   }),
 });
 
-// B1 adds one living-city detail class only: tiny static far-city windows.
-// The contract is intentionally conservative so the lights read as occupancy,
-// never as route cues or hazard geometry. No animation/flicker is admitted here.
+// Living City detail stays split by semantic class so every density increase can
+// be admitted, tested, and rolled back independently.
 export const CITY_DETAIL_CONTRACT = Object.freeze({
   farWindows: Object.freeze({
     maxPerSegment: 4,
@@ -77,6 +76,18 @@ export const CITY_DETAIL_CONTRACT = Object.freeze({
     height: 3,
     alpha: 0.20,
     litThreshold: 0.30,
+  }),
+  farAntennas: Object.freeze({
+    maxPerSegment: 1,
+    occupancyThreshold: 0.34,
+    minHeight: 4,
+    maxHeight: 7,
+    mastWidth: 1,
+    crossbarWidth: 3,
+    crossbarHeight: 1,
+    minAnchorT: 0.36,
+    maxAnchorT: 0.64,
+    protectedFlightFieldBottomY: 500,
   }),
 });
 
@@ -183,6 +194,44 @@ export function getCityWindowLights(layerId, segment) {
   return lights;
 }
 
+export function getCityRooftopAntennas(layerId, segment) {
+  if (layerId !== "far" || !segment || !Number.isFinite(segment.worldIndex)) return [];
+
+  const detail = CITY_DETAIL_CONTRACT.farAntennas;
+  const occupancy = environmentHash01(segment.worldIndex, 151);
+  if (occupancy >= detail.occupancyThreshold) return [];
+
+  const heightT = environmentHash01(segment.worldIndex, 163);
+  const anchorT = lerp(
+    detail.minAnchorT,
+    detail.maxAnchorT,
+    environmentHash01(segment.worldIndex, 179)
+  );
+  const h = lerp(detail.minHeight, detail.maxHeight, heightT);
+  const roofY = getSegmentRoofAnchorY(segment);
+  const x = segment.x + segment.w * anchorT;
+  const y = roofY - h;
+
+  // This explicit refusal keeps future motif edits from silently allowing
+  // decorative props into the protected gameplay field.
+  if (y < detail.protectedFlightFieldBottomY) return [];
+
+  return [
+    {
+      x,
+      y,
+      w: detail.mastWidth,
+      h,
+      roofY,
+      crossbarX: x - (detail.crossbarWidth - detail.mastWidth) * 0.5,
+      crossbarY: y + 1,
+      crossbarW: detail.crossbarWidth,
+      crossbarH: detail.crossbarHeight,
+      worldIndex: segment.worldIndex,
+    },
+  ];
+}
+
 export function getEnvironmentLayerSnapshot(
   t = 0,
   { reducedMotion = false, viewportWidth = 480 } = {}
@@ -192,6 +241,11 @@ export function getEnvironmentLayerSnapshot(
     out[id] = getCityLayerSegments(id, t, { reducedMotion, viewportWidth });
   }
   return out;
+}
+
+function getSegmentRoofAnchorY(segment) {
+  if (segment.roofType === 2) return segment.y + 2;
+  return segment.y;
 }
 
 function layerSalt(layerId, channel) {

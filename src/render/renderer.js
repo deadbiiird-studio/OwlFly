@@ -6,6 +6,7 @@ import {
   ENVIRONMENT_LAYER_CONTRACT,
   ENVIRONMENT_LAYER_ORDER,
   getCityLayerSegments,
+  getCityRooftopAntennas,
   getCityWindowLights,
 } from "./environmentGeometry.js";
 
@@ -539,6 +540,7 @@ function drawCityDepthLayers(ctx, t, theme, reducedMotion) {
     }
 
     if (layerId === "far") {
+      drawCityRooftopAntennas(ctx, segments);
       drawCityWindowLights(ctx, segments, theme);
     }
 
@@ -570,6 +572,21 @@ function drawCitySegment(ctx, segment) {
   ctx.lineTo(x + w, baseY);
   ctx.closePath();
   ctx.fill();
+}
+
+function drawCityRooftopAntennas(ctx, segments) {
+  for (const segment of segments) {
+    const antennas = getCityRooftopAntennas("far", segment);
+    for (const antenna of antennas) {
+      ctx.fillRect(antenna.x, antenna.y, antenna.w, antenna.h);
+      ctx.fillRect(
+        antenna.crossbarX,
+        antenna.crossbarY,
+        antenna.crossbarW,
+        antenna.crossbarH
+      );
+    }
+  }
 }
 
 function drawCityWindowLights(ctx, segments, theme) {
