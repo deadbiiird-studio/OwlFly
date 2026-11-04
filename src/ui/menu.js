@@ -63,7 +63,7 @@ export class MenuUI {
         <div class="menuHero">
           <div class="eyebrow">Little Owl Takes Flight</div>
           <h1 class="title">OwlFly</h1>
-          <p class="sub">Fly clean. Break through. Touch the hidden sky.</p>
+          <p class="sub">Rise above the city. Discover what waits beyond.</p>
         </div>
 
         <div class="statChips">

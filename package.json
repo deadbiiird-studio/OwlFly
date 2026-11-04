@@ -21,7 +21,8 @@
     "quality": "npm run build && npm run test && npm run eval:gate && npm run eval:visual"
   },
   "devDependencies": {
-    "vite": "^5.4.0"
+    "vite": "^5.4.0",
+    "esbuild": "0.21.5"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",

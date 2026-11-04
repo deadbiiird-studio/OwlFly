@@ -1,4 +1,4 @@
-import { FRACTURE, GAME } from "../core/constants.js";
+import { GAME } from "../core/constants.js";
 import { AudioBank } from "../core/audio.js";
 import { MusicLoop } from "../core/music.js";
 import { RNG } from "../core/rng.js";
@@ -28,9 +28,7 @@ function clamp01(x) {
   return Math.max(0, Math.min(1, x));
 }
 
-function clamp(x, min, max) {
-  return Math.max(min, Math.min(max, x));
-}
+const DART_HOLD_THRESHOLD = 0.18;
 
 function unique(values) {
   return [...new Set((values || []).filter(Boolean))];
@@ -194,20 +192,6 @@ function cloudFrameCandidates(index) {
   ]);
 }
 
-function glideOwlFrameCandidates(index) {
-  return unique([
-    ...assetCandidates(`assets/sprites/owl_frame_${index}.png`),
-  ]);
-}
-
-function rewardSpriteCandidates() {
-  return unique([
-    ...assetCandidates("assets/rings/ring_1.png"),
-    ...assetCandidates("assets/rings/ring_2.png"),
-    ...assetCandidates("assets/rings/ring_3.png"),
-  ]);
-}
-
 async function loadFrameSet(count, candidateFactory, label) {
   const frames = await Promise.all(
     Array.from({ length: count }, async (_, offset) => {
@@ -234,16 +218,6 @@ async function preloadSprites(renderer) {
   ]);
 
   renderer.setOwlFrames(f0, f1, f2);
-
-  const [g0, g1, g2, rewardSprite] = await Promise.all([
-    loadOptionalImage(glideOwlFrameCandidates(0)),
-    loadOptionalImage(glideOwlFrameCandidates(1)),
-    loadOptionalImage(glideOwlFrameCandidates(2)),
-    loadOptionalImage(rewardSpriteCandidates()),
-  ]);
-
-  renderer.setGlideOwlFrames(g0 || f0, g1 || f1, g2 || f2);
-  renderer.setRewardSprite(rewardSprite);
 
   const [clouds, buildings] = await Promise.all([
     loadFrameSet(6, cloudFrameCandidates, "Cloud"),
@@ -342,15 +316,6 @@ hit: audioCandidates("hit.wav"),
   const state = {
     mode: "menu",
     paused: false,
-    playPhase: "normal",
-    fractureTimer: 0,
-    fractureProgress: 0,
-    glideTimer: 0,
-    reentryTimer: 0,
-    invulnTimer: 0,
-    passesSinceFracture: 0,
-    rewardSpawnTimer: 0,
-    rewards: [],
     owl,
     spawner,
     scoring,
@@ -456,28 +421,17 @@ hit: audioCandidates("hit.wav"),
     }
   }
 
-  function resetPhaseState() {
-    state.playPhase = "normal";
-    state.fractureTimer = 0;
-    state.fractureProgress = 0;
-    state.glideTimer = 0;
-    state.reentryTimer = 0;
-    state.invulnTimer = 0;
-    state.passesSinceFracture = 0;
-    state.rewardSpawnTimer = 0;
-    state.rewards.length = 0;
-    owl.clearFlightProfile();
-  }
-
   function hardResetRun() {
     difficulty.reset();
     owl.reset();
     spawner.reset();
     state.paused = false;
-    resetPhaseState();
   }
 
   let startingGame = false;
+  let holdActive = false;
+  let holdElapsed = 0;
+  let dartTriggered = false;
 
   async function startGame() {
     if (startingGame || state.mode === "playing") return;
@@ -489,7 +443,11 @@ hit: audioCandidates("hit.wav"),
       startingGame = false;
     }
 
-    input.consumeJump();
+    input.consumePress();
+    input.consumeRelease();
+    holdActive = false;
+    holdElapsed = 0;
+    dartTriggered = false;
 
     hardResetRun();
     scoring.reset();
@@ -508,7 +466,7 @@ hit: audioCandidates("hit.wav"),
       onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
-    uiHud.toast?.("🦉 Fly clean. Break through.", 1300);
+    uiHud.toast?.("🦉 Tap to flap.", 1300);
 
     applyMusicState();
   }
@@ -634,137 +592,6 @@ hit: audioCandidates("hit.wav"),
     });
   }
 
-  function beginFracture() {
-    if (state.playPhase !== "normal") return;
-
-    state.playPhase = "fracture";
-    state.fractureTimer = FRACTURE.TRANSITION_DURATION;
-    state.glideTimer = FRACTURE.GLIDE_DURATION;
-    state.invulnTimer = FRACTURE.TRANSITION_DURATION;
-    state.fractureProgress = 0;
-    state.rewardSpawnTimer = 0;
-    state.rewards.length = 0;
-    state.passesSinceFracture = 0;
-    uiHud.toast?.("⚡ Fracture opening", 1100);
-  }
-
-  function enterGlide() {
-    state.playPhase = "glide";
-    state.fractureProgress = 1;
-    state.rewardSpawnTimer = 0;
-    state.rewards.length = 0;
-    state.invulnTimer = 0;
-    spawner.reset();
-    owl.setFlightProfile(
-      {
-        gravityScale: FRACTURE.GLIDE_GRAVITY_SCALE,
-        jumpScale: FRACTURE.GLIDE_JUMP_SCALE,
-        maxFallScale: FRACTURE.GLIDE_MAX_FALL_SCALE,
-        rotDownScale: FRACTURE.GLIDE_ROT_DOWN_SCALE,
-      },
-      "glide"
-    );
-    uiHud.toast?.("✨ Glide mode — touch down to reenter", 1500);
-  }
-
-  function beginReentry() {
-    if (state.playPhase !== "glide") return;
-
-    state.playPhase = "reentry";
-    state.reentryTimer = FRACTURE.REENTRY_DURATION;
-    state.invulnTimer = FRACTURE.REENTRY_INVULN;
-    state.rewards.length = 0;
-    state.rewardSpawnTimer = 0;
-    state.fractureProgress = 0.35;
-    owl.clearFlightProfile();
-    spawner.reset();
-    uiHud.toast?.("🌀 Reentry", 900);
-  }
-
-  function finishReentry() {
-    state.playPhase = "normal";
-    state.reentryTimer = 0;
-    state.fractureProgress = 0;
-    state.rewards.length = 0;
-    state.glideTimer = 0;
-  }
-
-  function spawnReward() {
-    const yMid = GAME.BASE_HEIGHT * 0.5;
-    const wave = Math.sin((state.glideTimer * 2.4) + state.rewards.length * 0.65) * 110;
-    const y = clamp(
-      yMid + wave,
-      FRACTURE.REWARD_TRACK_TOP,
-      FRACTURE.REWARD_TRACK_BOTTOM
-    );
-
-    state.rewards.push({
-      x: GAME.BASE_WIDTH + 38,
-      y,
-      r: FRACTURE.REWARD_RADIUS,
-      active: true,
-    });
-  }
-
-  function updateRewards(dt, circle) {
-    state.rewardSpawnTimer += dt;
-    while (state.rewardSpawnTimer >= FRACTURE.REWARD_INTERVAL) {
-      state.rewardSpawnTimer -= FRACTURE.REWARD_INTERVAL;
-      spawnReward();
-    }
-
-    for (let i = state.rewards.length - 1; i >= 0; i--) {
-      const reward = state.rewards[i];
-      reward.x -= FRACTURE.REWARD_SPEED * dt;
-
-      const dx = reward.x - circle.cx;
-      const dy = reward.y - circle.cy;
-      const rr = (reward.r || FRACTURE.REWARD_RADIUS) + circle.r;
-
-      if (dx * dx + dy * dy <= rr * rr) {
-        state.rewards.splice(i, 1);
-        scoring.onCollectReward(FRACTURE.REWARD_POINTS);
-        uiHud.setScore(scoring.score);
-        playSfx("score", { gain: 0.82 });
-        continue;
-      }
-
-      if (reward.x < -40) {
-        state.rewards.splice(i, 1);
-      }
-    }
-  }
-
-  function updatePhase(dt) {
-    if (state.invulnTimer > 0) {
-      state.invulnTimer = Math.max(0, state.invulnTimer - dt);
-    }
-
-    if (state.playPhase === "fracture") {
-      state.fractureTimer = Math.max(0, state.fractureTimer - dt);
-      const denom = Math.max(0.001, FRACTURE.TRANSITION_DURATION);
-      state.fractureProgress = 1 - state.fractureTimer / denom;
-      if (state.fractureTimer <= 0) {
-        enterGlide();
-      }
-      return;
-    }
-
-    if (state.playPhase === "glide") {
-      state.glideTimer = Math.max(0, state.glideTimer - dt);
-      state.fractureProgress = 1;
-      return;
-    }
-
-    if (state.playPhase === "reentry") {
-      state.reentryTimer = Math.max(0, state.reentryTimer - dt);
-      state.fractureProgress = state.reentryTimer / Math.max(0.001, FRACTURE.REENTRY_DURATION);
-      if (state.reentryTimer <= 0) {
-        finishReentry();
-      }
-    }
-  }
-
   function crash() {
     owl.kill();
     scoring.onCrash();
@@ -795,67 +622,59 @@ hit: audioCandidates("hit.wav"),
 
     if (state.mode !== "playing") {
       if (state.mode === "menu") {
-        input.consumeJump();
+        input.consumePress();
+        input.consumeRelease();
         return;
       }
-      if (state.mode === "gameover" && input.consumeJump()) {
+      if (state.mode === "gameover" && input.consumePress()) {
         startGame();
       }
+      input.consumeRelease();
       return;
     }
 
     if (state.paused) return;
 
-    if (input.consumeJump()) {
-      owl.flap();
-      playSfx("jump", { gain: 1.0, jitterRate: true });
-      handleProgress({ type: "flap" });
+    const pressed = input.consumePress();
+    const released = input.consumeRelease();
+    if (pressed) {
+      holdActive = true;
+      holdElapsed = 0;
+      dartTriggered = false;
+    }
+    if (holdActive && input.isHeld() && !dartTriggered) {
+      holdElapsed += dt;
+      if (holdElapsed >= DART_HOLD_THRESHOLD) {
+        dartTriggered = owl.startDart();
+      }
+    }
+    if (released && holdActive) {
+      if (dartTriggered) {
+        owl.releaseDart();
+      } else {
+        owl.flap();
+        playSfx("jump", { gain: 1.0, jitterRate: true });
+        handleProgress({ type: "flap" });
+      }
+      holdActive = false;
+      holdElapsed = 0;
+      dartTriggered = false;
     }
 
     difficulty.update(dt);
     owl.update(dt);
-    updatePhase(dt);
 
     const c = owl.getCircle();
-
-    if (state.playPhase === "glide") {
-      updateRewards(dt, c);
-
-      if (c.cy - c.r < 0) {
-        owl.y = c.r + 2;
-        owl.vy = Math.max(0, owl.vy * 0.25);
-      } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
-        owl.y = GAME.BASE_HEIGHT - c.r - 2;
-        owl.vy = 0;
-        beginReentry();
-      }
-      return;
-    }
 
     spawner.update(dt);
 
     if (c.cy - c.r < 0) {
-      if (state.playPhase === "normal") {
-        owl.y = c.r + 2;
-        owl.vy = Math.max(0, owl.vy * 0.25);
-        return;
-      }
-
-      if (state.invulnTimer <= 0) {
-        crash();
-        return;
-      }
-
-      owl.y = c.r + 4;
-      owl.vy = Math.max(0, owl.vy * 0.35);
+      owl.y = c.r + 2;
+      owl.vy = Math.max(0, owl.vy * 0.25);
+      return;
     } else if (c.cy + c.r > GAME.BASE_HEIGHT) {
-      if (state.invulnTimer <= 0) {
-        crash();
-        return;
-      }
-
-      owl.y = GAME.BASE_HEIGHT - c.r - 4;
-      owl.vy = Math.min(0, owl.vy * 0.35);
+      crash();
+      return;
     }
 
     for (const o of spawner.active) {
@@ -863,14 +682,12 @@ hit: audioCandidates("hit.wav"),
 
       const { top, bottom } = o.getRects();
 
-      if (state.invulnTimer <= 0) {
-        if (
-          circleAabbIntersect(c.cx, c.cy, c.r, top) ||
-          circleAabbIntersect(c.cx, c.cy, c.r, bottom)
-        ) {
-          crash();
-          return;
-        }
+      if (
+        circleAabbIntersect(c.cx, c.cy, c.r, top) ||
+        circleAabbIntersect(c.cx, c.cy, c.r, bottom)
+      ) {
+        crash();
+        return;
       }
 
       if (!o.passed && o.x + top.w < c.cx - c.r) {
@@ -893,5 +710,4 @@ hit: audioCandidates("hit.wav"),
 }
 
 boot();
-
 

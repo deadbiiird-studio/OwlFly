@@ -20,14 +20,14 @@
     this.el.innerHTML = `
       <div class="panel overPanel sacredMenu">
         <div class="menuHero overHero">
-          <div class="eyebrow">SKY FRACTURED</div>
+          <div class="eyebrow">FLIGHT COMPLETE</div>
           <h2 class="title overTitle">
             ${isBest ? "New Best Flight" : "Flight Ended"}
           </h2>
           <p class="sub">
             ${isBest
               ? "You pushed beyond your limit."
-              : "Breach higher next flight."}
+              : "Try for a higher score next flight."}
           </p>
         </div>
 
@@ -81,7 +81,7 @@
         </div>
 
         <div class="row wideRow compactRow">
-          <button id="menuBtn">Return to Gate</button>
+          <button id="menuBtn">Back to Menu</button>
         </div>
       </div>
     `;

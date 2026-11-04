@@ -1,4 +1,4 @@
-import { FRACTURE, GAME, OWL } from "../core/constants.js";
+import { GAME, OWL } from "../core/constants.js";
 import { getTheme } from "../core/themes.js";
 import { fitBuildingSpriteHeight } from "../engine/obstacleVisualFit.js";
 import {
@@ -33,8 +33,6 @@ export class Renderer {
     this._time = 0;
 
     this.owlFrames = [null, null, null];
-    this.glideOwlFrames = [null, null, null];
-    this.rewardSprite = null;
     this.obstacleSprites = {
       clouds: [],
       buildings: [],
@@ -46,14 +44,6 @@ export class Renderer {
 
   setOwlFrames(frame0, frame1, frame2) {
     this.owlFrames = [frame0 || null, frame1 || null, frame2 || null];
-  }
-
-  setGlideOwlFrames(frame0, frame1, frame2) {
-    this.glideOwlFrames = [frame0 || null, frame1 || null, frame2 || null];
-  }
-
-  setRewardSprite(sprite) {
-    this.rewardSprite = sprite || null;
   }
 
   setObstacleSprites({ clouds = [], buildings = [] } = {}) {
@@ -77,11 +67,6 @@ export class Renderer {
       mode,
       paused,
       settings,
-      rewards = [],
-      playPhase = "normal",
-      fractureProgress = 0,
-      glideTimer = 0,
-      reentryTimer = 0,
     } = state;
     const theme = getTheme(state?.theme?.id || state?.theme);
     const ctx = this.ctx;
@@ -115,27 +100,10 @@ export class Renderer {
       drawObstaclePair(ctx, obstacle, this.obstacleSprites, t, reducedMotion, theme);
     }
 
-    if (Array.isArray(rewards) && rewards.length) {
-      drawRewards(ctx, rewards, this.rewardSprite, t, reducedMotion, theme, playPhase);
-    }
-
-    const owlFrames = playPhase === "glide" ? this.glideOwlFrames : this.owlFrames;
-    drawOwl(ctx, owl, owlFrames, t, reducedMotion, theme, playPhase);
+    drawOwl(ctx, owl, this.owlFrames, t, reducedMotion, theme);
 
     if (this.debugCollision && mode === "playing") {
       drawCollisionDebug(ctx, owl, spawner);
-    }
-
-    if (playPhase !== "normal") {
-      drawFractureOverlay(ctx, {
-        theme,
-        reducedMotion,
-        playPhase,
-        fractureProgress,
-        glideTimer,
-        reentryTimer,
-        t,
-      });
     }
 
     if (paused && mode === "playing") {
@@ -262,6 +230,52 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
   ctx.fillStyle = theme?.clouds?.top || "rgba(255,255,255,0.22)";
   ctx.fillRect(bounds.x + 8, y + clusterH - 6, Math.max(18, bounds.w - 16), 6);
   ctx.restore();
+
+  drawThunderCloudEvent(ctx, obstacle, bounds, y, clusterH, reducedMotion);
+}
+
+function drawThunderCloudEvent(ctx, obstacle, bounds, y, clusterH, reducedMotion) {
+  const state = obstacle.thunderState;
+  if (state !== "TELEGRAPH" && state !== "THUNDER" && state !== "RECOVER") return;
+
+  const cx = bounds.x + bounds.w * 0.5;
+  const cloudBottom = y + clusterH * 0.76;
+  ctx.save();
+  if (state === "TELEGRAPH") {
+    const pulse = reducedMotion ? 0.14 : 0.09 +
+      ((Math.sin((obstacle.thunderTimer || 0) * 10) + 1) * 0.035);
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = "#dff8ff";
+    ctx.beginPath();
+    ctx.ellipse(cx, cloudBottom - 24, bounds.w * 0.72, 32, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (state === "THUNDER") {
+    ctx.globalAlpha = 0.94;
+    ctx.strokeStyle = "#d8f7ff";
+    ctx.lineWidth = 5;
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(cx, cloudBottom - 80);
+    ctx.lineTo(cx - 13, cloudBottom - 51);
+    ctx.lineTo(cx + 8, cloudBottom - 43);
+    ctx.lineTo(cx - 7, cloudBottom - 13);
+    ctx.stroke();
+    ctx.globalAlpha = 0.75;
+    ctx.strokeStyle = "#8ce8ff";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + 18, cloudBottom - 57);
+    ctx.lineTo(cx + 7, cloudBottom - 37);
+    ctx.stroke();
+  } else {
+    ctx.globalAlpha = 0.16;
+    ctx.strokeStyle = "#b8eefa";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(cx, cloudBottom - 24, bounds.w * 0.58, 25, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
@@ -305,98 +319,7 @@ function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
   drawBuildingGroundCap(ctx, bounds, spriteW, groundAnchorY, theme);
 }
 
-function drawRewards(ctx, rewards, rewardSprite, t, reducedMotion, theme, playPhase) {
-  for (const reward of rewards) {
-    if (!reward?.active) continue;
-
-    const pulse = reducedMotion ? 0 : Math.sin(t * 10 + reward.x * 0.02) * 0.5 + 0.5;
-    const size = Math.max(18, (reward.r || 14) * 2.4 + pulse * 6);
-    const x = reward.x;
-    const y = reward.y;
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.globalAlpha = playPhase === "glide" ? 1 : 0.8;
-
-    if (isImgReady(rewardSprite)) {
-      drawContainImage(ctx, rewardSprite, {
-        x: -size * 0.5,
-        y: -size * 0.5,
-        w: size,
-        h: size,
-      });
-    } else {
-      drawFallbackReward(ctx, size, theme, pulse);
-    }
-
-    ctx.restore();
-  }
-}
-
-function drawFractureOverlay(ctx, { theme, reducedMotion, playPhase, fractureProgress, glideTimer, reentryTimer, t }) {
-  const accent = theme?.ui?.accent || "#7ef3d2";
-  const glow = hexToRgb(accent) || { r: 126, g: 243, b: 210 };
-  const splitY = GAME.BASE_HEIGHT * (FRACTURE.VISUAL_SPLIT_Y || 0.48);
-  const motion = reducedMotion ? 0 : Math.sin(t * 16) * 0.5 + 0.5;
-  const shear = (FRACTURE.VISUAL_SHEAR_PX || 18) * (0.35 + fractureProgress * 0.65);
-
-  ctx.save();
-
-  if (playPhase === "fracture") {
-    ctx.globalAlpha = 0.14 + fractureProgress * 0.16;
-    ctx.fillStyle = `rgba(${glow.r},${glow.g},${glow.b},0.9)`;
-    ctx.fillRect(0, splitY - 3, GAME.BASE_WIDTH, 6);
-  }
-
-  ctx.globalAlpha = playPhase === "glide" ? 0.18 : 0.12;
-  ctx.strokeStyle = `rgba(${glow.r},${glow.g},${glow.b},0.9)`;
-  ctx.lineWidth = playPhase === "glide" ? 3 : 2;
-  ctx.beginPath();
-  ctx.moveTo(-12, splitY - shear * 0.15);
-  for (let x = 0; x <= GAME.BASE_WIDTH + 24; x += 26) {
-    const amp = playPhase === "glide" ? 10 : 16;
-    const yy = splitY + Math.sin((x * 0.04) + t * 8) * amp * (0.4 + motion * 0.6);
-    ctx.lineTo(x, yy);
-  }
-  ctx.lineTo(GAME.BASE_WIDTH + 12, splitY + shear * 0.15);
-  ctx.stroke();
-
-  if (playPhase === "glide") {
-    ctx.globalAlpha = 0.08;
-    ctx.fillStyle = `rgba(${glow.r},${glow.g},${glow.b},1)`;
-    ctx.fillRect(0, 0, GAME.BASE_WIDTH, GAME.BASE_HEIGHT);
-    drawModeBanner(ctx, `GLIDE ${Math.ceil(Math.max(0, glideTimer))}`, accent, 78);
-  } else if (playPhase === "reentry") {
-    drawModeBanner(ctx, `REENTRY ${Math.max(0, reentryTimer).toFixed(1)}s`, accent, 78);
-  }
-
-  ctx.restore();
-}
-
-function drawModeBanner(ctx, text, accent, y) {
-  const w = 184;
-  const h = 34;
-  const x = GAME.BASE_WIDTH * 0.5 - w * 0.5;
-
-  ctx.save();
-  ctx.globalAlpha = 0.9;
-  ctx.fillStyle = "rgba(7,12,24,0.62)";
-  roundRect(ctx, x, y, w, h, 16);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-  roundRect(ctx, x, y, w, h, 16);
-  ctx.stroke();
-  ctx.fillStyle = "rgba(255,255,255,0.96)";
-  ctx.font = "600 16px system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, GAME.BASE_WIDTH * 0.5, y + h * 0.56);
-  ctx.restore();
-}
-
-function drawOwl(ctx, owl, frames, t, reducedMotion, theme, playPhase) {
+function drawOwl(ctx, owl, frames, t, reducedMotion, theme) {
   if (!owl) return;
 
   const frame = pickOwlFrame(frames, owl, t, reducedMotion);
@@ -410,7 +333,7 @@ function drawOwl(ctx, owl, frames, t, reducedMotion, theme, playPhase) {
 
   if (isImgReady(frame)) {
     const aspect = frame.naturalHeight / Math.max(1, frame.naturalWidth);
-    const w = OWL.RENDER_W * (playPhase === "glide" ? 1.08 : 1);
+    const w = OWL.RENDER_W;
     const h = w * aspect;
 
     ctx.globalAlpha = 0.18;
@@ -422,16 +345,16 @@ function drawOwl(ctx, owl, frames, t, reducedMotion, theme, playPhase) {
     const accent = theme?.ui?.accent || "#7ef3d2";
     const glow = hexToRgb(accent) || { r: 126, g: 243, b: 210 };
 
-    ctx.globalAlpha = playPhase === "glide" ? 0.22 : 0.12;
+    ctx.globalAlpha = 0.12;
     ctx.fillStyle = `rgba(${glow.r},${glow.g},${glow.b},0.9)`;
     ctx.beginPath();
-    ctx.arc(0, 0, playPhase === "glide" ? 24 : 20, 0, Math.PI * 2);
+    ctx.arc(0, 0, 20, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.globalAlpha = 1;
     ctx.drawImage(frame, -w / 2, -h / 2, w, h);
   } else {
-    drawFallbackOwl(ctx, theme, playPhase);
+    drawFallbackOwl(ctx, theme);
   }
 
   ctx.restore();
@@ -705,42 +628,16 @@ function drawFallbackBuilding(ctx, cx, y, w, h, theme) {
   ctx.restore();
 }
 
-function drawFallbackOwl(ctx, theme, playPhase) {
+function drawFallbackOwl(ctx, theme) {
   ctx.fillStyle = theme?.ui?.accent || "#7ef3d2";
   ctx.beginPath();
-  ctx.arc(0, 0, playPhase === "glide" ? 20 : 18, 0, Math.PI * 2);
+  ctx.arc(0, 0, 18, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = "#fff";
   ctx.beginPath();
   ctx.arc(8, -4, 4, 0, Math.PI * 2);
   ctx.fill();
-}
-
-function drawFallbackReward(ctx, size, theme, pulse) {
-  const accent = theme?.ui?.accent || "#7ef3d2";
-  const glow = hexToRgb(accent) || { r: 126, g: 243, b: 210 };
-
-  ctx.save();
-  ctx.rotate(pulse * 0.3);
-  ctx.globalAlpha = 0.9;
-  ctx.fillStyle = `rgba(${glow.r},${glow.g},${glow.b},0.9)`;
-  ctx.beginPath();
-  for (let i = 0; i < 4; i++) {
-    const angle = (Math.PI / 2) * i + Math.PI / 4;
-    const x = Math.cos(angle) * size * 0.5;
-    const y = Math.sin(angle) * size * 0.5;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.globalAlpha = 0.35;
-  ctx.strokeStyle = "rgba(255,255,255,0.9)";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.restore();
 }
 
 function drawBuildingGroundShadow(ctx, bounds, spriteW, theme) {

@@ -1,9 +1,16 @@
-import { GAME, OBSTACLE } from "../../core/constants.js";
+import { GAME, OBSTACLE, OWL } from "../../core/constants.js";
 import { BUILDING_COLLISION_PROFILES, CLOUD_COLLISION_PROFILES } from "../obstacleCollisionProfiles.js";
 import {
   BUILDING_GAP_VISUAL_REACH,
   fitBuildingSpriteHeight,
 } from "../obstacleVisualFit.js";
+
+export const THUNDER_EVENT = Object.freeze({
+  TRIGGER_DISTANCE: 300,
+  TELEGRAPH_DURATION: 0.78,
+  THUNDER_DURATION: 0.22,
+  RECOVER_DURATION: 1.1,
+});
 
 let nextVisualSpawnId = 1;
 
@@ -213,13 +220,19 @@ export class ObstaclePair {
 
     this.buildingVariantIndex = 0;
     this.buildingSizeBucket = 2;
+    this.thunderArmed = false;
+    this.thunderState = "NORMAL";
+    this.thunderTimer = 0;
   }
 
-  spawn({ x, topH, gap, speed }) {
+  spawn({ x, topH, gap, speed, thunderArmed = false }) {
     this.active = true;
     this.passed = false;
     this.x = x;
     this.speed = speed;
+    this.thunderArmed = Boolean(thunderArmed);
+    this.thunderState = "NORMAL";
+    this.thunderTimer = 0;
 
     this.visualSpawnId = nextVisualSpawnId++;
     this.visualSeed =
@@ -288,6 +301,26 @@ export class ObstaclePair {
     if (!this.active) return;
 
     this.x -= this.speed * dt;
+
+    if (this.thunderState === "NORMAL" && this.thunderArmed &&
+        this.x <= OWL.X + THUNDER_EVENT.TRIGGER_DISTANCE) {
+      this.thunderState = "TELEGRAPH";
+      this.thunderTimer = THUNDER_EVENT.TELEGRAPH_DURATION;
+    } else if (this.thunderState !== "NORMAL") {
+      this.thunderTimer = Math.max(0, this.thunderTimer - dt);
+      if (this.thunderTimer === 0) {
+        if (this.thunderState === "TELEGRAPH") {
+          this.thunderState = "THUNDER";
+          this.thunderTimer = THUNDER_EVENT.THUNDER_DURATION;
+        } else if (this.thunderState === "THUNDER") {
+          this.thunderState = "RECOVER";
+          this.thunderTimer = THUNDER_EVENT.RECOVER_DURATION;
+        } else {
+          this.thunderState = "NORMAL";
+          this.thunderArmed = false;
+        }
+      }
+    }
 
     if (this.x + OBSTACLE.WIDTH < -40) {
       this.despawn();

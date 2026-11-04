@@ -149,8 +149,6 @@ test("runtime renderer: production bundle includes atmosphere geometry before Re
 test("runtime renderer: a normal frame renders with sprite arrays and no browser canvas implementation", () => {
   const renderer = new Renderer(makeCanvas());
   renderer.setOwlFrames(makeReadyImage(), makeReadyImage(), makeReadyImage());
-  renderer.setGlideOwlFrames(makeReadyImage(), makeReadyImage(), makeReadyImage());
-  renderer.setRewardSprite(makeReadyImage(286, 234));
   renderer.setObstacleSprites({
     clouds: Array.from({ length: 6 }, () => makeReadyImage(140, 210)),
     buildings: Array.from({ length: 13 }, () => makeReadyImage(213, 320)),
@@ -162,11 +160,6 @@ test("runtime renderer: a normal frame renders with sprite arrays and no browser
     settings: { reducedMotion: true },
     owl: { x: OWL.X, y: GAME.BASE_HEIGHT / 2, rot: 0 },
     spawner: { active: [makeObstacle()] },
-    rewards: [{ active: true, x: 260, y: 360, r: 14 }],
-    playPhase: "glide",
-    fractureProgress: 1,
-    glideTimer: 3.4,
-    reentryTimer: 0,
     theme: "night",
   };
 

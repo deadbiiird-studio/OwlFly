@@ -1,13 +1,9 @@
 import { GAME, OWL } from "../../core/constants.js";
 import { applyGravity, jumpImpulse, rotationForVelocity } from "../physics.js";
 
-const DEFAULT_FLIGHT_PROFILE = {
-  gravityScale: 1,
-  jumpScale: 1,
-  maxFallScale: 1,
-  rotUpScale: 1,
-  rotDownScale: 1,
-};
+const DART_DURATION = 0.58;
+const DART_START_VELOCITY = -430;
+const DART_END_VELOCITY = 80;
 
 export class Owl {
   constructor() {
@@ -22,32 +18,34 @@ export class Owl {
     this.alive = true;
 
     this._blink = 0;
-    this.flightProfile = { ...DEFAULT_FLIGHT_PROFILE };
-    this.flightMode = "normal";
 
     this.animT = 0;
     this.flapT = 0;
     this.hurtT = 0;
-  }
-
-  setFlightProfile(profile = {}, mode = "normal") {
-    this.flightProfile = {
-      ...DEFAULT_FLIGHT_PROFILE,
-      ...(profile || {}),
-    };
-    this.flightMode = String(mode || "normal");
-  }
-
-  clearFlightProfile() {
-    this.flightProfile = { ...DEFAULT_FLIGHT_PROFILE };
-    this.flightMode = "normal";
+    this.movementState = "NORMAL";
+    this.dartElapsed = 0;
   }
 
   flap() {
     if (!this.alive) return;
-    this.vy = jumpImpulse(this.flightProfile.jumpScale);
+    this.vy = jumpImpulse();
     this._blink = 0.08;
-    this.flapT = this.isGliding ? 0.18 : 0.12;
+    this.flapT = 0.12;
+  }
+
+  startDart() {
+    if (!this.alive || this.movementState !== "NORMAL") return false;
+    this.movementState = "DART";
+    this.dartElapsed = 0;
+    this.vy = DART_START_VELOCITY;
+    return true;
+  }
+
+  releaseDart() {
+    if (this.movementState !== "DART") return false;
+    this.movementState = "NORMAL";
+    this.dartElapsed = 0;
+    return true;
   }
 
   kill() {
@@ -61,18 +59,17 @@ export class Owl {
     this.hurtT = Math.max(0, this.hurtT - dt);
 
     if (this.alive) {
-      this.vy = applyGravity(
-        this.vy,
-        dt,
-        this.flightProfile.gravityScale,
-        this.flightProfile.maxFallScale
-      );
+      if (this.movementState === "DART") {
+        this.dartElapsed = Math.min(DART_DURATION, this.dartElapsed + dt);
+        const progress = this.dartElapsed / DART_DURATION;
+        this.vy = DART_START_VELOCITY +
+          (DART_END_VELOCITY - DART_START_VELOCITY) * progress;
+        if (this.dartElapsed >= DART_DURATION) this.releaseDart();
+      } else {
+        this.vy = applyGravity(this.vy, dt);
+      }
       this.y += this.vy * dt;
-      this.rot = rotationForVelocity(
-        this.vy,
-        this.flightProfile.rotUpScale,
-        this.flightProfile.rotDownScale
-      );
+      this.rot = rotationForVelocity(this.vy);
       this._blink = Math.max(0, this._blink - dt);
     } else {
       this.vy = applyGravity(this.vy, dt);
@@ -94,16 +91,12 @@ export class Owl {
     return this.hurtT > 0;
   }
 
-  get isGliding() {
-    return this.flightMode === "glide";
-  }
-
   get wingAngle() {
-    const cadence = this.isGliding ? 10 : 18;
-    const amplitude = this.isGliding ? 0.3 : 0.55;
+    const cadence = 18;
+    const amplitude = 0.55;
     const base = Math.sin(this.animT * cadence) * amplitude;
-    const kickWindow = this.isGliding ? 0.18 : 0.12;
-    const kickMax = this.isGliding ? 0.45 : 0.85;
+    const kickWindow = 0.12;
+    const kickMax = 0.85;
     const kick = this.flapT > 0 ? (this.flapT / kickWindow) * kickMax : 0;
 
     return base + kick;

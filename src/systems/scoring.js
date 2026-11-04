@@ -52,18 +52,6 @@ export class Scoring {
     };
   }
 
-  onCollectReward(points = 1) {
-    const pts = Math.max(1, Math.round(Number.isFinite(points) ? points : 1));
-    this.lastAward = pts;
-    this.score += pts;
-    this._syncBest();
-    return {
-      points: pts,
-      combo: this.combo,
-      newBest: this.newBestThisRun,
-    };
-  }
-
   onCrash() {
     this.combo = 0;
     this.lastAward = 0;

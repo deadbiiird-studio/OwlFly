@@ -77,6 +77,8 @@ export class Spawner {
 
     const topH = Math.floor(clamp(center - halfGap, minTop, maxTop));
     const variants = this._buildVariants({ inOpening, isEasy });
+    variants.thunderArmed = !inOpening && !isEasy &&
+      SPAWN.THUNDER_EVERY > 0 && this._spawnCount % SPAWN.THUNDER_EVERY === 0;
     const o = this.pool.length ? this.pool.pop() : new ObstaclePair();
 
     o.spawn({
