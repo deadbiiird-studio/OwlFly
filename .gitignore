@@ -12,6 +12,7 @@ npm-debug.log*
 Thumbs.db
 keystore.jks
 *.jks
+gha-creds-*.json
 *.bak
 # Android Studio local workspace files
 android/.idea/tooling/eval/gate-results.json

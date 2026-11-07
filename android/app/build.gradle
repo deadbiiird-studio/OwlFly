@@ -2,24 +2,33 @@ apply plugin: 'com.android.application'
 
 android {
     namespace "com.owlfly.game"
-    compileSdk 35
-    buildToolsVersion "36.1.0"
+    compileSdk 36
+    // Use the Android Gradle Plugin's compatible build-tools selection.
+    // Release signing is enabled only when environment-provided secrets exist.
+    def signingPath = System.getenv("OWLFLY_KEYSTORE_PATH")
+    def signingStorePassword = System.getenv("OWLFLY_KEYSTORE_PASSWORD")
+    def signingAlias = System.getenv("OWLFLY_KEY_ALIAS")
+    def signingKeyPassword = System.getenv("OWLFLY_KEY_PASSWORD")
+    def hasReleaseSigning = [signingPath, signingStorePassword, signingAlias, signingKeyPassword]
+        .every { it != null && !it.isEmpty() }
 
     signingConfigs {
         release {
-            storeFile file("G:/OwlFly/keystore.jks")
-            storePassword "Little0wl"
-            keyAlias "owlfly"
-            keyPassword "Little0wl"
+            if (hasReleaseSigning) {
+                storeFile file(signingPath)
+                storePassword signingStorePassword
+                keyAlias signingAlias
+                keyPassword signingKeyPassword
+            }
         }
     }
 
     defaultConfig {
         applicationId "com.owlfly.game"
-        minSdkVersion 23
-        targetSdkVersion 35
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion 24
+        targetSdkVersion 36
+        versionCode Integer.parseInt(System.getenv("OWLFLY_VERSION_CODE") ?: "2")
+        versionName (System.getenv("OWLFLY_VERSION_NAME") ?: "1.0.1")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -28,7 +37,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (hasReleaseSigning) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

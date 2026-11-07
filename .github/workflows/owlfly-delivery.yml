@@ -1,0 +1,218 @@
+name: OwlFly automated delivery
+
+on:
+  push:
+    branches:
+      - main
+      - 'automation/**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: owlfly-delivery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Build and quality gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Normalize local production build manifests
+        run: node tooling/ensure-build-manifest.mjs
+      - name: Run full gameplay quality gates
+        run: npm run quality
+      - name: Validate Play release helper syntax
+        run: |
+          node --check tooling/play-alpha-preflight.mjs
+          node --check tooling/play-alpha-cleanup.mjs
+          node --check tooling/play-alpha-upload.mjs
+      - name: Check package identity and release secrets
+        run: node tooling/check-release-safety.mjs
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: owlfly-web-${{ github.run_id }}
+          path: |
+            web/game.js
+            web/index.html
+          retention-days: 7
+
+  android-debug:
+    name: Android test APK
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - run: node tooling/ensure-build-manifest.mjs
+      - run: npm run build
+      - name: Copy web assets into Android
+        run: npx cap sync android
+      - name: Assemble debug APK
+        working-directory: android
+        run: bash ./gradlew --no-daemon :app:assembleDebug
+      - name: Upload installable debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: owlfly-android-debug-${{ github.run_id }}
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build unsigned release AAB for packaging verification
+        working-directory: android
+        run: bash ./gradlew --no-daemon :app:bundleRelease
+      - name: Check unsigned bundle exists
+        run: test -s android/app/build/outputs/bundle/release/app-release.aab
+      - name: Upload UNSIGNED release candidate AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: owlfly-unsigned-aab-${{ github.run_id }}
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
+
+  google-play-alpha:
+    name: Publish signed bundle to Google Play closed testing Alpha
+    needs: [quality, android-debug]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.OWLFLY_AUTO_ALPHA == 'true' }}
+    runs-on: ubuntu-latest
+    environment: google-play-alpha
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - run: node tooling/ensure-build-manifest.mjs
+      - run: npm run quality
+      - run: node tooling/check-release-safety.mjs
+      - name: Require configured keyless Google Cloud identity
+        shell: bash
+        env:
+          WIF_PROVIDER: ${{ vars.OWLFLY_WIF_PROVIDER }}
+          PLAY_SERVICE_ACCOUNT: ${{ vars.OWLFLY_PLAY_SERVICE_ACCOUNT }}
+        run: |
+          set -euo pipefail
+          [[ "$WIF_PROVIDER" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[a-zA-Z0-9_-]+/providers/[a-zA-Z0-9_-]+$ ]] || {
+            echo "::error::Missing or invalid OWLFLY_WIF_PROVIDER"
+            exit 1
+          }
+          [[ "$PLAY_SERVICE_ACCOUNT" =~ ^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.iam\.gserviceaccount\.com$ ]] || {
+            echo "::error::Missing or invalid OWLFLY_PLAY_SERVICE_ACCOUNT"
+            exit 1
+          }
+      - name: Authenticate with GitHub OIDC — no Google private JSON key
+        id: play-auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.OWLFLY_WIF_PROVIDER }}
+          service_account: ${{ vars.OWLFLY_PLAY_SERVICE_ACCOUNT }}
+          create_credentials_file: false
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/androidpublisher
+      - name: Verify exact Alpha track and next Play version
+        id: preflight
+        env:
+          PLAY_ACCESS_TOKEN: ${{ steps.play-auth.outputs.access_token }}
+          OWLFLY_ALPHA_TRACK_ID: ${{ vars.OWLFLY_ALPHA_TRACK_ID || 'alpha' }}
+        run: node tooling/play-alpha-preflight.mjs
+      - name: Configure verified Play version
+        env:
+          VERIFIED_VERSION_CODE: ${{ steps.preflight.outputs.version_code }}
+          VERIFIED_VERSION_NAME: ${{ steps.preflight.outputs.version_name }}
+        shell: bash
+        run: |
+          echo "OWLFLY_VERSION_CODE=$VERIFIED_VERSION_CODE" >> "$GITHUB_ENV"
+          echo "OWLFLY_VERSION_NAME=$VERIFIED_VERSION_NAME" >> "$GITHUB_ENV"
+      - name: Securely configure upload signing
+        shell: bash
+        env:
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+          OWLFLY_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_STORE_PASSWORD }}
+          OWLFLY_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          OWLFLY_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for key in UPLOAD_KEYSTORE_BASE64 OWLFLY_KEYSTORE_PASSWORD OWLFLY_KEY_ALIAS OWLFLY_KEY_PASSWORD; do
+            if [[ -z "${!key:-}" ]]; then
+              echo "::error::Missing release credential: $key"
+              exit 1
+            fi
+          done
+          install -m 700 -d "$RUNNER_TEMP/owlfly-keys"
+          printf '%s' "$UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/owlfly-keys/upload.jks"
+          chmod 600 "$RUNNER_TEMP/owlfly-keys/upload.jks"
+          echo "OWLFLY_KEYSTORE_PATH=$RUNNER_TEMP/owlfly-keys/upload.jks" >> "$GITHUB_ENV"
+          # Signing secrets are supplied only to the build step; never store them in GITHUB_ENV.
+      - name: Sync Android project
+        run: npx cap sync android
+      - name: Build signed Play AAB
+        working-directory: android
+        env:
+          OWLFLY_KEYSTORE_PATH: ${{ runner.temp }}/owlfly-keys/upload.jks
+          OWLFLY_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_STORE_PASSWORD }}
+          OWLFLY_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          OWLFLY_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+        run: bash ./gradlew --no-daemon :app:bundleRelease
+      - name: Verify signed AAB integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          VERIFY_OUTPUT="$(jarsigner -verify "$AAB" 2>&1)"
+          if [[ "$VERIFY_OUTPUT" != *"jar verified."* ]]; then
+            echo "::error::AAB has no valid JAR signature"
+            exit 1
+          fi
+          echo "AAB JAR signature verified"
+      - name: Publish signed bundle to verified closed-test track only
+        env:
+          PLAY_ACCESS_TOKEN: ${{ steps.play-auth.outputs.access_token }}
+          PLAY_EDIT_ID: ${{ steps.preflight.outputs.edit_id }}
+          OWLFLY_ALPHA_TRACK_ID: ${{ steps.preflight.outputs.track_id }}
+          OWLFLY_VERSION_CODE: ${{ steps.preflight.outputs.version_code }}
+          OWLFLY_VERSION_NAME: ${{ steps.preflight.outputs.version_name }}
+        run: node tooling/play-alpha-upload.mjs
+      - name: Discard pending Google Play edit if release failed
+        if: ${{ failure() && steps.preflight.outputs.edit_id != '' }}
+        env:
+          PLAY_ACCESS_TOKEN: ${{ steps.play-auth.outputs.access_token }}
+          PLAY_EDIT_ID: ${{ steps.preflight.outputs.edit_id }}
+        run: node tooling/play-alpha-cleanup.mjs
+      - name: Remove temporary signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/owlfly-keys/upload.jks"
