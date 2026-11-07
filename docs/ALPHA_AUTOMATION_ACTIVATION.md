@@ -30,3 +30,9 @@ This PR does **not** publish to Google Play. It prepares CI and a guarded publis
 - A failed authentication, missing track, missing signing material, or failed signature verification stops publishing.
 - Google Play may still require Console setup, review, and tester enrollment.
 - For historical secrets in public Git commits, editing the current file does not erase past exposure. Rotate affected credentials and consider Git history cleanup only after preserving evidence and coordinating repository clones.
+
+## November 2026 Android compatibility review
+- Google Play requires new phone apps and app updates to target API 36. This draft branch now uses minSdk 24, compile/target API 36 and the Capacitor 8 migration baseline (AGP 8.13.0, Gradle 8.14.3).
+- Verify the new Android SDK build and real-device behavior before release. Prior API-35 CI success is not evidence of API-36 compliance.
+- Play Console setup, upload-key reset, first signed bundle and tester enrollment remain owner-controlled. Do not enable automatic publishing.
+- Sources: https://support.google.com/googleplay/android-developer/answer/11926878 ; https://capacitorjs.com/docs/updating/8-0

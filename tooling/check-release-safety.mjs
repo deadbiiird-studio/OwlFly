@@ -7,6 +7,9 @@ const config = JSON.parse(fs.readFileSync("capacitor.config.json", "utf8"));
 const ignored = fs.readFileSync(".gitignore", "utf8");
 
 const checks = [
+  [/\bcompileSdk\s+36\b/.test(gradle), 'Play 2026: compileSdk API 36 required'],
+  [/\btargetSdkVersion\s+36\b/.test(gradle), 'Play 2026: targetSdk API 36 required'],
+  [/\bminSdkVersion\s+24\b/.test(gradle), 'Capacitor 8 minimum SDK 24 required'],
   [config.appId === "com.owlfly.game", "Capacitor package ID must remain com.owlfly.game"],
   [/applicationId\s+["']com\.owlfly\.game["']/.test(gradle), "Gradle package ID must remain com.owlfly.game"],
   [!/^\s*(?:storePassword|keyPassword)\s+["'][^"']+["']/m.test(gradle), "Hardcoded signing password detected"],
