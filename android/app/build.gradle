@@ -27,8 +27,8 @@ android {
         applicationId "com.owlfly.game"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode Integer.parseInt(System.getenv("OWLFLY_VERSION_CODE") ?: "1")
-        versionName (System.getenv("OWLFLY_VERSION_NAME") ?: "1.0")
+        versionCode Integer.parseInt(System.getenv("OWLFLY_VERSION_CODE") ?: "2")
+        versionName (System.getenv("OWLFLY_VERSION_NAME") ?: "1.0.1")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
