@@ -21,7 +21,7 @@
 - [ ] Draft PR #16 reviewed/merged only after CI and manual acceptance.
 - [ ] Least-privilege Google Play service account authorized for OwlFly testing tracks.
 - [ ] GitHub environment `google-play-alpha` protected.
-- [ ] Secrets added privately: `UPLOAD_KEYSTORE_BASE64`, `UPLOAD_STORE_PASSWORD`, `UPLOAD_KEY_ALIAS`, `UPLOAD_KEY_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`.
+- [ ] Secrets added privately: `UPLOAD_KEYSTORE_BASE64`, `UPLOAD_STORE_PASSWORD`, `UPLOAD_KEY_ALIAS`, `UPLOAD_KEY_PASSWORD`.
 - [ ] Repo variable `OWLFLY_ALPHA_TRACK_ID` matches exact closed test track ID.
 - [ ] Leave `OWLFLY_AUTO_ALPHA` unset/false until a separate explicit authorization.
 
@@ -30,3 +30,5 @@
 - https://support.google.com/googleplay/android-developer/answer/14151465
 - https://support.google.com/googleplay/android-developer/answer/9859455
 - https://capacitorjs.com/docs/updating/8-0
+
+Authentication update: use keyless Workload Identity Federation variables `OWLFLY_WIF_PROVIDER` and `OWLFLY_PLAY_SERVICE_ACCOUNT` per `docs/KEYLESS_GOOGLE_PLAY_AUTH.md`, not `PLAY_SERVICE_ACCOUNT_JSON`.

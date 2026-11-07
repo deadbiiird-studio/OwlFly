@@ -34,6 +34,7 @@ jobs:
         run: |
           node --check tooling/play-alpha-preflight.mjs
           node --check tooling/play-alpha-cleanup.mjs
+          node --check tooling/play-alpha-upload.mjs
       - name: Check package identity and release secrets
         run: node tooling/check-release-safety.mjs
       - name: Upload web build
@@ -97,6 +98,9 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.OWLFLY_AUTO_ALPHA == 'true' }}
     runs-on: ubuntu-latest
     environment: google-play-alpha
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -115,11 +119,27 @@ jobs:
       - run: node tooling/ensure-build-manifest.mjs
       - run: npm run quality
       - run: node tooling/check-release-safety.mjs
-      - name: Authenticate for Android Publisher API track preflight
+      - name: Require configured keyless Google Cloud identity
+        shell: bash
+        env:
+          WIF_PROVIDER: ${{ vars.OWLFLY_WIF_PROVIDER }}
+          PLAY_SERVICE_ACCOUNT: ${{ vars.OWLFLY_PLAY_SERVICE_ACCOUNT }}
+        run: |
+          set -euo pipefail
+          [[ "$WIF_PROVIDER" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[a-zA-Z0-9_-]+/providers/[a-zA-Z0-9_-]+$ ]] || {
+            echo "::error::Missing or invalid OWLFLY_WIF_PROVIDER"
+            exit 1
+          }
+          [[ "$PLAY_SERVICE_ACCOUNT" =~ ^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.iam\.gserviceaccount\.com$ ]] || {
+            echo "::error::Missing or invalid OWLFLY_PLAY_SERVICE_ACCOUNT"
+            exit 1
+          }
+      - name: Authenticate with GitHub OIDC — no Google private JSON key
         id: play-auth
         uses: google-github-actions/auth@v3
         with:
-          credentials_json: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          workload_identity_provider: ${{ vars.OWLFLY_WIF_PROVIDER }}
+          service_account: ${{ vars.OWLFLY_PLAY_SERVICE_ACCOUNT }}
           create_credentials_file: false
           token_format: access_token
           access_token_scopes: https://www.googleapis.com/auth/androidpublisher
@@ -144,10 +164,9 @@ jobs:
           OWLFLY_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_STORE_PASSWORD }}
           OWLFLY_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
           OWLFLY_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
-          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
           set -euo pipefail
-          for key in UPLOAD_KEYSTORE_BASE64 OWLFLY_KEYSTORE_PASSWORD OWLFLY_KEY_ALIAS OWLFLY_KEY_PASSWORD PLAY_SERVICE_ACCOUNT_JSON; do
+          for key in UPLOAD_KEYSTORE_BASE64 OWLFLY_KEYSTORE_PASSWORD OWLFLY_KEY_ALIAS OWLFLY_KEY_PASSWORD; do
             if [[ -z "${!key:-}" ]]; then
               echo "::error::Missing release credential: $key"
               exit 1
@@ -180,15 +199,14 @@ jobs:
             exit 1
           fi
           echo "AAB JAR signature verified"
-      - name: Publish to closed testing Alpha only
-        uses: r0adkll/upload-google-play@v1.1.5
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: com.owlfly.game
-          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-          tracks: ${{ steps.preflight.outputs.track_id }}
-          existingEditId: ${{ steps.preflight.outputs.edit_id }}
-          status: completed
+      - name: Publish signed bundle to verified closed-test track only
+        env:
+          PLAY_ACCESS_TOKEN: ${{ steps.play-auth.outputs.access_token }}
+          PLAY_EDIT_ID: ${{ steps.preflight.outputs.edit_id }}
+          OWLFLY_ALPHA_TRACK_ID: ${{ steps.preflight.outputs.track_id }}
+          OWLFLY_VERSION_CODE: ${{ steps.preflight.outputs.version_code }}
+          OWLFLY_VERSION_NAME: ${{ steps.preflight.outputs.version_name }}
+        run: node tooling/play-alpha-upload.mjs
       - name: Discard pending Google Play edit if release failed
         if: ${{ failure() && steps.preflight.outputs.edit_id != '' }}
         env:
