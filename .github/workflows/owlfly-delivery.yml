@@ -30,6 +30,10 @@ jobs:
         run: node tooling/ensure-build-manifest.mjs
       - name: Run full gameplay quality gates
         run: npm run quality
+      - name: Validate Play release helper syntax
+        run: |
+          node --check tooling/play-alpha-preflight.mjs
+          node --check tooling/play-alpha-cleanup.mjs
       - name: Check package identity and release secrets
         run: node tooling/check-release-safety.mjs
       - name: Upload web build
@@ -180,6 +184,12 @@ jobs:
           tracks: ${{ steps.preflight.outputs.track_id }}
           existingEditId: ${{ steps.preflight.outputs.edit_id }}
           status: completed
+      - name: Discard pending Google Play edit if release failed
+        if: ${{ failure() && steps.preflight.outputs.edit_id != '' }}
+        env:
+          PLAY_ACCESS_TOKEN: ${{ steps.play-auth.outputs.access_token }}
+          PLAY_EDIT_ID: ${{ steps.preflight.outputs.edit_id }}
+        run: node tooling/play-alpha-cleanup.mjs
       - name: Remove temporary signing key
         if: always()
         run: rm -f "$RUNNER_TEMP/owlfly-keys/upload.jks"
