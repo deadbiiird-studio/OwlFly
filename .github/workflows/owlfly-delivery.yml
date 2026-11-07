@@ -174,7 +174,12 @@ jobs:
           set -euo pipefail
           AAB="android/app/build/outputs/bundle/release/app-release.aab"
           test -s "$AAB"
-          jarsigner -verify -strict "$AAB"
+          VERIFY_OUTPUT="$(jarsigner -verify "$AAB" 2>&1)"
+          if [[ "$VERIFY_OUTPUT" != *"jar verified."* ]]; then
+            echo "::error::AAB has no valid JAR signature"
+            exit 1
+          fi
+          echo "AAB JAR signature verified"
       - name: Publish to closed testing Alpha only
         uses: r0adkll/upload-google-play@v1.1.5
         with:
