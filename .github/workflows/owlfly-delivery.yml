@@ -111,11 +111,28 @@ jobs:
       - run: node tooling/ensure-build-manifest.mjs
       - run: npm run quality
       - run: node tooling/check-release-safety.mjs
-      - name: Configure unique Play version
+      - name: Authenticate for Android Publisher API track preflight
+        id: play-auth
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          create_credentials_file: false
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/androidpublisher
+      - name: Verify exact Alpha track and next Play version
+        id: preflight
+        env:
+          PLAY_ACCESS_TOKEN: ${{ steps.play-auth.outputs.access_token }}
+          OWLFLY_ALPHA_TRACK_ID: ${{ vars.OWLFLY_ALPHA_TRACK_ID || 'alpha' }}
+        run: node tooling/play-alpha-preflight.mjs
+      - name: Configure verified Play version
+        env:
+          VERIFIED_VERSION_CODE: ${{ steps.preflight.outputs.version_code }}
+          VERIFIED_VERSION_NAME: ${{ steps.preflight.outputs.version_name }}
         shell: bash
         run: |
-          echo "OWLFLY_VERSION_CODE=$((100000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
-          echo "OWLFLY_VERSION_NAME=1.0.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+          echo "OWLFLY_VERSION_CODE=$VERIFIED_VERSION_CODE" >> "$GITHUB_ENV"
+          echo "OWLFLY_VERSION_NAME=$VERIFIED_VERSION_NAME" >> "$GITHUB_ENV"
       - name: Securely configure upload signing
         shell: bash
         env:
@@ -147,15 +164,21 @@ jobs:
           OWLFLY_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
           OWLFLY_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
         run: bash ./gradlew --no-daemon :app:bundleRelease
-      - name: Verify signed AAB exists
-        run: test -s android/app/build/outputs/bundle/release/app-release.aab
+      - name: Verify signed AAB integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          jarsigner -verify -strict "$AAB"
       - name: Publish to closed testing Alpha only
         uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.owlfly.game
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-          tracks: alpha
+          tracks: ${{ steps.preflight.outputs.track_id }}
+          existingEditId: ${{ steps.preflight.outputs.edit_id }}
           status: completed
       - name: Remove temporary signing key
         if: always()
