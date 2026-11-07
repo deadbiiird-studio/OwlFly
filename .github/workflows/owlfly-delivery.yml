@@ -120,15 +120,16 @@ jobs:
           printf '%s' "$UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/owlfly-keys/upload.jks"
           chmod 600 "$RUNNER_TEMP/owlfly-keys/upload.jks"
           echo "OWLFLY_KEYSTORE_PATH=$RUNNER_TEMP/owlfly-keys/upload.jks" >> "$GITHUB_ENV"
-          {
-            echo "OWLFLY_KEYSTORE_PASSWORD=$OWLFLY_KEYSTORE_PASSWORD"
-            echo "OWLFLY_KEY_ALIAS=$OWLFLY_KEY_ALIAS"
-            echo "OWLFLY_KEY_PASSWORD=$OWLFLY_KEY_PASSWORD"
-          } >> "$GITHUB_ENV"
+          # Signing secrets are supplied only to the build step; never store them in GITHUB_ENV.
       - name: Sync Android project
         run: npx cap sync android
       - name: Build signed Play AAB
         working-directory: android
+        env:
+          OWLFLY_KEYSTORE_PATH: ${{ runner.temp }}/owlfly-keys/upload.jks
+          OWLFLY_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_STORE_PASSWORD }}
+          OWLFLY_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          OWLFLY_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
         run: bash ./gradlew --no-daemon :app:bundleRelease
       - name: Verify signed AAB exists
         run: test -s android/app/build/outputs/bundle/release/app-release.aab
