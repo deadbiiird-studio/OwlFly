@@ -74,6 +74,18 @@ jobs:
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
+      - name: Build unsigned release AAB for packaging verification
+        working-directory: android
+        run: bash ./gradlew --no-daemon :app:bundleRelease
+      - name: Check unsigned bundle exists
+        run: test -s android/app/build/outputs/bundle/release/app-release.aab
+      - name: Upload UNSIGNED release candidate AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: owlfly-unsigned-aab-${{ github.run_id }}
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
 
   google-play-internal:
     name: Publish signed bundle to Google Play internal testing
