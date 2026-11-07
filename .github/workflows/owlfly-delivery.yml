@@ -87,12 +87,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  google-play-internal:
-    name: Publish signed bundle to Google Play internal testing
+  google-play-alpha:
+    name: Publish signed bundle to Google Play closed testing Alpha
     needs: [quality, android-debug]
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.OWLFLY_AUTO_INTERNAL == 'true' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.OWLFLY_AUTO_ALPHA == 'true' }}
     runs-on: ubuntu-latest
-    environment: google-play-internal
+    environment: google-play-alpha
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -149,13 +149,13 @@ jobs:
         run: bash ./gradlew --no-daemon :app:bundleRelease
       - name: Verify signed AAB exists
         run: test -s android/app/build/outputs/bundle/release/app-release.aab
-      - name: Publish to internal track only
+      - name: Publish to closed testing Alpha only
         uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.owlfly.game
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-          tracks: internal
+          tracks: alpha
           status: completed
       - name: Remove temporary signing key
         if: always()
