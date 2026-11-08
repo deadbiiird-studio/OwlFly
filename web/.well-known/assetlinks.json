@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.owlfly.game",
+      "sha256_cert_fingerprints": [
+        "47:55:D4:5A:36:FD:F4:4D:DE:3A:C4:3B:F2:14:EC:CF:10:EE:8E:CB:3D:B1:AA:77:C0:BC:DB:C8:56:EE:25:2C"
+      ]
+    }
+  }
+]
