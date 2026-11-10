@@ -1,8 +1,21 @@
 import { BUILDING_COLLISION_PROFILES } from "./obstacleCollisionProfiles.js";
 
-// Keep the rendered rooftop and the lethal rooftop contour in the same visual
-// neighborhood. This is a presentation constraint, not a new gameplay rule.
-export const BUILDING_GAP_VISUAL_REACH = 80;
+// Foreground obstacle art-direction contract. These values govern presentation
+// only; collision contours and gameplay gap geometry remain untouched.
+export const OBSTACLE_PRESENTATION_CONTRACT = Object.freeze({
+  buildingGapReach: 80,
+  previousBuildingGapReach: 80,
+  maxReachTightening: 0,
+  minimumRenderedBuildingHeight: 96,
+  gapEdgeThickness: 2,
+  gapEdgeInset: 7,
+  gapEdgeAlpha: 0.14,
+});
+
+// Keep the rendered rooftop and the lethal rooftop contour on the sealed A1
+// reach. P4 changes edge presentation only, never building fit or collision.
+export const BUILDING_GAP_VISUAL_REACH =
+  OBSTACLE_PRESENTATION_CONTRACT.buildingGapReach;
 
 export function getBuildingProfileTopEdge(frameIndex = 0) {
   const profile =
@@ -43,7 +56,7 @@ export function fitBuildingSpriteHeight({
   const targetTopY = safeGapBottomY - safeReach;
   const denominator = Math.max(0.08, 1 - profileTop);
   const maxImageHeightByGap = Math.max(
-    96,
+    OBSTACLE_PRESENTATION_CONTRACT.minimumRenderedBuildingHeight,
     (safeGroundAnchorY - targetTopY) / denominator
   );
 
@@ -54,13 +67,43 @@ export function fitBuildingSpriteHeight({
     widthLimitedImageHeight
   );
 
-  // If width already keeps the image below the gap-side cap, retain the
-  // existing visual size. Otherwise let box height become the limiting axis.
+  // Preserve the existing width-limited fit. P4 adds a shared edge treatment
+  // without changing the building silhouette or its collision interpretation.
   if (nominalImageHeight <= maxImageHeightByGap) {
     return safeNominalHeight;
   }
 
   return Math.min(safeNominalHeight, maxImageHeightByGap);
+}
+
+export function getObstacleGapEdge(kind, bounds) {
+  if (!bounds) return null;
+
+  const x = finiteOr(bounds.x, 0);
+  const y = finiteOr(bounds.y, 0);
+  const w = Math.max(0, finiteOr(bounds.w, 0));
+  const h = Math.max(0, finiteOr(bounds.h, 0));
+  const inset = Math.min(
+    OBSTACLE_PRESENTATION_CONTRACT.gapEdgeInset,
+    Math.max(0, w * 0.25)
+  );
+  const thickness = Math.min(
+    OBSTACLE_PRESENTATION_CONTRACT.gapEdgeThickness,
+    h
+  );
+  const edgeW = Math.max(0, w - inset * 2);
+  if (edgeW <= 0 || thickness <= 0) return null;
+
+  const edgeY = kind === "building"
+    ? y
+    : y + Math.max(0, h - thickness);
+
+  return {
+    x: x + inset,
+    y: edgeY,
+    w: edgeW,
+    h: thickness,
+  };
 }
 
 function clampIndex(value, max) {
