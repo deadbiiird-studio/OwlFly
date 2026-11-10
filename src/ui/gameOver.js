@@ -13,40 +13,49 @@
   }) {
     const earnedList = Array.isArray(earned) ? earned : [];
     const themeList = Array.isArray(unlockedThemes) ? unlockedThemes : [];
-    const isBest = Number(score) >= Number(best) && Number(score) > 0;
+    const numericScore = Number(score) || 0;
+    const numericBest = Number(best) || 0;
+    const isBest = numericScore >= numericBest && numericScore > 0;
 
     this.el.classList.remove("hidden");
 
     this.el.innerHTML = `
-      <div class="panel overPanel sacredMenu">
+      <div
+        class="panel overPanel sacredMenu"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gameOverTitle"
+        aria-describedby="gameOverSummary"
+      >
         <div class="menuHero overHero">
-          <div class="eyebrow">SKY FRACTURED</div>
-          <h2 class="title overTitle">
+          <div class="eyebrow">FLIGHT COMPLETE</div>
+          <h2 class="title overTitle" id="gameOverTitle">
             ${isBest ? "New Best Flight" : "Flight Ended"}
           </h2>
-          <p class="sub">
+          <p class="sub" id="gameOverSummary">
             ${isBest
-              ? "You pushed beyond your limit."
-              : "Breach higher next flight."}
+              ? "A new line in the night sky."
+              : "The route is ready when you are."}
           </p>
         </div>
 
-        <div class="scoreStrip">
-          <div class="scoreCard major">
+        <div class="scoreStrip" aria-label="Flight results">
+          <div class="scoreCard major ${isBest ? "scoreCard--best" : ""}">
             <div class="scoreLabel">Flight</div>
-            <div class="scoreValue">${score}</div>
+            <div class="scoreValue">${numericScore}</div>
+            ${isBest ? '<div class="scoreMeta">NEW BEST</div>' : ""}
           </div>
           <div class="scoreCard">
             <div class="scoreLabel">Best</div>
-            <div class="scoreValue">${best}</div>
+            <div class="scoreValue">${numericBest}</div>
           </div>
         </div>
 
         ${
           themeList.length || earnedList.length
             ? `
-          <div class="settings compact">
-            <div class="settingsTitle">Unlocked</div>
+          <div class="settings compact resultUnlocks" aria-label="New unlocks">
+            <div class="settingsTitle">Unlocked this flight</div>
             ${
               themeList.length
                 ? `
@@ -76,18 +85,25 @@
             : ""
         }
 
-        <div class="row wideRow">
-          <button class="primary big wideBtn" id="restartBtn">Fly Again</button>
+        <div class="row wideRow resultActions">
+          <button class="primary big wideBtn" id="restartBtn" type="button" autofocus>
+            Fly Again
+          </button>
         </div>
 
         <div class="row wideRow compactRow">
-          <button id="menuBtn">Return to Gate</button>
+          <button id="menuBtn" type="button">Return to Gate</button>
         </div>
       </div>
     `;
 
-    this.el.querySelector("#restartBtn")?.addEventListener("click", onRestart);
-    this.el.querySelector("#menuBtn")?.addEventListener("click", onMenu);
+    const restartBtn = this.el.querySelector("#restartBtn");
+    const menuBtn = this.el.querySelector("#menuBtn");
+
+    restartBtn?.addEventListener("click", onRestart);
+    menuBtn?.addEventListener("click", onMenu);
+
+    requestAnimationFrame(() => restartBtn?.focus({ preventScroll: true }));
   }
 
   hide() {
