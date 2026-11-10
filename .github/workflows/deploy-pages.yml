@@ -35,6 +35,8 @@ jobs:
           test -s web/index.html
           test -s web/game.js
           test -s web/style.css
+          test -s web/.well-known/assetlinks.json
+          test "$(cat web/CNAME)" = "owlfly.app"
 
       - name: Upload website
         uses: actions/upload-pages-artifact@v3

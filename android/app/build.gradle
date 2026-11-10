@@ -5,12 +5,23 @@ android {
     compileSdk 35
     buildToolsVersion "36.1.0"
 
+    // Credentials are supplied only by the local environment, never committed.
+    // Missing values leave debug builds usable while release signing remains gated.
+    def releaseStorePath = System.getenv('OWLFLY_RELEASE_STORE_FILE')
+    def releaseStorePassword = System.getenv('OWLFLY_RELEASE_STORE_PASSWORD')
+    def releaseKeyAlias = System.getenv('OWLFLY_RELEASE_KEY_ALIAS')
+    def releaseKeyPassword = System.getenv('OWLFLY_RELEASE_KEY_PASSWORD')
+    def releaseSigningReady = [releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword]
+        .every { it != null && !it.trim().isEmpty() }
+
     signingConfigs {
-        release {
-            storeFile file("G:/OwlFly/keystore.jks")
-            storePassword "Little0wl"
-            keyAlias "owlfly"
-            keyPassword "Little0wl"
+        if (releaseSigningReady) {
+            release {
+                storeFile file(releaseStorePath)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
         }
     }
 
@@ -28,7 +39,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (releaseSigningReady) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -62,4 +75,18 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+// Prevent accidentally producing an unsigned release when the upload key is not configured.
+gradle.taskGraph.whenReady { graph ->
+    def requestedRelease = graph.allTasks.any { task ->
+        task.project == project && task.name ==~ /(?i)(assemble|bundle|package)Release/
+    }
+    if (requestedRelease) {
+        if (!android.buildTypes.release.signingConfig) {
+            throw new GradleException('OwlFly release signing is not configured. Set OWLFLY_RELEASE_STORE_FILE, OWLFLY_RELEASE_STORE_PASSWORD, OWLFLY_RELEASE_KEY_ALIAS, and OWLFLY_RELEASE_KEY_PASSWORD. See README.md.')
+        }
+        if (!file(System.getenv('OWLFLY_RELEASE_STORE_FILE')).isFile()) {
+            throw new GradleException('OwlFly release keystore file not found. Check OWLFLY_RELEASE_STORE_FILE.')
+        }
+    }
 }
