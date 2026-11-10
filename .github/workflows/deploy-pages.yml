@@ -46,11 +46,25 @@ jobs:
       - name: Build production website from source
         run: npm run build
 
+      # Android/Capacitor retains web/index.html as the game.
+      # Only the GitHub Pages upload is transformed into a homepage + player.
+      - name: Prepare public homepage without changing Android entrypoint
+        run: |
+          test -s web/home.html
+          test -s web/home.css
+          cp web/index.html web/play.html
+          cp web/home.html web/index.html
+
       - name: Verify static website entrypoint
         run: |
           test -s web/index.html
           test -s web/game.js
           test -s web/style.css
+          test -s web/home.css
+          test -s web/robots.txt
+          test -s web/sitemap.xml
+          grep -q 'href="./play.html"' web/index.html
+          grep -q 'id="game"' web/play.html
           test "$(cat web/CNAME)" = "owlfly.app"
           test -s web/.well-known/assetlinks.json
 
