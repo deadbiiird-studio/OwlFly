@@ -42,7 +42,10 @@ export class GameLoop {
     const dtSec = Math.min(0.25, (now - this._last) / 1000);
     this._last = now;
 
-    if (!this._paused) {
+    if (this._paused) {
+      // Keep polling pause input while physics is stopped, so Esc can resume.
+      this.stepFn(0);
+    } else {
       this._accum += dtSec;
       let steps = 0;
 

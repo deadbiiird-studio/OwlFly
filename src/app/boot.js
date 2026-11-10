@@ -766,6 +766,8 @@ hit: audioCandidates("hit.wav"),
   }
 
   function crash() {
+    // One authoritative crash per run, including the game-over delay.
+    if (!owl.alive) return;
     owl.kill();
     scoring.onCrash();
     playSfx("hit", { gain: 1.0 });
@@ -804,7 +806,7 @@ hit: audioCandidates("hit.wav"),
       return;
     }
 
-    if (state.paused) return;
+    if (state.paused || !owl.alive) return;
 
     if (input.consumeJump()) {
       owl.flap();

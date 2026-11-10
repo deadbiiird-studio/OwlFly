@@ -4,7 +4,12 @@ on:
   push:
     branches: [main]
     paths:
+      - "src/**"
       - "web/**"
+      - "tooling/build.mjs"
+      - "tooling/eval/**"
+      - "tests/**"
+      - "package.json"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -30,11 +35,24 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Test source
+        run: npm run test
+
+      - name: Build production website from source
+        run: npm run build
+
       - name: Verify static website entrypoint
         run: |
           test -s web/index.html
           test -s web/game.js
           test -s web/style.css
+          test "$(cat web/CNAME)" = "owlfly.app"
+          test -s web/.well-known/assetlinks.json
 
       - name: Upload website
         uses: actions/upload-pages-artifact@v3

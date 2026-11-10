@@ -1,16 +1,36 @@
 apply plugin: 'com.android.application'
 
+// These values must come from the build environment, not source control.
+def owlflyReleaseSigning = [
+    storeFile: System.getenv('OWLFLY_KEYSTORE_FILE'),
+    storePassword: System.getenv('OWLFLY_KEYSTORE_PASSWORD'),
+    keyAlias: System.getenv('OWLFLY_KEY_ALIAS'),
+    keyPassword: System.getenv('OWLFLY_KEY_PASSWORD')
+]
+def hasOwlFlyReleaseSigning = owlflyReleaseSigning.values().every { it != null && !it.trim().isEmpty() }
+
+// Fail closed when a signed release is explicitly requested without credentials.
+// Normal Gradle sync and debug builds stay available.
+if (gradle.startParameter.taskNames.any { it.toLowerCase(java.util.Locale.ROOT).contains('release') }
+        && !hasOwlFlyReleaseSigning) {
+    throw new GradleException('OwlFly release signing requires OWLFLY_KEYSTORE_FILE, OWLFLY_KEYSTORE_PASSWORD, OWLFLY_KEY_ALIAS, and OWLFLY_KEY_PASSWORD.')
+}
+
 android {
     namespace "com.owlfly.game"
     compileSdk 35
     buildToolsVersion "36.1.0"
 
+    // Release signing uses local environment variables; never commit credentials.
+    // Debug builds and Gradle sync do not require a keystore.
     signingConfigs {
         release {
-            storeFile file("G:/OwlFly/keystore.jks")
-            storePassword "Little0wl"
-            keyAlias "owlfly"
-            keyPassword "Little0wl"
+            if (hasOwlFlyReleaseSigning) {
+                storeFile file(owlflyReleaseSigning.storeFile)
+                storePassword owlflyReleaseSigning.storePassword
+                keyAlias owlflyReleaseSigning.keyAlias
+                keyPassword owlflyReleaseSigning.keyPassword
+            }
         }
     }
 
@@ -28,7 +48,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (hasOwlFlyReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
