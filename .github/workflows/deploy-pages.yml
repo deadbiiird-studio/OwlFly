@@ -30,6 +30,12 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Verify static website entrypoint
+        run: |
+          test -s web/index.html
+          test -s web/game.js
+          test -s web/style.css
+
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:
