@@ -22,12 +22,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Verified OwlFly links: matching /.well-known/assetlinks.json -->
+            <!-- Domain association requires live HTTPS assetlinks.json and app-signing certificate verification. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="owlfly.vercel.app" />
+                <data android:scheme="https" android:host="owlfly.app" />
             </intent-filter>
 
         </activity>
