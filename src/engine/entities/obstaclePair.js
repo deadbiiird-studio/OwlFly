@@ -3,6 +3,7 @@ import { BUILDING_COLLISION_PROFILES, CLOUD_COLLISION_PROFILES } from "../obstac
 import {
   BUILDING_GAP_VISUAL_REACH,
   fitBuildingSpriteHeight,
+  getBuildingProfileTopEdge,
 } from "../obstacleVisualFit.js";
 
 let nextVisualSpawnId = 1;
@@ -95,11 +96,7 @@ function containedImageRect(bounds, profile, bottomAnchored = false) {
   };
 }
 
-function makeBuildingBands(obstacle, bounds) {
-  const variant = ensureCollisionVisualVariant(obstacle, "building");
-  const profile =
-    BUILDING_COLLISION_PROFILES[variant.frameIndex] ||
-    BUILDING_COLLISION_PROFILES[0];
+function getBuildingSpriteBox(obstacle, bounds, variant) {
   const groundAnchorY = GAME.BASE_HEIGHT - COLLISION_RENDER_SCALE.buildingGroundInset;
   const nominalSpriteH = Math.max(
     COLLISION_RENDER_SCALE.buildingMinBoxHeight,
@@ -127,17 +124,26 @@ function makeBuildingBands(obstacle, bounds) {
     groundAnchorY,
     gapBottomY: obstacle.topH + obstacle.gap,
   });
-  const box = {
+  return {
     x: bounds.x + bounds.w * 0.5 - spriteW * 0.5,
     y: groundAnchorY - spriteH,
     w: spriteW,
     h: spriteH,
   };
+}
+
+function makeBuildingBands(obstacle, bounds) {
+  const variant = ensureCollisionVisualVariant(obstacle, "building");
+  const profile =
+    BUILDING_COLLISION_PROFILES[variant.frameIndex] ||
+    BUILDING_COLLISION_PROFILES[0];
+  const box = obstacle.getTowerSpriteBounds() ??
+    getBuildingSpriteBox(obstacle, bounds, variant);
   const image = containedImageRect(box, profile, true);
+  const gapFloor = obstacle.tower?.roofY ??
+    (obstacle.topH + obstacle.gap - BUILDING_GAP_COLLISION_REACH);
   const bands = profile.bands.map(([x0, x1, edgeY]) => {
     const visualY = image.y + edgeY * image.h;
-    const gapFloor =
-      obstacle.topH + obstacle.gap - BUILDING_GAP_COLLISION_REACH;
     const y = Math.max(visualY, gapFloor);
     return {
       x: image.x + x0 * image.w,
@@ -213,9 +219,10 @@ export class ObstaclePair {
 
     this.buildingVariantIndex = 0;
     this.buildingSizeBucket = 2;
+    this.tower = null;
   }
 
-  spawn({ x, topH, gap, speed }) {
+  spawn({ x, topH, gap, speed, towerHeight = null }) {
     this.active = true;
     this.passed = false;
     this.x = x;
@@ -277,7 +284,28 @@ export class ObstaclePair {
     // Seed the same visual cache that the renderer consumes so the collision
     // profile and the drawn PNG always refer to the same variant and scale.
     ensureCollisionVisualVariant(this, "cloud");
-    ensureCollisionVisualVariant(this, "building");
+    const { frameIndex } = ensureCollisionVisualVariant(this, "building");
+    if (towerHeight === null) {
+      this.tower = null;
+    } else {
+      const profile = BUILDING_COLLISION_PROFILES[frameIndex];
+      const groundY = GAME.BASE_HEIGHT - COLLISION_RENDER_SCALE.buildingGroundInset;
+      const roofY = GAME.BASE_HEIGHT - towerHeight;
+      const height = (groundY - roofY) / (1 - getBuildingProfileTopEdge(frameIndex));
+      const width = height * (profile.width / profile.height);
+      this.tower = { roofY, width, height };
+    }
+  }
+
+  getTowerSpriteBounds() {
+    if (!this.tower) return null;
+    const { width, height } = this.tower;
+    return {
+      x: this.x + (OBSTACLE.WIDTH - width) / 2,
+      y: GAME.BASE_HEIGHT - COLLISION_RENDER_SCALE.buildingGroundInset - height,
+      w: width,
+      h: height,
+    };
   }
 
   despawn() {
@@ -289,14 +317,17 @@ export class ObstaclePair {
 
     this.x -= this.speed * dt;
 
-    if (this.x + OBSTACLE.WIDTH < -40) {
+    const trailingWidth = this.tower
+      ? (OBSTACLE.WIDTH + this.tower.width) / 2
+      : OBSTACLE.WIDTH;
+    if (this.x + trailingWidth < -40) {
       this.despawn();
     }
   }
 
   getRects() {
-    const gapTopY = this.topH;
-    const gapBottomY = this.topH + this.gap;
+    const gapTopY = this.tower ? 0 : this.topH;
+    const gapBottomY = this.tower?.roofY ?? (this.topH + this.gap);
 
     const topGapSafeInset = Math.max(
       0,
@@ -341,13 +372,13 @@ export class ObstaclePair {
     };
 
     const visual = this.getVisualBounds();
-    const cloudCollision = makeCloudBands(this, visual.top);
     const buildingCollision = makeBuildingBands(this, visual.bottom);
 
     // Preserve the legacy rectangle for scoring/eval contracts, while
     // circleAabbIntersect consumes the sharper sprite-aware bands.
-    top.bands = cloudCollision.bands;
-    top.spriteIndex = cloudCollision.spriteIndex;
+    const cloudCollision = visual.top ? makeCloudBands(this, visual.top) : null;
+    top.bands = cloudCollision?.bands ?? [];
+    top.spriteIndex = cloudCollision?.spriteIndex ?? null;
     bottom.bands = buildingCollision.bands;
     bottom.spriteIndex = buildingCollision.spriteIndex;
 
@@ -355,10 +386,10 @@ export class ObstaclePair {
   }
 
   getVisualBounds() {
-    const gapBottomY = this.topH + this.gap;
+    const gapBottomY = this.tower?.roofY ?? (this.topH + this.gap);
 
     return {
-      top: {
+      top: this.tower ? null : {
         x: this.x,
         y: 0,
         w: OBSTACLE.WIDTH,
@@ -377,8 +408,8 @@ export class ObstaclePair {
   }
 
   getRenderHints() {
-    const gapTopY = this.topH;
-    const gapBottomY = this.topH + this.gap;
+    const gapTopY = this.tower ? 0 : this.topH;
+    const gapBottomY = this.tower?.roofY ?? (this.topH + this.gap);
 
     const groundAnchorY =
       GAME.BASE_HEIGHT - (OBSTACLE.GROUND_VISUAL_INSET ?? 18);
@@ -423,6 +454,7 @@ export class ObstaclePair {
   }
 
   getGapCenterY() {
-    return this.topH + this.gap / 2;
+    const center = this.topH + this.gap / 2;
+    return this.tower ? Math.min(center, this.tower.roofY - this.gap / 2) : center;
   }
 }
