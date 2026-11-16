@@ -18,7 +18,7 @@ if (gradle.startParameter.taskNames.any { it.toLowerCase(java.util.Locale.ROOT).
 
 android {
     namespace "com.owlfly.game"
-    compileSdk 35
+    compileSdk 36
     buildToolsVersion "36.1.0"
 
     // Release signing uses local environment variables; never commit credentials.
@@ -37,7 +37,7 @@ android {
     defaultConfig {
         applicationId "com.owlfly.game"
         minSdkVersion 23
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
