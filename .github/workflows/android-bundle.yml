@@ -66,6 +66,8 @@ jobs:
           grep -Eq 'applicationId[[:space:]]+"com.owlfly.game"' android/app/build.gradle
           grep -Eq 'versionCode[[:space:]]+2([[:space:]]|$)' android/app/build.gradle
           grep -Eq 'targetSdkVersion[[:space:]]+36([[:space:]]|$)' android/app/build.gradle
+          grep -Eq 'minSdkVersion[[:space:]]+24([[:space:]]|$)' android/app/build.gradle
+          grep -Eq 'minSdkVersion[[:space:]]*=[[:space:]]*24([[:space:]]|$)' android/variables.gradle
 
       - name: Build debug APK for build verification
         working-directory: android
