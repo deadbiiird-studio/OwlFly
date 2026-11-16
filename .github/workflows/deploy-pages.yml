@@ -63,6 +63,9 @@ jobs:
           test -s web/home.css
           test -s web/robots.txt
           test -s web/sitemap.xml
+          test -s web/privacy.html
+          grep -q 'Privacy Policy' web/privacy.html
+          grep -q 'href="./privacy.html"' web/index.html
           grep -q 'href="./play.html"' web/index.html
           grep -q 'id="game"' web/play.html
           test "$(cat web/CNAME)" = "owlfly.app"
