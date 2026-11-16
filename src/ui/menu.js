@@ -85,17 +85,6 @@ export class MenuUI {
               <button id="musicBtn">Music: ${musicEnabled === false ? "Off" : "On"}</button>
             </div>
 
-            <div class="settings compact">
-              <div class="settingsTitle">Audio mix</div>
-              ${sliderRow("Master", "master", a.master)}
-              ${sliderRow("SFX", "sfx", a.sfx)}
-              ${sliderRow("Music", "music", a.music)}
-             
-
-              <div class="row compact wideRow">
-                <button id="resetAudioBtn">Reset audio</button>
-              </div>
-            </div>
           </div>
         </details>
 
