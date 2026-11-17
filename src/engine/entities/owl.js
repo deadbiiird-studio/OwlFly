@@ -9,6 +9,24 @@ const DEFAULT_FLIGHT_PROFILE = {
   rotDownScale: 1,
 };
 
+export const OWL_PRESENTATION = Object.freeze({
+  normalFlapWindow: 0.12,
+  glideFlapWindow: 0.18,
+  normalPitchKick: 0.14,
+  glidePitchKick: 0.07,
+  hurtWindow: 0.35,
+  maxPresentationPitch: 0.16,
+});
+
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function easeOutCubic(value) {
+  const t = clamp01(value);
+  return 1 - Math.pow(1 - t, 3);
+}
+
 export class Owl {
   constructor() {
     this.reset();
@@ -47,12 +65,14 @@ export class Owl {
     if (!this.alive) return;
     this.vy = jumpImpulse(this.flightProfile.jumpScale);
     this._blink = 0.08;
-    this.flapT = this.isGliding ? 0.18 : 0.12;
+    this.flapT = this.isGliding
+      ? OWL_PRESENTATION.glideFlapWindow
+      : OWL_PRESENTATION.normalFlapWindow;
   }
 
   kill() {
     this.alive = false;
-    this.hurtT = 0.35;
+    this.hurtT = OWL_PRESENTATION.hurtWindow;
   }
 
   update(dt) {
@@ -68,11 +88,13 @@ export class Owl {
         this.flightProfile.maxFallScale
       );
       this.y += this.vy * dt;
-      this.rot = rotationForVelocity(
+
+      const physicsRot = rotationForVelocity(
         this.vy,
         this.flightProfile.rotUpScale,
         this.flightProfile.rotDownScale
       );
+      this.rot = physicsRot + this.presentationPitchKick;
       this._blink = Math.max(0, this._blink - dt);
     } else {
       this.vy = applyGravity(this.vy, dt);
@@ -98,13 +120,33 @@ export class Owl {
     return this.flightMode === "glide";
   }
 
+  get flapPulse() {
+    const window = this.isGliding
+      ? OWL_PRESENTATION.glideFlapWindow
+      : OWL_PRESENTATION.normalFlapWindow;
+    if (window <= 0 || this.flapT <= 0) return 0;
+    return clamp01(this.flapT / window);
+  }
+
+  get hurtPulse() {
+    if (OWL_PRESENTATION.hurtWindow <= 0 || this.hurtT <= 0) return 0;
+    return clamp01(this.hurtT / OWL_PRESENTATION.hurtWindow);
+  }
+
+  get presentationPitchKick() {
+    const maxKick = this.isGliding
+      ? OWL_PRESENTATION.glidePitchKick
+      : OWL_PRESENTATION.normalPitchKick;
+    const kick = -maxKick * easeOutCubic(this.flapPulse);
+    return Math.max(-OWL_PRESENTATION.maxPresentationPitch, Math.min(0, kick));
+  }
+
   get wingAngle() {
     const cadence = this.isGliding ? 10 : 18;
     const amplitude = this.isGliding ? 0.3 : 0.55;
     const base = Math.sin(this.animT * cadence) * amplitude;
-    const kickWindow = this.isGliding ? 0.18 : 0.12;
     const kickMax = this.isGliding ? 0.45 : 0.85;
-    const kick = this.flapT > 0 ? (this.flapT / kickWindow) * kickMax : 0;
+    const kick = easeOutCubic(this.flapPulse) * kickMax;
 
     return base + kick;
   }
