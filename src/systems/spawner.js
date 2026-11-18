@@ -68,8 +68,10 @@ export class Spawner {
 
     const centerBounds = this._computeCenterBounds(gap);
     const center = this._pickGapCenter(centerBounds, { inOpening, isEasy });
-
-    this._lastGapCenter = center;
+    const towerStep = this._spawnCount - SPAWN.TOWER_FIRST_SPAWN;
+    const towerHeight = towerStep >= 0
+      ? SPAWN.TOWER_HEIGHTS[towerStep % SPAWN.TOWER_REPEAT_INTERVAL] ?? null
+      : null;
 
     const halfGap = gap * 0.5;
     const minTop = OBSTACLE.MIN_TOP;
@@ -84,9 +86,11 @@ export class Spawner {
       topH,
       gap,
       speed,
+      towerHeight,
       ...variants,
     });
 
+    this._lastGapCenter = o.tower ? o.getGapCenterY() : center;
     this.active.push(o);
   }
 

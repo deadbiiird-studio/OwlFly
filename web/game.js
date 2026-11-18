@@ -79,6 +79,10 @@ const SPAWN = {
   MAX_CENTER_SHIFT_PX: 90,
   SPAWN_X: 520,
 
+  TOWER_FIRST_SPAWN: 16,
+  TOWER_REPEAT_INTERVAL: 18,
+  TOWER_HEIGHTS: [290, 360, 448, 532, 441, 352, 260],
+
   CLOUD_SWELL_EVERY: 4,
   TORNADO_SURGE_EVERY: 6,
 };
@@ -1542,7 +1546,7 @@ function aabbIntersect(a, b) {
   );
 }
 function circleAabbIntersect(cx, cy, r, rect) {
-  if (Array.isArray(rect?.bands) && rect.bands.length) {
+  if (Array.isArray(rect?.bands)) {
     return rect.bands.some((band) =>
       circleRectIntersect(cx, cy, r, band)
     );
@@ -2103,11 +2107,7 @@ function containedImageRect(bounds, profile, bottomAnchored = false) {
   };
 }
 
-function makeBuildingBands(obstacle, bounds) {
-  const variant = ensureCollisionVisualVariant(obstacle, "building");
-  const profile =
-    BUILDING_COLLISION_PROFILES[variant.frameIndex] ||
-    BUILDING_COLLISION_PROFILES[0];
+function getBuildingSpriteBox(obstacle, bounds, variant) {
   const groundAnchorY = GAME.BASE_HEIGHT - COLLISION_RENDER_SCALE.buildingGroundInset;
   const nominalSpriteH = Math.max(
     COLLISION_RENDER_SCALE.buildingMinBoxHeight,
@@ -2135,17 +2135,26 @@ function makeBuildingBands(obstacle, bounds) {
     groundAnchorY,
     gapBottomY: obstacle.topH + obstacle.gap,
   });
-  const box = {
+  return {
     x: bounds.x + bounds.w * 0.5 - spriteW * 0.5,
     y: groundAnchorY - spriteH,
     w: spriteW,
     h: spriteH,
   };
+}
+
+function makeBuildingBands(obstacle, bounds) {
+  const variant = ensureCollisionVisualVariant(obstacle, "building");
+  const profile =
+    BUILDING_COLLISION_PROFILES[variant.frameIndex] ||
+    BUILDING_COLLISION_PROFILES[0];
+  const box = obstacle.getTowerSpriteBounds() ??
+    getBuildingSpriteBox(obstacle, bounds, variant);
   const image = containedImageRect(box, profile, true);
+  const gapFloor = obstacle.tower?.roofY ??
+    (obstacle.topH + obstacle.gap - BUILDING_GAP_COLLISION_REACH);
   const bands = profile.bands.map(([x0, x1, edgeY]) => {
     const visualY = image.y + edgeY * image.h;
-    const gapFloor =
-      obstacle.topH + obstacle.gap - BUILDING_GAP_COLLISION_REACH;
     const y = Math.max(visualY, gapFloor);
     return {
       x: image.x + x0 * image.w,
@@ -2220,9 +2229,10 @@ class ObstaclePair {
 
     this.buildingVariantIndex = 0;
     this.buildingSizeBucket = 2;
+    this.tower = null;
   }
 
-  spawn({ x, topH, gap, speed }) {
+  spawn({ x, topH, gap, speed, towerHeight = null }) {
     this.active = true;
     this.passed = false;
     this.x = x;
@@ -2284,7 +2294,28 @@ class ObstaclePair {
     // Seed the same visual cache that the renderer consumes so the collision
     // profile and the drawn PNG always refer to the same variant and scale.
     ensureCollisionVisualVariant(this, "cloud");
-    ensureCollisionVisualVariant(this, "building");
+    const { frameIndex } = ensureCollisionVisualVariant(this, "building");
+    if (towerHeight === null) {
+      this.tower = null;
+    } else {
+      const profile = BUILDING_COLLISION_PROFILES[frameIndex];
+      const groundY = GAME.BASE_HEIGHT - COLLISION_RENDER_SCALE.buildingGroundInset;
+      const roofY = GAME.BASE_HEIGHT - towerHeight;
+      const height = (groundY - roofY) / (1 - getBuildingProfileTopEdge(frameIndex));
+      const width = height * (profile.width / profile.height);
+      this.tower = { roofY, width, height };
+    }
+  }
+
+  getTowerSpriteBounds() {
+    if (!this.tower) return null;
+    const { width, height } = this.tower;
+    return {
+      x: this.x + (OBSTACLE.WIDTH - width) / 2,
+      y: GAME.BASE_HEIGHT - COLLISION_RENDER_SCALE.buildingGroundInset - height,
+      w: width,
+      h: height,
+    };
   }
 
   despawn() {
@@ -2296,14 +2327,17 @@ class ObstaclePair {
 
     this.x -= this.speed * dt;
 
-    if (this.x + OBSTACLE.WIDTH < -40) {
+    const trailingWidth = this.tower
+      ? (OBSTACLE.WIDTH + this.tower.width) / 2
+      : OBSTACLE.WIDTH;
+    if (this.x + trailingWidth < -40) {
       this.despawn();
     }
   }
 
   getRects() {
-    const gapTopY = this.topH;
-    const gapBottomY = this.topH + this.gap;
+    const gapTopY = this.tower ? 0 : this.topH;
+    const gapBottomY = this.tower?.roofY ?? (this.topH + this.gap);
 
     const topGapSafeInset = Math.max(
       0,
@@ -2348,13 +2382,13 @@ class ObstaclePair {
     };
 
     const visual = this.getVisualBounds();
-    const cloudCollision = makeCloudBands(this, visual.top);
     const buildingCollision = makeBuildingBands(this, visual.bottom);
 
     // Preserve the legacy rectangle for scoring/eval contracts, while
     // circleAabbIntersect consumes the sharper sprite-aware bands.
-    top.bands = cloudCollision.bands;
-    top.spriteIndex = cloudCollision.spriteIndex;
+    const cloudCollision = visual.top ? makeCloudBands(this, visual.top) : null;
+    top.bands = cloudCollision?.bands ?? [];
+    top.spriteIndex = cloudCollision?.spriteIndex ?? null;
     bottom.bands = buildingCollision.bands;
     bottom.spriteIndex = buildingCollision.spriteIndex;
 
@@ -2362,10 +2396,10 @@ class ObstaclePair {
   }
 
   getVisualBounds() {
-    const gapBottomY = this.topH + this.gap;
+    const gapBottomY = this.tower?.roofY ?? (this.topH + this.gap);
 
     return {
-      top: {
+      top: this.tower ? null : {
         x: this.x,
         y: 0,
         w: OBSTACLE.WIDTH,
@@ -2384,8 +2418,8 @@ class ObstaclePair {
   }
 
   getRenderHints() {
-    const gapTopY = this.topH;
-    const gapBottomY = this.topH + this.gap;
+    const gapTopY = this.tower ? 0 : this.topH;
+    const gapBottomY = this.tower?.roofY ?? (this.topH + this.gap);
 
     const groundAnchorY =
       GAME.BASE_HEIGHT - (OBSTACLE.GROUND_VISUAL_INSET ?? 18);
@@ -2430,7 +2464,8 @@ class ObstaclePair {
   }
 
   getGapCenterY() {
-    return this.topH + this.gap / 2;
+    const center = this.topH + this.gap / 2;
+    return this.tower ? Math.min(center, this.tower.roofY - this.gap / 2) : center;
   }
 }
 
@@ -2586,8 +2621,10 @@ class Spawner {
 
     const centerBounds = this._computeCenterBounds(gap);
     const center = this._pickGapCenter(centerBounds, { inOpening, isEasy });
-
-    this._lastGapCenter = center;
+    const towerStep = this._spawnCount - SPAWN.TOWER_FIRST_SPAWN;
+    const towerHeight = towerStep >= 0
+      ? SPAWN.TOWER_HEIGHTS[towerStep % SPAWN.TOWER_REPEAT_INTERVAL] ?? null
+      : null;
 
     const halfGap = gap * 0.5;
     const minTop = OBSTACLE.MIN_TOP;
@@ -2602,9 +2639,11 @@ class Spawner {
       topH,
       gap,
       speed,
+      towerHeight,
       ...variants,
     });
 
+    this._lastGapCenter = o.tower ? o.getGapCenterY() : center;
     this.active.push(o);
   }
 
@@ -2744,6 +2783,7 @@ function triangularStep(rng, maxShift) {
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
+
 
 // ===== FILE: src/render/environmentGeometry.js =====
 
@@ -3154,12 +3194,14 @@ function drawObstaclePair(ctx, obstacle, sprites, t, reducedMotion, theme) {
       ? obstacle.getVisualBounds()
       : obstacle.getRects();
 
-  if (!visual?.top || !visual?.bottom) return;
+  if (!visual?.bottom) return;
 
   const clouds = sprites?.clouds || [];
   const buildings = sprites?.buildings || [];
 
-  drawTopCloudHazard(ctx, obstacle, visual.top, clouds, t, reducedMotion, theme);
+  if (visual.top) {
+    drawTopCloudHazard(ctx, obstacle, visual.top, clouds, t, reducedMotion, theme);
+  }
   drawBottomBuildingHazard(ctx, obstacle, visual.bottom, buildings, theme);
 }
 
@@ -3222,9 +3264,27 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
 function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
   if (!bounds) return;
 
-  const variant = ensureVisualVariant(obstacle, frames, "building", 13);
-  const frame = pickIndexedFrame(frames, variant.frameIndex);
+  const frameCount = 13;
+  const variant = ensureVisualVariant(obstacle, frames, "building", frameCount);
   const groundAnchorY = GAME.BASE_HEIGHT - VISION_OBSTACLE_SCALE.buildingGroundInset;
+  const towerBounds = obstacle.getTowerSpriteBounds?.();
+  if (towerBounds) {
+    // The loader compacts partial frame sets, so their indexes may have shifted.
+    const frame = frames.length === frameCount ? frames[variant.frameIndex] : null;
+    if (isImgReady(frame)) {
+      drawImageContainBottom(ctx, frame, towerBounds);
+    } else {
+      ctx.fillStyle = theme?.ground?.silhouette || "#261724";
+      for (const band of obstacle.getRects().bottom.bands) {
+        ctx.fillRect(band.x, band.y, band.w, band.h);
+      }
+    }
+    drawBuildingGroundShadow(ctx, bounds, towerBounds.w, theme);
+    drawBuildingGroundCap(ctx, bounds, towerBounds.w, groundAnchorY, theme);
+    return;
+  }
+
+  const frame = pickIndexedFrame(frames, variant.frameIndex);
   const nominalSpriteH = Math.max(
     VISION_OBSTACLE_SCALE.buildingMinBoxHeight,
     Math.min(

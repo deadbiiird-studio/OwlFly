@@ -205,12 +205,14 @@ function drawObstaclePair(ctx, obstacle, sprites, t, reducedMotion, theme) {
       ? obstacle.getVisualBounds()
       : obstacle.getRects();
 
-  if (!visual?.top || !visual?.bottom) return;
+  if (!visual?.bottom) return;
 
   const clouds = sprites?.clouds || [];
   const buildings = sprites?.buildings || [];
 
-  drawTopCloudHazard(ctx, obstacle, visual.top, clouds, t, reducedMotion, theme);
+  if (visual.top) {
+    drawTopCloudHazard(ctx, obstacle, visual.top, clouds, t, reducedMotion, theme);
+  }
   drawBottomBuildingHazard(ctx, obstacle, visual.bottom, buildings, theme);
 }
 
@@ -273,9 +275,27 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
 function drawBottomBuildingHazard(ctx, obstacle, bounds, frames, theme) {
   if (!bounds) return;
 
-  const variant = ensureVisualVariant(obstacle, frames, "building", 13);
-  const frame = pickIndexedFrame(frames, variant.frameIndex);
+  const frameCount = 13;
+  const variant = ensureVisualVariant(obstacle, frames, "building", frameCount);
   const groundAnchorY = GAME.BASE_HEIGHT - VISION_OBSTACLE_SCALE.buildingGroundInset;
+  const towerBounds = obstacle.getTowerSpriteBounds?.();
+  if (towerBounds) {
+    // The loader compacts partial frame sets, so their indexes may have shifted.
+    const frame = frames.length === frameCount ? frames[variant.frameIndex] : null;
+    if (isImgReady(frame)) {
+      drawImageContainBottom(ctx, frame, towerBounds);
+    } else {
+      ctx.fillStyle = theme?.ground?.silhouette || "#261724";
+      for (const band of obstacle.getRects().bottom.bands) {
+        ctx.fillRect(band.x, band.y, band.w, band.h);
+      }
+    }
+    drawBuildingGroundShadow(ctx, bounds, towerBounds.w, theme);
+    drawBuildingGroundCap(ctx, bounds, towerBounds.w, groundAnchorY, theme);
+    return;
+  }
+
+  const frame = pickIndexedFrame(frames, variant.frameIndex);
   const nominalSpriteH = Math.max(
     VISION_OBSTACLE_SCALE.buildingMinBoxHeight,
     Math.min(

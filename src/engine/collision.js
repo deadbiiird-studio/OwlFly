@@ -16,7 +16,7 @@ export function aabbIntersect(a, b) {
 }
 
 export function circleAabbIntersect(cx, cy, r, rect) {
-  if (Array.isArray(rect?.bands) && rect.bands.length) {
+  if (Array.isArray(rect?.bands)) {
     return rect.bands.some((band) =>
       circleRectIntersect(cx, cy, r, band)
     );
