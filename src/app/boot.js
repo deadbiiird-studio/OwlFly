@@ -14,6 +14,7 @@ import {
 import { THEMES, getTheme } from "../core/themes.js";
 import { circleAabbIntersect } from "../engine/collision.js";
 import { Input } from "../engine/input.js";
+import { RoundCountdown } from "../engine/countdown.js";
 import { GameLoop } from "../engine/gameLoop.js";
 import { Difficulty } from "../engine/difficulty.js";
 import { Owl } from "../engine/entities/owl.js";
@@ -311,6 +312,7 @@ export function boot() {
   });
 
   const input = new Input(canvas);
+  const countdown = new RoundCountdown();
   const rng = new RNG();
   const difficulty = new Difficulty();
   const owl = new Owl();
@@ -341,6 +343,8 @@ hit: audioCandidates("hit.wav"),
 
   const state = {
     mode: "menu",
+    countdownLabel: "",
+    goTimer: 0,
     paused: false,
     playPhase: "normal",
     fractureTimer: 0,
@@ -480,7 +484,7 @@ hit: audioCandidates("hit.wav"),
   let startingGame = false;
 
   async function startGame() {
-    if (startingGame || state.mode === "playing") return;
+    if (startingGame || state.mode === "playing" || state.mode === "countdown") return;
 
     startingGame = true;
     try {
@@ -493,7 +497,11 @@ hit: audioCandidates("hit.wav"),
 
     hardResetRun();
     scoring.reset();
-    state.mode = "playing";
+    countdown.reset();
+    state.countdownLabel = countdown.label;
+    state.goTimer = 0;
+    state.mode = "countdown";
+    audio.playCountdownTone(3);
 
     runEarned = [];
     runUnlockedThemes = [];
@@ -508,13 +516,15 @@ hit: audioCandidates("hit.wav"),
       onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
-    uiHud.toast?.("🦉 Fly clean. Break through.", 1300);
+    uiHud.toast?.("Tap to flap · Hold to climb", 2400);
 
     applyMusicState();
   }
 
   function toMenu() {
     state.mode = "menu";
+    state.countdownLabel = "";
+    state.goTimer = 0;
     state.paused = false;
 
     uiHud.hide();
@@ -790,9 +800,28 @@ hit: audioCandidates("hit.wav"),
   }
 
   function step(dt) {
-    if (input.consumePause() && state.mode === "playing") {
+    if (input.consumePause() && (state.mode === "playing" || state.mode === "countdown")) {
       state.paused = !state.paused;
       loop.setPaused(state.paused);
+    }
+
+    if (state.mode === "countdown") {
+      // Simulate safe stationary flight while the skyline keeps moving.
+      // Physics, obstacles, collisions and scoring do not run until GO.
+      input.consumeJump();
+      if (!state.paused && dt > 0) {
+        owl.animT += dt;
+        const cue = countdown.advance(dt);
+        state.countdownLabel = countdown.label;
+        if (cue !== null) audio.playCountdownTone(cue);
+        if (countdown.finished) {
+          input.requireFreshPress();
+          state.mode = "playing";
+          state.goTimer = 0.45;
+          state.invulnTimer = Math.max(state.invulnTimer, 0.35);
+        }
+      }
+      return;
     }
 
     if (state.mode !== "playing") {
@@ -808,12 +837,13 @@ hit: audioCandidates("hit.wav"),
 
     if (state.paused || !owl.alive) return;
 
-    if (input.consumeJump()) {
+    if (input.consumeFlap(dt)) {
       owl.flap();
       playSfx("jump", { gain: 1.0, jitterRate: true });
       handleProgress({ type: "flap" });
     }
 
+    state.goTimer = Math.max(0, state.goTimer - dt);
     difficulty.update(dt);
     owl.update(dt);
     updatePhase(dt);
