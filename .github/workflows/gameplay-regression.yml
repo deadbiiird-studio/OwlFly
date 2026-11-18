@@ -1,0 +1,38 @@
+name: OwlFly gameplay regression (PR only)
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'web/game.js'
+      - 'tooling/**'
+      - '.github/workflows/gameplay-regression.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  gameplay-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Rebuild browser and Android web bundle
+        run: npm run build
+      - name: Verify committed bundle matches fresh rebuild
+        run: git diff --exit-code -- web/game.js
+      - name: Node gameplay tests
+        run: npm run test
+      - name: Flight simulation fairness gate
+        run: npm run eval:gate
+      - name: Visual readability gate
+        run: npm run eval:visual
