@@ -24,6 +24,7 @@ const FILES = [
   "engine/collision.js",
   "engine/difficulty.js",
   "engine/input.js",
+  "engine/countdown.js",
   "engine/gameLoop.js",
   "engine/entities/owl.js",
   "engine/obstacleCollisionProfiles.js",

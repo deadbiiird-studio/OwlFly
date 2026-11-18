@@ -420,6 +420,32 @@ class AudioBank {
     }
   }
 
+  playCountdownTone(number) {
+    if (this._muted || !this._ctx || !this._gainSfx) return false;
+    if (this._ctx.state !== "running") {
+      this._ctx.resume?.().catch(() => {});
+      return false;
+    }
+    try {
+      const go = number === 0;
+      const freq = go ? 880 : ({ 3: 440, 2: 554, 1: 659 }[number] || 440);
+      const duration = go ? 0.28 : 0.14;
+      const at = this._ctx.currentTime;
+      const oscillator = this._ctx.createOscillator();
+      const gain = this._ctx.createGain();
+      oscillator.type = go ? "triangle" : "sine";
+      oscillator.frequency.setValueAtTime(freq, at);
+      if (go) oscillator.frequency.linearRampToValueAtTime(1175, at + duration);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.linearRampToValueAtTime(go ? 0.20 : 0.15, at + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+      oscillator.connect(gain).connect(this._gainSfx);
+      oscillator.start(at);
+      oscillator.stop(at + duration + 0.015);
+      return true;
+    } catch { return false; }
+  }
+
   _applyGains() {
     const master = this._muted ? 0 : clamp01(this._mix.master);
     if (this._gainMaster) this._gainMaster.gain.value = master;
@@ -1592,43 +1618,122 @@ class Difficulty {
 
 // ===== FILE: src/engine/input.js =====
 
+const AUTO_FLAP_INTERVAL = 0.20;
 class Input {
   constructor(canvas) {
     this.canvas = canvas;
     this._jump = false;
     this._pause = false;
+    this._heldPointers = new Set();
+    this._heldKeys = new Set();
+    this._repeatTimer = 0;
+    this._blockedUntilRelease = false;
 
     this._onKeyDown = (e) => {
-      if (e.code === "Space") { e.preventDefault(); this._jump = true; }
-      if (e.code === "Enter") this._jump = true;
-      if (e.code === "Escape") this._pause = true;
+      if (e.code === "Escape") { if (!e.repeat) this._pause = true; return; }
+      if (e.code !== "Space" && e.code !== "Enter") return;
+      e.preventDefault();
+      if (this._heldKeys.has(e.code)) return;
+      this._heldKeys.add(e.code);
+      if (!this._blockedUntilRelease) this._jump = true;
     };
-
+    this._onKeyUp = (e) => {
+      if (e.code !== "Space" && e.code !== "Enter") return;
+      e.preventDefault();
+      this._heldKeys.delete(e.code);
+      this._releaseIfIdle();
+    };
     this._onPointerDown = (e) => {
       e.preventDefault();
-      this._jump = true;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      this._heldPointers.add(e.pointerId);
+      try { canvas.setPointerCapture?.(e.pointerId); } catch {}
+      if (!this._blockedUntilRelease) this._jump = true;
+    };
+    this._onPointerUp = (e) => {
+      this._heldPointers.delete(e.pointerId);
+      this._releaseIfIdle();
+    };
+    this._onBlur = () => {
+      this._heldPointers.clear();
+      this._heldKeys.clear();
+      this._jump = false;
+      this._repeatTimer = 0;
+      this._blockedUntilRelease = false;
     };
 
     window.addEventListener("keydown", this._onKeyDown, { passive: false });
+    window.addEventListener("keyup", this._onKeyUp, { passive: false });
     canvas.addEventListener("pointerdown", this._onPointerDown, { passive: false });
+    window.addEventListener("pointerup", this._onPointerUp);
+    window.addEventListener("pointercancel", this._onPointerUp);
+    canvas.addEventListener("lostpointercapture", this._onPointerUp);
+    window.addEventListener("blur", this._onBlur);
   }
-
+  _isHeld() { return this._heldPointers.size > 0 || this._heldKeys.size > 0; }
+  _releaseIfIdle() {
+    if (!this._isHeld()) {
+      this._repeatTimer = 0;
+      this._blockedUntilRelease = false;
+    }
+  }
   consumeJump() {
-    const v = this._jump;
+    const value = this._jump && !this._blockedUntilRelease;
     this._jump = false;
-    return v;
+    return value;
   }
-
+  consumeFlap(dt) {
+    if (this._blockedUntilRelease) { this._jump = false; return false; }
+    if (this.consumeJump()) { this._repeatTimer = 0; return true; }
+    if (!this._isHeld() || dt <= 0) return false;
+    this._repeatTimer += dt;
+    if (this._repeatTimer >= AUTO_FLAP_INTERVAL) {
+      this._repeatTimer -= AUTO_FLAP_INTERVAL;
+      return true;
+    }
+    return false;
+  }
+  requireFreshPress() {
+    this._jump = false;
+    this._repeatTimer = 0;
+    this._blockedUntilRelease = this._isHeld();
+  }
   consumePause() {
-    const v = this._pause;
+    const value = this._pause;
     this._pause = false;
-    return v;
+    return value;
   }
-
   dispose() {
     window.removeEventListener("keydown", this._onKeyDown);
+    window.removeEventListener("keyup", this._onKeyUp);
     this.canvas.removeEventListener("pointerdown", this._onPointerDown);
+    window.removeEventListener("pointerup", this._onPointerUp);
+    window.removeEventListener("pointercancel", this._onPointerUp);
+    this.canvas.removeEventListener("lostpointercapture", this._onPointerUp);
+    window.removeEventListener("blur", this._onBlur);
   }
+}
+
+
+// ===== FILE: src/engine/countdown.js =====
+
+// Fixed-step safe launch; no physics, collisions, scoring, or spawns before GO.
+const ROUND_COUNTDOWN_SECONDS = 3;
+class RoundCountdown {
+  constructor() { this.reset(); }
+  reset() { this.remaining = ROUND_COUNTDOWN_SECONDS; this.nextCue = 3; this.finished = false; }
+  advance(dt) {
+    if (this.finished || dt <= 0) return null;
+    this.remaining = Math.max(0, this.remaining - dt);
+    const cue = Math.ceil(this.remaining);
+    if (cue < this.nextCue) {
+      this.nextCue = cue;
+      if (cue === 0) this.finished = true;
+      return cue;
+    }
+    return null;
+  }
+  get label() { return this.finished ? "GO!" : String(Math.ceil(this.remaining)); }
 }
 
 
@@ -1676,7 +1781,10 @@ class GameLoop {
     const dtSec = Math.min(0.25, (now - this._last) / 1000);
     this._last = now;
 
-    if (!this._paused) {
+    if (this._paused) {
+      // Keep polling pause input while physics is stopped, so Esc can resume.
+      this.stepFn(0);
+    } else {
       this._accum += dtSec;
       let steps = 0;
 
@@ -1742,7 +1850,7 @@ class Owl {
     if (!this.alive) return;
     this.vy = jumpImpulse(this.flightProfile.jumpScale);
     this._blink = 0.08;
-    this.flapT = this.isGliding ? 0.18 : 0.12;
+    this.flapT = 0.18;
   }
 
   kill() {
@@ -1791,6 +1899,13 @@ class Owl {
 
   get isGliding() {
     return this.flightMode === "glide";
+  }
+
+  get wingFrameIndex() {
+    if (this.flapT <= 0) return null;
+    if (this.flapT > 0.12) return 0;
+    if (this.flapT > 0.06) return 1;
+    return 2;
   }
 
   get wingAngle() {
@@ -2972,7 +3087,13 @@ class Renderer {
       });
     }
 
-    if (paused && mode === "playing") {
+    if (mode === "countdown") {
+      drawCountdownOverlay(ctx, state.countdownLabel || "3", theme);
+    } else if (mode === "playing" && state.goTimer > 0) {
+      drawCountdownOverlay(ctx, "GO!", theme);
+    }
+
+    if (paused && (mode === "playing" || mode === "countdown")) {
       drawPauseOverlay(ctx);
     }
 
@@ -3204,6 +3325,27 @@ function drawFractureOverlay(ctx, { theme, reducedMotion, playPhase, fracturePro
     drawModeBanner(ctx, `REENTRY ${Math.max(0, reentryTimer).toFixed(1)}s`, accent, 78);
   }
 
+  ctx.restore();
+}
+
+function drawCountdownOverlay(ctx, label, theme) {
+  const middle = GAME.BASE_WIDTH / 2;
+  const accent = theme?.ui?.accent || "#7ef3d2";
+  ctx.save();
+  ctx.fillStyle = "rgba(7,12,24,0.65)";
+  roundRect(ctx, middle - 100, 220, 200, 170, 24);
+  ctx.fill();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 3;
+  roundRect(ctx, middle - 100, 220, 200, 170, 24);
+  ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 76px system-ui, sans-serif";
+  ctx.fillText(label, middle, 293);
+  ctx.font = "600 17px system-ui, sans-serif";
+  ctx.fillText("TAP TO FLAP", middle, 352);
   ctx.restore();
 }
 
@@ -3682,6 +3824,10 @@ function pickOwlFrame(frames, owl, t, reducedMotion) {
   if (!Array.isArray(frames) || frames.length < 3) return null;
   if (reducedMotion) return frames[1] || frames[0] || null;
 
+  if (Number.isInteger(owl?.wingFrameIndex)) {
+    return frames[owl.wingFrameIndex] || frames[1];
+  }
+
   if (typeof owl?.wingAngle === "number") {
     if (owl.wingAngle < -0.25) return frames[0];
     if (owl.wingAngle > 0.25) return frames[2];
@@ -3825,17 +3971,6 @@ class MenuUI {
               <button id="musicBtn">Music: ${musicEnabled === false ? "Off" : "On"}</button>
             </div>
 
-            <div class="settings compact">
-              <div class="settingsTitle">Audio mix</div>
-              ${sliderRow("Master", "master", a.master)}
-              ${sliderRow("SFX", "sfx", a.sfx)}
-              ${sliderRow("Music", "music", a.music)}
-             
-
-              <div class="row compact wideRow">
-                <button id="resetAudioBtn">Reset audio</button>
-              </div>
-            </div>
           </div>
         </details>
 
@@ -4262,6 +4397,7 @@ class GameOverUI {
 
 
 
+
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
 }
@@ -4548,6 +4684,7 @@ function boot() {
   });
 
   const input = new Input(canvas);
+  const countdown = new RoundCountdown();
   const rng = new RNG();
   const difficulty = new Difficulty();
   const owl = new Owl();
@@ -4578,6 +4715,8 @@ hit: audioCandidates("hit.wav"),
 
   const state = {
     mode: "menu",
+    countdownLabel: "",
+    goTimer: 0,
     paused: false,
     playPhase: "normal",
     fractureTimer: 0,
@@ -4717,7 +4856,7 @@ hit: audioCandidates("hit.wav"),
   let startingGame = false;
 
   async function startGame() {
-    if (startingGame || state.mode === "playing") return;
+    if (startingGame || state.mode === "playing" || state.mode === "countdown") return;
 
     startingGame = true;
     try {
@@ -4730,7 +4869,11 @@ hit: audioCandidates("hit.wav"),
 
     hardResetRun();
     scoring.reset();
-    state.mode = "playing";
+    countdown.reset();
+    state.countdownLabel = countdown.label;
+    state.goTimer = 0;
+    state.mode = "countdown";
+    audio.playCountdownTone(3);
 
     runEarned = [];
     runUnlockedThemes = [];
@@ -4745,13 +4888,15 @@ hit: audioCandidates("hit.wav"),
       onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
-    uiHud.toast?.("🦉 Fly clean. Break through.", 1300);
+    uiHud.toast?.("Tap to flap · Hold to climb", 2400);
 
     applyMusicState();
   }
 
   function toMenu() {
     state.mode = "menu";
+    state.countdownLabel = "";
+    state.goTimer = 0;
     state.paused = false;
 
     uiHud.hide();
@@ -5003,6 +5148,8 @@ hit: audioCandidates("hit.wav"),
   }
 
   function crash() {
+    // One authoritative crash per run, including the game-over delay.
+    if (!owl.alive) return;
     owl.kill();
     scoring.onCrash();
     playSfx("hit", { gain: 1.0 });
@@ -5025,9 +5172,28 @@ hit: audioCandidates("hit.wav"),
   }
 
   function step(dt) {
-    if (input.consumePause() && state.mode === "playing") {
+    if (input.consumePause() && (state.mode === "playing" || state.mode === "countdown")) {
       state.paused = !state.paused;
       loop.setPaused(state.paused);
+    }
+
+    if (state.mode === "countdown") {
+      // Simulate safe stationary flight while the skyline keeps moving.
+      // Physics, obstacles, collisions and scoring do not run until GO.
+      input.consumeJump();
+      if (!state.paused && dt > 0) {
+        owl.animT += dt;
+        const cue = countdown.advance(dt);
+        state.countdownLabel = countdown.label;
+        if (cue !== null) audio.playCountdownTone(cue);
+        if (countdown.finished) {
+          input.requireFreshPress();
+          state.mode = "playing";
+          state.goTimer = 0.45;
+          state.invulnTimer = Math.max(state.invulnTimer, 0.35);
+        }
+      }
+      return;
     }
 
     if (state.mode !== "playing") {
@@ -5041,14 +5207,15 @@ hit: audioCandidates("hit.wav"),
       return;
     }
 
-    if (state.paused) return;
+    if (state.paused || !owl.alive) return;
 
-    if (input.consumeJump()) {
+    if (input.consumeFlap(dt)) {
       owl.flap();
       playSfx("jump", { gain: 1.0, jitterRate: true });
       handleProgress({ type: "flap" });
     }
 
+    state.goTimer = Math.max(0, state.goTimer - dt);
     difficulty.update(dt);
     owl.update(dt);
     updatePhase(dt);

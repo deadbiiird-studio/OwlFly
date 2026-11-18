@@ -47,7 +47,7 @@ export class Owl {
     if (!this.alive) return;
     this.vy = jumpImpulse(this.flightProfile.jumpScale);
     this._blink = 0.08;
-    this.flapT = this.isGliding ? 0.18 : 0.12;
+    this.flapT = 0.18;
   }
 
   kill() {
@@ -96,6 +96,13 @@ export class Owl {
 
   get isGliding() {
     return this.flightMode === "glide";
+  }
+
+  get wingFrameIndex() {
+    if (this.flapT <= 0) return null;
+    if (this.flapT > 0.12) return 0;
+    if (this.flapT > 0.06) return 1;
+    return 2;
   }
 
   get wingAngle() {
