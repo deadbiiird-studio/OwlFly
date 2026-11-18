@@ -138,7 +138,13 @@ export class Renderer {
       });
     }
 
-    if (paused && mode === "playing") {
+    if (mode === "countdown") {
+      drawCountdownOverlay(ctx, state.countdownLabel || "3", theme);
+    } else if (mode === "playing" && state.goTimer > 0) {
+      drawCountdownOverlay(ctx, "GO!", theme);
+    }
+
+    if (paused && (mode === "playing" || mode === "countdown")) {
       drawPauseOverlay(ctx);
     }
 
@@ -370,6 +376,27 @@ function drawFractureOverlay(ctx, { theme, reducedMotion, playPhase, fracturePro
     drawModeBanner(ctx, `REENTRY ${Math.max(0, reentryTimer).toFixed(1)}s`, accent, 78);
   }
 
+  ctx.restore();
+}
+
+function drawCountdownOverlay(ctx, label, theme) {
+  const middle = GAME.BASE_WIDTH / 2;
+  const accent = theme?.ui?.accent || "#7ef3d2";
+  ctx.save();
+  ctx.fillStyle = "rgba(7,12,24,0.65)";
+  roundRect(ctx, middle - 100, 220, 200, 170, 24);
+  ctx.fill();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 3;
+  roundRect(ctx, middle - 100, 220, 200, 170, 24);
+  ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 76px system-ui, sans-serif";
+  ctx.fillText(label, middle, 293);
+  ctx.font = "600 17px system-ui, sans-serif";
+  ctx.fillText("TAP TO FLAP", middle, 352);
   ctx.restore();
 }
 
@@ -847,6 +874,10 @@ function pickFrame(frames, t, fps, reducedMotion) {
 function pickOwlFrame(frames, owl, t, reducedMotion) {
   if (!Array.isArray(frames) || frames.length < 3) return null;
   if (reducedMotion) return frames[1] || frames[0] || null;
+
+  if (Number.isInteger(owl?.wingFrameIndex)) {
+    return frames[owl.wingFrameIndex] || frames[1];
+  }
 
   if (typeof owl?.wingAngle === "number") {
     if (owl.wingAngle < -0.25) return frames[0];
