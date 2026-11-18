@@ -179,6 +179,32 @@ export class AudioBank {
     }
   }
 
+  playCountdownTone(number) {
+    if (this._muted || !this._ctx || !this._gainSfx) return false;
+    if (this._ctx.state !== "running") {
+      this._ctx.resume?.().catch(() => {});
+      return false;
+    }
+    try {
+      const go = number === 0;
+      const freq = go ? 880 : ({ 3: 440, 2: 554, 1: 659 }[number] || 440);
+      const duration = go ? 0.28 : 0.14;
+      const at = this._ctx.currentTime;
+      const oscillator = this._ctx.createOscillator();
+      const gain = this._ctx.createGain();
+      oscillator.type = go ? "triangle" : "sine";
+      oscillator.frequency.setValueAtTime(freq, at);
+      if (go) oscillator.frequency.linearRampToValueAtTime(1175, at + duration);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.linearRampToValueAtTime(go ? 0.20 : 0.15, at + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+      oscillator.connect(gain).connect(this._gainSfx);
+      oscillator.start(at);
+      oscillator.stop(at + duration + 0.015);
+      return true;
+    } catch { return false; }
+  }
+
   _applyGains() {
     const master = this._muted ? 0 : clamp01(this._mix.master);
     if (this._gainMaster) this._gainMaster.gain.value = master;
