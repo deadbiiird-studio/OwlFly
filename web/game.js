@@ -1781,7 +1781,10 @@ class GameLoop {
     const dtSec = Math.min(0.25, (now - this._last) / 1000);
     this._last = now;
 
-    if (!this._paused) {
+    if (this._paused) {
+      // Keep polling pause input while physics is stopped, so Esc can resume.
+      this.stepFn(0);
+    } else {
       this._accum += dtSec;
       let steps = 0;
 
@@ -3968,17 +3971,6 @@ class MenuUI {
               <button id="musicBtn">Music: ${musicEnabled === false ? "Off" : "On"}</button>
             </div>
 
-            <div class="settings compact">
-              <div class="settingsTitle">Audio mix</div>
-              ${sliderRow("Master", "master", a.master)}
-              ${sliderRow("SFX", "sfx", a.sfx)}
-              ${sliderRow("Music", "music", a.music)}
-             
-
-              <div class="row compact wideRow">
-                <button id="resetAudioBtn">Reset audio</button>
-              </div>
-            </div>
           </div>
         </details>
 
