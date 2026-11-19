@@ -1,0 +1,86 @@
+name: OwlFly iOS preflight (unsigned simulator, no Apple credentials)
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ios-preflight.yml"
+      - "docs/IOS_RELEASE_CHECKLIST.md"
+      - "capacitor.config.json"
+      - "package.json"
+      - "package-lock.json"
+      - "src/**"
+      - "web/**"
+      - "tooling/**"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: owlfly-ios-preflight
+  cancel-in-progress: false
+
+jobs:
+  ios-preflight:
+    name: Generate iOS project and compile unsigned simulator app
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Record Xcode toolchain
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+
+      - name: Install locked project dependencies
+        run: npm ci
+
+      - name: Validate shared OwlFly build and gameplay tests
+        run: |
+          npm run build
+          npm test
+
+      - name: Provision matching iOS Capacitor tools for this preflight only
+        # Do not change package.json or package-lock.json in this preparation PR.
+        # Existing core/android are v8, while committed CLI is v7.
+        run: npm install --no-save --package-lock=false @capacitor/cli@8.2.0 @capacitor/ios@8.2.0
+
+      - name: Generate temporary native iOS project
+        run: |
+          npx cap add ios
+          npx cap sync ios
+          test -f ios/App/App.xcodeproj/project.pbxproj
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project ios/App/App.xcodeproj -scheme App
+
+      - name: Compile unsigned iOS simulator build
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/OwlFlyDerived" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Upload generated native project for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owlfly-ios-generated-unsigned-project
+          path: ios/
+          if-no-files-found: warn
+          retention-days: 7
