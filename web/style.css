@@ -393,6 +393,14 @@ input[type="range"] {
   color: var(--muted);
   margin-top: 16px;
 }
+.footer .privacyLink {
+  color: var(--gold);
+  text-underline-offset: 0.18em;
+}
+.footer .privacyLink:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
 
 .scoreStrip {
   display: grid;
