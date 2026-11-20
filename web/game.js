@@ -4101,6 +4101,7 @@ class MenuUI {
         </details>
 
         <p class="footer"><small>Enter / Space starts a run • Esc pauses during play</small></p>
+        <p class="footer"><a class="privacyLink" href="./privacy.html">Privacy Policy</a></p>
       </div>
     `;
 
@@ -4164,6 +4165,8 @@ class MenuUI {
 
     this._startHotkeys = (e) => {
       if (e.code !== "Enter" && e.code !== "Space") return;
+      // Let focused links and controls receive their native keyboard actions.
+      if (e.target?.closest?.("a, button, input, select, textarea, [contenteditable='true']")) return;
       e.preventDefault();
       e.stopImmediatePropagation();
       onStart?.();
