@@ -13,7 +13,7 @@ Status: PREPARATION ONLY. This checklist does **not** claim that a signed iOS ap
 
 ## A. Apple enrollment — account holder action (BLOCKED until owner completion)
 
-- [ ] Decide seller identity: individual (public legal personal name) vs. verified legal organization (public legal company name).
+- [x] Enrollment path decision (2026-11-19): **Individual / sole proprietor** because SkyGlass Partners is not yet registered as a legal entity. Apple's App Store seller name will be the account holder's legal personal name. May request conversion to organization later if legal entity is established, D-U-N-S obtained, and Apple approves.
 - [ ] Create or select a permanent Apple Account with two-factor authentication and accurate legal identity.
 - [ ] Enroll in the **Apple Developer Program**, not the Enterprise Program. US annual fee: $99 subject to current Apple terms.
 - [ ] If organization: verify that the legal entity, organization website, work-domain email, signatory authority, and D-U-N-S record meet Apple's requirements.
