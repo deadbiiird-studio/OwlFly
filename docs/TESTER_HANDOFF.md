@@ -1,66 +1,43 @@
-# OwlFly — Internal Test Handoff
+# OwlFly — Closed Testing Alpha v3 Tester Handoff
 
-## Build Under Test
-Commit: [INSERT SHORT HASH]
+This document describes **what to ask testers to check**, not a claim that version 3 is already in Play.
 
-## Purpose
-This internal test is for:
-- startup stability
-- fullscreen / viewport fit
-- menu → gameplay → game over flow
-- input, collision, and score behavior
-- fracture / glide / reentry behavior
-- audio trigger sanity
-- obvious missing asset/path issues
+## Release identity — fill from actual Play Console evidence
 
-This internal test is **not** for:
-- monetization
-- leaderboards
-- store polish
-- feature requests
+- Package: `com.owlfly.game`
+- Proposed next version: versionCode **3** / versionName **1.0.2**
+- Source baseline: `6da055c8b817c95dd0ed6a9e18b5560162eda423`
+- Signed-AAB GitHub Actions run: **UNVERIFIED**
+- Accepted closed-testing track/release ID: **UNVERIFIED**
+- Tester opt-in link: **ADD VERIFIED PLAY CONSOLE URL**
+- Installed version observed on a tester device: **UNVERIFIED**
+- Feedback destination: **ADD APPROVED PRIVATE CHANNEL**
 
-## Install
+Do not distribute an old debug APK as if it were the accepted Play release. The checked GitHub PR run `44413829396` produced a **debug** APK only. Signed bundle steps were skipped.
 
-### Web
-Link: [INSERT LINK]
+## What testers should notice
 
-### Android APK
-APK path or link: [INSERT APK PATH OR LINK]
+The new source contains a safe audible 3–2–1–GO countdown at **every** start/restart, one flap on tap, repeated flaps during a held press, normal gravity on release, and owl wing frames synchronized to flap events. The taller-rooftop prototype was merged to main, but its presence on a tester phone must be verified by installed build identity.
 
-## Test Time
-Expected duration: 15–20 minutes
+Ask testers to focus on clarity of first launch, controls, screen fit, obstacle anticipation and collision accuracy, audio cues, and restart stability. One failed flight is not automatically a defect; a failure before GO, unresponsive input, or collision mismatched to the visible obstacle may be.
 
-## Required Test Order
-Use:
-- `docs/DEVICE_SMOKE_CHECKLIST.md`
+## Exact test sequence
 
-Run the checklist in order. Do not skip startup, menu, or gameplay phases.
+1. Confirm that the tester has joined the Play closed test and installed the **current named release**, not just received an email.
+2. Note phone model, Android version and installed app versionCode.
+3. Test first-launch menu and settings, then play once using taps.
+4. Restart and verify the countdown again; hold to climb, release to descend.
+5. Repeat restarts and test collisions with standard obstacles and taller buildings.
+6. Test Motion: Full and Motion: Low before concluding owl-frame animation is broken.
+7. Visit the in-app privacy link if one is present; report its absence.
+8. Send a reproducible report to the **approved private channel**, with optional screenshot and no passwords or sensitive information.
 
-## What Counts As A Release-Blocking Failure
-- app does not launch
-- blank screen or missing core UI
-- input does not work
-- collision / game-over flow is broken
-- score does not update correctly
-- audio overlaps badly or triggers incorrectly
-- fullscreen / viewport fit is broken on device
-- obvious missing assets or broken paths
+Use `docs/DEVICE_SMOKE_CHECKLIST.md` for full test steps and issue fields. Keep the tester identity and any screenshot private. Database/screenshot automation is **not** active until independently deployed and disclosed.
 
-## What To Report
-Send:
-1. device model
-2. OS version
-3. exact steps
-4. what happened
-5. what you expected
-6. screenshot or short video if possible
+## Release-blocking findings
 
-## Bug Report Channel
-Email / form / contact: [INSERT CONTACT]
+App won't start; failure before GO; broken tap/hold/release; collision not matching visible geometry; repeated or missing run records; unusable phone UI; unsafe/inaccessible privacy disclosures; failure to install the intended Play version.
 
-## Known Issues
-See:
-- `docs/KNOWN_ISSUES.md`
+## Governance
 
-## Notes
-Only report issues you can actually reproduce.
+No automatic Play upload or tester-message sending is authorized by this document. The release owner verifies signed AAB manifest, registered upload certificate, Play acceptance, tester participation, and privacy policy before sending release notifications.
