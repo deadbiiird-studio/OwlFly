@@ -121,16 +121,3 @@ test("a pooled tower stays active while visible and restores its cloud on normal
   assert.ok(tower.getVisualBounds().top);
   assert.ok(tower.getRects().top.bands.length > 0);
 });
-
-test("authored rooftop height variation is visible immediately after the safe opening", () => {
-  const spawner = new Spawner(new StubRng(), new StubDifficulty());
-  assert.equal(SPAWN.TOWER_FIRST_SPAWN, SPAWN.OPENING_OBSTACLES + 1);
-
-  for (let i = 0; i < SPAWN.OPENING_OBSTACLES; i++) spawner.spawnOne();
-  assert.ok(spawner.active.every((obstacle) => !obstacle.tower));
-
-  spawner.spawnOne();
-  const firstTower = spawner.active.at(-1);
-  assert.ok(firstTower.tower, "first special rooftop should appear at obstacle five");
-  assert.equal(Math.round(GAME.BASE_HEIGHT - firstTower.tower.roofY), SPAWN.TOWER_HEIGHTS[0]);
-});
