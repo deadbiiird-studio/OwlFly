@@ -64,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
           grep -Eq 'applicationId[[:space:]]+"com.owlfly.game"' android/app/build.gradle
-          grep -Eq 'versionCode[[:space:]]+3([[:space:]]|$)' android/app/build.gradle
+          grep -Eq 'versionCode[[:space:]]+4([[:space:]]|$)' android/app/build.gradle
           grep -Eq 'targetSdkVersion[[:space:]]+36([[:space:]]|$)' android/app/build.gradle
           grep -Eq 'minSdkVersion[[:space:]]+24([[:space:]]|$)' android/app/build.gradle
           grep -Eq 'minSdkVersion[[:space:]]*=[[:space:]]*24([[:space:]]|$)' android/variables.gradle
@@ -80,7 +80,7 @@ jobs:
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
           "$ANDROID_HOME/build-tools/36.1.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/owlfly-apk-badging.txt"
-          grep -Eq "package: name='com.owlfly.game' versionCode='3' versionName='1.0.2'" "$RUNNER_TEMP/owlfly-apk-badging.txt"
+          grep -Eq "package: name='com.owlfly.game' versionCode='4' versionName='1.0.3'" "$RUNNER_TEMP/owlfly-apk-badging.txt"
           grep -Fxq "sdkVersion:'24'" "$RUNNER_TEMP/owlfly-apk-badging.txt"
           grep -Fxq "targetSdkVersion:'36'" "$RUNNER_TEMP/owlfly-apk-badging.txt"
 
