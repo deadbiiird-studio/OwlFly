@@ -2289,33 +2289,14 @@ class ObstaclePair {
       ? clampIndex(formation.buildingSizeIndex, BUILDING_SIZE_VARIANTS.length)
       : clampIndex(Math.floor(hash01(this.visualSeed, 31) * BUILDING_SIZE_VARIANTS.length), BUILDING_SIZE_VARIANTS.length);
 
-    const cloudGapBonusByBucket = [0, 12, 24];
-    const buildingGapBonusByBucket = [0, 8, 16, 24, 32];
-
-    const gapBonus =
-      (cloudGapBonusByBucket[this.cloudScaleBucket] || 0) +
-      (buildingGapBonusByBucket[this.buildingSizeBucket] || 0);
-
+    // SkyWeave size classes never secretly alter the navigable corridor.
+    // The existing Spawner/Difficulty systems own gap width and center.
     const minGap = Number.isFinite(OBSTACLE.MIN_GAP) ? OBSTACLE.MIN_GAP : gap;
-    const maxGap = Number.isFinite(OBSTACLE.MAX_GAP)
-      ? OBSTACLE.MAX_GAP
-      : gap + gapBonus;
-
-    const grownGap = clamp(gap + gapBonus, minGap, maxGap);
-
     const minTop = Number.isFinite(OBSTACLE.MIN_TOP) ? OBSTACLE.MIN_TOP : 0;
-    const minBottom = Number.isFinite(OBSTACLE.MIN_BOTTOM)
-      ? OBSTACLE.MIN_BOTTOM
-      : 0;
-
-    const gapCenterY = topH + gap * 0.5;
-    const maxTop = Math.max(
-      minTop,
-      GAME.BASE_HEIGHT - minBottom - grownGap
-    );
-
-    this.gap = grownGap;
-    this.topH = clamp(gapCenterY - grownGap * 0.5, minTop, maxTop);
+    const minBottom = Number.isFinite(OBSTACLE.MIN_BOTTOM) ? OBSTACLE.MIN_BOTTOM : 0;
+    this.gap = Math.max(minGap, gap);
+    const maxTop = Math.max(minTop, GAME.BASE_HEIGHT - minBottom - this.gap);
+    this.topH = clamp(topH, minTop, maxTop);
 
     // Seed the same visual cache that the renderer consumes so the collision
     // profile and the drawn PNG always refer to the same variant and scale.
