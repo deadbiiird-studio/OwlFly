@@ -168,3 +168,31 @@ test("seeded spawner uses SkyWeave without moving the legal gap corridor or towe
     );
   }
 });
+
+test("the first eight REAL obstacles expose visibly different rooftops and cloud spans", () => {
+  const spawner = new Spawner(new RNG(109), { ...noDifficultyChange });
+  const roofHeights = [];
+  const cloudHeights = [];
+  const cloudWidths = [];
+
+  for (let i = 0; i < AUTHORED_OPENING.length; i++) {
+    spawner.spawnOne();
+    const obstacle = spawner.active.at(-1);
+    const bands = obstacle.getRects();
+    const roofY = Math.min(...bands.bottom.bands.map((band) => band.y));
+    roofHeights.push(GAME.BASE_HEIGHT - roofY);
+
+    const visual = obstacle.getVisualBounds();
+    assert.ok(visual.top, "authored opening must pair visible cloud with building");
+    const layout = getCloudSpriteLayout(visual.top, obstacle._cloudVisualVariant, OBSTACLE_VISUAL_SCALE);
+    cloudHeights.push(layout.clusterH);
+    cloudWidths.push(layout.baseW);
+  }
+
+  assert.ok(Math.max(...roofHeights) - Math.min(...roofHeights) >= 75,
+    `first eight roof silhouettes should differ by at least 75px, got ${roofHeights}`);
+  assert.ok(Math.max(...cloudHeights) >= 2 * Math.min(...cloudHeights),
+    `first eight cloud heights should be dramatically different, got ${cloudHeights}`);
+  assert.ok(Math.max(...cloudWidths) >= 2.5 * Math.min(...cloudWidths),
+    `first eight cloud widths should be dramatically different, got ${cloudWidths}`);
+});
