@@ -79,7 +79,7 @@ const SPAWN = {
   MAX_CENTER_SHIFT_PX: 90,
   SPAWN_X: 520,
 
-  TOWER_FIRST_SPAWN: 16,
+  TOWER_FIRST_SPAWN: 5,
   TOWER_REPEAT_INTERVAL: 18,
   TOWER_HEIGHTS: [290, 360, 448, 532, 441, 352, 260],
 
@@ -311,6 +311,14 @@ class AudioBank {
   }
 
   async prime() {
+    // Revisit audio activation on each explicit Start/Restart gesture.
+    // Mobile browsers may suspend WebAudio after a background/tab interruption.
+    if (this._ctx) {
+      if (this._ctx.state === "suspended" || this._ctx.state === "interrupted") {
+        await this._ctx.resume().catch(() => {});
+      }
+      return;
+    }
     if (this._primed) return;
     this._primed = true;
 
@@ -321,7 +329,10 @@ class AudioBank {
 
     // 2) WebAudio unlock (better latency + reliable)
     const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
+    if (!Ctx) {
+      this._primed = false;
+      return;
+    }
 
     try {
       this._ctx = new Ctx();
@@ -354,6 +365,7 @@ class AudioBank {
       this._ctx = null;
       this._gainMaster = null;
       this._gainSfx = null;
+      this._primed = false;
     }
   }
 
@@ -4921,9 +4933,12 @@ hit: audioCandidates("hit.wav"),
   async function startGame() {
     if (startingGame || state.mode === "playing" || state.mode === "countdown") return;
 
+    // Make the Start/Restart tap a fresh opportunity to unlock or resume sound.
+    // Do this before awaiting sprites so the request still has user activation.
+    const soundReady = audio.prime();
     startingGame = true;
     try {
-      await spritesReady;
+      await Promise.all([spritesReady, soundReady]);
     } finally {
       startingGame = false;
     }
