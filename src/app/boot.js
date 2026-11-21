@@ -486,9 +486,12 @@ hit: audioCandidates("hit.wav"),
   async function startGame() {
     if (startingGame || state.mode === "playing" || state.mode === "countdown") return;
 
+    // Make the Start/Restart tap a fresh opportunity to unlock or resume sound.
+    // Do this before awaiting sprites so the request still has user activation.
+    const soundReady = audio.prime();
     startingGame = true;
     try {
-      await spritesReady;
+      await Promise.all([spritesReady, soundReady]);
     } finally {
       startingGame = false;
     }
