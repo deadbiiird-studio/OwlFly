@@ -1,0 +1,54 @@
+name: OwlFly public website parity audit
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/public-site-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Check real domain without modifying it
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect public DNS and HTTP responses
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Authoritative target: GitHub Pages; website: owlfly.app"
+          echo "Apex IPv4:"
+          getent ahostsv4 owlfly.app | awk '{print $1}' | sort -u || true
+          echo "www IPv4 (informational):"
+          getent ahostsv4 www.owlfly.app | awk '{print $1}' | sort -u || true
+          mkdir -p "$RUNNER_TEMP/owlfly-live"
+          curl -fsSL --retry 3 --retry-delay 2 --max-time 30 -D "$RUNNER_TEMP/owlfly-live/home.headers" -o "$RUNNER_TEMP/owlfly-live/home.html" -w 'HOME: HTTP %{http_code}, %{url_effective}, IP %{remote_ip}\n' https://owlfly.app/
+          curl -fsSL --retry 3 --retry-delay 2 --max-time 30 -D "$RUNNER_TEMP/owlfly-live/play.headers" -o "$RUNNER_TEMP/owlfly-live/play.html" -w 'PLAY: HTTP %{http_code}, %{url_effective}, IP %{remote_ip}\n' https://owlfly.app/play.html
+          curl -fsSL --retry 3 --retry-delay 2 --max-time 30 -D "$RUNNER_TEMP/owlfly-live/game.headers" -o "$RUNNER_TEMP/owlfly-live/game.js" -w 'GAME: HTTP %{http_code}, %{url_effective}, IP %{remote_ip}\n' https://owlfly.app/game.js
+          curl -fsSL --retry 3 --retry-delay 2 --max-time 30 -o "$RUNNER_TEMP/owlfly-live/privacy.html" -w 'PRIVACY: HTTP %{http_code}\n' https://owlfly.app/privacy.html
+          echo "--- Home response headers ---"
+          head -n 24 "$RUNNER_TEMP/owlfly-live/home.headers"
+          echo "--- Sizes and hashes ---"
+          wc -c "$RUNNER_TEMP/owlfly-live/"*.html "$RUNNER_TEMP/owlfly-live/game.js"
+          sha256sum "$RUNNER_TEMP/owlfly-live/home.html" "$RUNNER_TEMP/owlfly-live/play.html" "$RUNNER_TEMP/owlfly-live/game.js"
+          echo "--- www host (informational; does not fail apex audit) ---"
+          curl -sSL --max-time 15 -o /dev/null -w 'WWW: HTTP %{http_code}, %{url_effective}\n' https://www.owlfly.app/ || true
+
+      - name: Verify delivered homepage and corrected gameplay
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/owlfly-live"
+          grep -Fq 'A little owl.' "$dir/home.html" || { echo "::error::Live homepage is not the illustrated OwlFly landing page"; exit 1; }
+          grep -Fq 'href="./play.html"' "$dir/home.html" || { echo "::error::Homepage does not link to web player"; exit 1; }
+          grep -Fq 'id="game"' "$dir/play.html" || { echo "::error::Live web player HTML is missing"; exit 1; }
+          grep -Fq 'ROUND_COUNTDOWN_SECONDS = 3' "$dir/game.js" || { echo "::error::Live game is missing 3-second countdown"; exit 1; }
+          grep -Fq 'playCountdownTone(3)' "$dir/game.js" || { echo "::error::Live game is missing countdown audio cue"; exit 1; }
+          grep -Fq 'AUTO_FLAP_INTERVAL = 0.20' "$dir/game.js" || { echo "::error::Live game is missing hold-to-flap cadence"; exit 1; }
+          grep -Fq 'TOWER_HEIGHTS: [290, 360, 448, 532, 441, 352, 260]' "$dir/game.js" || { echo "::error::Live game is missing tall rooftop sequence"; exit 1; }
+          grep -Fq 'Privacy Policy' "$dir/privacy.html" || { echo "::error::Live privacy policy is missing"; exit 1; }
+          echo "### OwlFly live site checks: PASS" >> "$GITHUB_STEP_SUMMARY"
+          echo "Homepage, player, countdown, hold-to-flap, rooftop heights, and privacy policy were delivered by https://owlfly.app/" >> "$GITHUB_STEP_SUMMARY"
