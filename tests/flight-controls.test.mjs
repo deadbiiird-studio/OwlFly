@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { Input, AUTO_FLAP_INTERVAL } from "../src/engine/input.js";
 import { Owl } from "../src/engine/entities/owl.js";
 import { RoundCountdown } from "../src/engine/countdown.js";
+import { AudioBank } from "../src/core/audio.js";
 
 function setup() {
   const listeners = new Map();
@@ -93,4 +94,27 @@ test("single flap immediately lifts and cycles all three owl frames", () => {
     if (owl.wingFrameIndex !== null) frames.add(owl.wingFrameIndex);
   }
   assert.deepEqual([...frames].sort(), [0, 1, 2]);
+});
+
+test("audio retries a suspended or interrupted context on later start gestures", async () => {
+  const audio = Object.create(AudioBank.prototype);
+  let resumeCalls = 0;
+  const ctx = {
+    state: "suspended",
+    async resume() {
+      resumeCalls++;
+      this.state = "running";
+    },
+  };
+  audio._ctx = ctx;
+  audio._primed = true;
+
+  await audio.prime();
+  assert.equal(resumeCalls, 1);
+  assert.equal(ctx.state, "running");
+
+  ctx.state = "interrupted";
+  await audio.prime();
+  assert.equal(resumeCalls, 2);
+  assert.equal(ctx.state, "running");
 });
