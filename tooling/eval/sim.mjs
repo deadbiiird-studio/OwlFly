@@ -1,4 +1,4 @@
-import { WORLD, OWL, GAME } from "../../src/core/constants.js";
+import { WORLD, OWL, GAME, OBSTACLE } from "../../src/core/constants.js";
 import { RNG } from "../../src/core/rng.js";
 import { Difficulty } from "../../src/engine/difficulty.js";
 import { circleAabbIntersect } from "../../src/engine/collision.js";
