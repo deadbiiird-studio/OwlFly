@@ -2486,7 +2486,14 @@ class ObstaclePair {
 
   getGapCenterY() {
     const center = this.topH + this.gap / 2;
-    return this.tower ? Math.min(center, this.tower.roofY - this.gap / 2) : center;
+    if (!this.tower) return center;
+    // SkyWeave's tallest rooftops must not pull the next flight decision so
+    // close to the world ceiling that one normal flap causes a bound death.
+    // This changes the anticipated lane only, never the roof collision.
+    const preferred = Math.min(center, this.tower.roofY - this.gap / 2);
+    const ceilingSafe = GAME.BASE_HEIGHT * 0.25;
+    const roofSafe = this.tower.roofY - 32;
+    return Math.min(Math.max(preferred, ceilingSafe), roofSafe);
   }
 }
 
