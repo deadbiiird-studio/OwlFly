@@ -1,4 +1,4 @@
-import { WORLD, OWL, GAME } from "../../src/core/constants.js";
+import { WORLD, OWL, GAME, OBSTACLE } from "../../src/core/constants.js";
 import { RNG } from "../../src/core/rng.js";
 import { Difficulty } from "../../src/engine/difficulty.js";
 import { circleAabbIntersect } from "../../src/engine/collision.js";
@@ -156,6 +156,7 @@ function runOne(seed, options) {
   let score = 0;
   let elapsed = 0;
   let death = "timeout";
+  let boundaryContext = null;
 
   while (elapsed < maxTime) {
     if (typeof difficulty.update === "function") difficulty.update(dt);
@@ -180,13 +181,20 @@ function runOne(seed, options) {
 
     const c = circleFor(owl);
 
-    if (c.cy - c.r < 0) {
-      death = "top_bound";
-      break;
-    }
-
-    if (c.cy + c.r > GAME.BASE_HEIGHT) {
-      death = "bottom_bound";
+    if (c.cy - c.r < 0 || c.cy + c.r > GAME.BASE_HEIGHT) {
+      death = c.cy - c.r < 0 ? "top_bound" : "bottom_bound";
+      const candidates = spawner.active
+        .filter((o) => o.active && o.x + OBSTACLE.WIDTH > owl.x - 30)
+        .sort((a, b) => a.x - b.x);
+      const next = candidates[0] || null;
+      boundaryContext = {
+        kind: "world_edge",
+        owlY: round(owl.y), owlVy: round(owl.vy),
+        nextId: next?.formation?.id ?? null,
+        nextX: next ? round(next.x) : null,
+        nextCenter: next ? round(next.getGapCenterY()) : null,
+        nextRoofY: next?.tower?.roofY ?? null,
+      };
       break;
     }
 
@@ -234,6 +242,7 @@ function runOne(seed, options) {
     score,
     elapsed,
     death,
+    deathContext: boundaryContext,
     gapCenters,
     gapSizes,
   });

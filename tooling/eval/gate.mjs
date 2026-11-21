@@ -142,7 +142,12 @@ function main() {
   fs.writeFileSync(outputPath, `${JSON.stringify(gate, null, 2)}\n`);
 
   printGate(report, checks, path.relative(process.cwd(), outputPath));
-  if (!ok) process.exit(1);
+  if (!ok) {
+    console.log("Failing boundary seeds:", JSON.stringify(
+      (report.failingSeeds || []).filter(({ death }) => death === "top_bound" || death === "bottom_bound")
+    ));
+    process.exit(1);
+  }
 }
 
 main();

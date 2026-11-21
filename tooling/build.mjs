@@ -31,6 +31,7 @@ const FILES = [
   "engine/obstacleVisualFit.js",
   "engine/entities/obstaclePair.js",
   "systems/scoring.js",
+  "systems/formationComposer.js",
   "systems/spawner.js",
   "render/environmentGeometry.js",
   "render/renderer.js",

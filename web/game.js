@@ -1950,6 +1950,61 @@ const CLOUD_COLLISION_PROFILES = [{"width":140,"height":210,"bands":[[0.0429,0.0
 // ===== FILE: src/engine/obstacleVisualFit.js =====
 
 
+// Shared geometry: renderer and collision must use identical resolved boxes.
+// The five size classes are substantially different, not 5% cosmetic nudges.
+const OBSTACLE_VISUAL_SCALE = Object.freeze({
+  cloudMinHeight: 55,
+  cloudMaxHeight: 360,
+  cloudHeightFactor: 1,
+  cloudWidthFactor: 2.9,
+  buildingGroundInset: 8,
+  buildingMinBoxWidth: 145,
+  buildingMaxBoxWidth: 560,
+  buildingWidthFactor: 3.3,
+  buildingMinBoxHeight: 180,
+  buildingMaxBoxHeight: 760,
+  buildingHeightFactor: 2.25,
+  buildingHeightOffset: 150,
+});
+const CLOUD_SIZE_VARIANTS = Object.freeze([
+  { name: "tiny", widthScale: 0.37, scale: 0.38, count: 1 },
+  { name: "small", widthScale: 0.59, scale: 0.56, count: 1 },
+  { name: "medium", widthScale: 0.84, scale: 0.77, count: 2 },
+  { name: "large", widthScale: 1.08, scale: 0.92, count: 3 },
+  { name: "massive", widthScale: 1.40, scale: 1.0, count: 3 },
+]);
+const BUILDING_SIZE_VARIANTS = Object.freeze([
+  { name: "tiny", widthScale: 0.58, heightScale: 0.50 },
+  { name: "small", widthScale: 0.78, heightScale: 0.70 },
+  { name: "medium", widthScale: 0.95, heightScale: 0.90 },
+  { name: "large", widthScale: 1.15, heightScale: 1.13 },
+  { name: "massive", widthScale: 1.32, heightScale: 1.32 },
+]);
+
+// Draw boxes are defined once. Each box is rendered with the source PNG's
+// contain transform and gets collision bands from that same transformed image.
+// Small clouds are isolated objects, not three large overlapping copies.
+function getCloudSpriteLayout(bounds, variant = {}, scale = OBSTACLE_VISUAL_SCALE) {
+  const size = Number.isFinite(variant.scale) ? variant.scale : 1;
+  const widthScale = Number.isFinite(variant.widthScale) ? variant.widthScale : 1;
+  const cloudCount = Math.max(1, Math.min(3, Math.floor(variant.count ?? 3)));
+  const clusterH = Math.max(
+    scale.cloudMinHeight,
+    Math.min(scale.cloudMaxHeight, bounds.h, bounds.h * scale.cloudHeightFactor * size)
+  );
+  const y = bounds.y + bounds.h - clusterH;
+  const baseW = bounds.w * scale.cloudWidthFactor * widthScale;
+  const center = bounds.x + bounds.w * 0.5;
+  const offsets = cloudCount === 1 ? [0] : cloudCount === 2 ? [-0.27, 0.27] : [-0.4, 0, 0.4];
+  const boxes = offsets.map((offset) => ({
+    x: center - baseW * 0.5 + offset * baseW,
+    y,
+    w: baseW,
+    h: clusterH,
+  }));
+  return { boxes, y, clusterH, baseW };
+}
+
 // Keep the rendered rooftop and the lethal rooftop contour in the same visual
 // neighborhood. This is a presentation constraint, not a new gameplay rule.
 const BUILDING_GAP_VISUAL_REACH = 80;
@@ -2033,20 +2088,7 @@ function clamp(value, min, max) {
 let nextVisualSpawnId = 1;
 const BUILDING_GAP_COLLISION_REACH = BUILDING_GAP_VISUAL_REACH;
 
-const COLLISION_RENDER_SCALE = {
-  cloudMinHeight: 230,
-  cloudMaxHeight: 360,
-  cloudHeightFactor: 1.22,
-  cloudWidthFactor: 2.9,
-  buildingGroundInset: 8,
-  buildingMinBoxWidth: 300,
-  buildingMaxBoxWidth: 560,
-  buildingWidthFactor: 3.3,
-  buildingMinBoxHeight: 500,
-  buildingMaxBoxHeight: 760,
-  buildingHeightFactor: 2.25,
-  buildingHeightOffset: 150,
-};
+const COLLISION_RENDER_SCALE = OBSTACLE_VISUAL_SCALE;
 
 function clampToAvailable(target, available) {
   return Math.max(0, Math.min(target, available));
@@ -2072,18 +2114,8 @@ function ensureCollisionVisualVariant(obstacle, kind) {
   const current = obstacle[storeKey];
   if (current && current.key === key) return current;
 
-  const buildingSizeBuckets = [
-    { widthScale: 0.9, heightScale: 0.86 },
-    { widthScale: 0.96, heightScale: 0.94 },
-    { widthScale: 1.0, heightScale: 1.0 },
-    { widthScale: 1.06, heightScale: 1.08 },
-    { widthScale: 1.12, heightScale: 1.16 },
-  ];
-  const cloudSizeBuckets = [
-    { widthScale: 0.94, scale: 0.94 },
-    { widthScale: 1.0, scale: 1.0 },
-    { widthScale: 1.06, scale: 1.05 },
-  ];
+  const buildingSizeBuckets = BUILDING_SIZE_VARIANTS;
+  const cloudSizeBuckets = CLOUD_SIZE_VARIANTS;
 
   const variant = kind === "building"
     ? {
@@ -2180,48 +2212,27 @@ function makeBuildingBands(obstacle, bounds) {
 
 function makeCloudBands(obstacle, bounds) {
   const variant = ensureCollisionVisualVariant(obstacle, "cloud");
-  const profile =
-    CLOUD_COLLISION_PROFILES[variant.frameIndex] || CLOUD_COLLISION_PROFILES[0];
-  const clusterScale = variant.scale ?? 1;
-  const clusterH = Math.max(
-    COLLISION_RENDER_SCALE.cloudMinHeight,
-    Math.min(
-      COLLISION_RENDER_SCALE.cloudMaxHeight,
-      bounds.h * COLLISION_RENDER_SCALE.cloudHeightFactor * clusterScale
-    )
-  );
-  const y = Math.max(0, bounds.y + bounds.h - clusterH);
-  const baseW =
-    bounds.w * COLLISION_RENDER_SCALE.cloudWidthFactor * (variant.widthScale ?? 1);
-  const boxes = [
-    { x: bounds.x - bounds.w * 0.28, y: y + 10, w: baseW, h: clusterH },
-    {
-      x: bounds.x - bounds.w * 0.04,
-      y,
-      w: baseW * 0.95,
-      h: clusterH * 1.02,
-    },
-    {
-      x: bounds.x + bounds.w * 0.22,
-      y: y + 12,
-      w: baseW * 0.9,
-      h: clusterH * 0.96,
-    },
-  ];
-
+  const profile = CLOUD_COLLISION_PROFILES[variant.frameIndex] ||
+    CLOUD_COLLISION_PROFILES[0];
+  const layout = getCloudSpriteLayout(bounds, variant, COLLISION_RENDER_SCALE);
   const bands = [];
-  for (const box of boxes) {
+
+  for (const box of layout.boxes) {
     const image = containedImageRect(box, profile, false);
     for (const [x0, x1, edgeY] of profile.bands) {
+      // No invisible ceiling extending upward from a tiny isolated cloud.
+      // Conservative inset avoids punishing near-transparent sprite edges.
+      const topY = image.y + image.h * 0.1;
       const bottomY = image.y + edgeY * image.h;
       bands.push({
         x: image.x + x0 * image.w,
-        y: 0,
+        y: topY,
         w: Math.max(1, (x1 - x0) * image.w),
-        h: Math.max(1, bottomY),
+        h: Math.max(1, bottomY - topY),
       });
     }
   }
+
   return { bands, spriteIndex: variant.frameIndex };
 }
 class ObstaclePair {
@@ -2244,8 +2255,12 @@ class ObstaclePair {
     this.tower = null;
   }
 
-  spawn({ x, topH, gap, speed, towerHeight = null }) {
+  spawn({ x, topH, gap, speed, towerHeight = null, formation = null }) {
     this.active = true;
+    this.formation = formation;
+    // Pooled obstacles must not reuse a prior formation's visual cache.
+    this._cloudVisualVariant = null;
+    this._buildingVisualVariant = null;
     this.passed = false;
     this.x = x;
     this.speed = speed;
@@ -2260,48 +2275,28 @@ class ObstaclePair {
     const cloudHash = hash01(this.visualSeed, 13);
     const buildingHash = hash01(this.visualSeed, 29);
 
-    this.cloudVariantIndex = clampIndex(Math.floor(cloudHash * 6), 6);
-    this.cloudScaleBucket = clampIndex(
-      Math.floor(hash01(this.visualSeed, 17) * 3),
-      3
-    );
+    this.cloudVariantIndex = Number.isInteger(formation?.cloudSpriteIndex)
+      ? clampIndex(formation.cloudSpriteIndex, CLOUD_COLLISION_PROFILES.length)
+      : clampIndex(Math.floor(cloudHash * 6), 6);
+    this.cloudScaleBucket = Number.isInteger(formation?.cloudSizeIndex)
+      ? clampIndex(formation.cloudSizeIndex, CLOUD_SIZE_VARIANTS.length)
+      : clampIndex(Math.floor(hash01(this.visualSeed, 17) * CLOUD_SIZE_VARIANTS.length), CLOUD_SIZE_VARIANTS.length);
 
-    this.buildingVariantIndex = clampIndex(
-      Math.floor(buildingHash * 13),
-      13
-    );
-    this.buildingSizeBucket = clampIndex(
-      Math.floor(hash01(this.visualSeed, 31) * 5),
-      5
-    );
+    this.buildingVariantIndex = Number.isInteger(formation?.buildingSpriteIndex)
+      ? clampIndex(formation.buildingSpriteIndex, BUILDING_COLLISION_PROFILES.length)
+      : clampIndex(Math.floor(buildingHash * 13), 13);
+    this.buildingSizeBucket = Number.isInteger(formation?.buildingSizeIndex)
+      ? clampIndex(formation.buildingSizeIndex, BUILDING_SIZE_VARIANTS.length)
+      : clampIndex(Math.floor(hash01(this.visualSeed, 31) * BUILDING_SIZE_VARIANTS.length), BUILDING_SIZE_VARIANTS.length);
 
-    const cloudGapBonusByBucket = [0, 12, 24];
-    const buildingGapBonusByBucket = [0, 8, 16, 24, 32];
-
-    const gapBonus =
-      (cloudGapBonusByBucket[this.cloudScaleBucket] || 0) +
-      (buildingGapBonusByBucket[this.buildingSizeBucket] || 0);
-
+    // SkyWeave size classes never secretly alter the navigable corridor.
+    // The existing Spawner/Difficulty systems own gap width and center.
     const minGap = Number.isFinite(OBSTACLE.MIN_GAP) ? OBSTACLE.MIN_GAP : gap;
-    const maxGap = Number.isFinite(OBSTACLE.MAX_GAP)
-      ? OBSTACLE.MAX_GAP
-      : gap + gapBonus;
-
-    const grownGap = clamp(gap + gapBonus, minGap, maxGap);
-
     const minTop = Number.isFinite(OBSTACLE.MIN_TOP) ? OBSTACLE.MIN_TOP : 0;
-    const minBottom = Number.isFinite(OBSTACLE.MIN_BOTTOM)
-      ? OBSTACLE.MIN_BOTTOM
-      : 0;
-
-    const gapCenterY = topH + gap * 0.5;
-    const maxTop = Math.max(
-      minTop,
-      GAME.BASE_HEIGHT - minBottom - grownGap
-    );
-
-    this.gap = grownGap;
-    this.topH = clamp(gapCenterY - grownGap * 0.5, minTop, maxTop);
+    const minBottom = Number.isFinite(OBSTACLE.MIN_BOTTOM) ? OBSTACLE.MIN_BOTTOM : 0;
+    this.gap = Math.max(minGap, gap);
+    const maxTop = Math.max(minTop, GAME.BASE_HEIGHT - minBottom - this.gap);
+    this.topH = clamp(topH, minTop, maxTop);
 
     // Seed the same visual cache that the renderer consumes so the collision
     // profile and the drawn PNG always refer to the same variant and scale.
@@ -2441,14 +2436,8 @@ class ObstaclePair {
       GAME.BASE_HEIGHT - gapBottomY
     );
 
-    const cloudScalePresets = [0.94, 1.0, 1.06];
-    const buildingScalePresets = [
-      { widthScale: 0.9, heightScale: 0.86 },
-      { widthScale: 0.96, heightScale: 0.94 },
-      { widthScale: 1.0, heightScale: 1.0 },
-      { widthScale: 1.06, heightScale: 1.08 },
-      { widthScale: 1.12, heightScale: 1.16 },
-    ];
+    const cloudScalePresets = CLOUD_SIZE_VARIANTS.map((size) => size.scale);
+    const buildingScalePresets = BUILDING_SIZE_VARIANTS;
 
     const buildingScale =
       buildingScalePresets[this.buildingSizeBucket] ||
@@ -2465,6 +2454,7 @@ class ObstaclePair {
       cloudVariantIndex: this.cloudVariantIndex,
       cloudScaleBucket: this.cloudScaleBucket,
       cloudScale: cloudScalePresets[this.cloudScaleBucket] || 1,
+      cloudCount: CLOUD_SIZE_VARIANTS[this.cloudScaleBucket]?.count ?? 3,
 
       buildingVariantIndex: this.buildingVariantIndex,
       buildingSizeBucket: this.buildingSizeBucket,
@@ -2477,7 +2467,13 @@ class ObstaclePair {
 
   getGapCenterY() {
     const center = this.topH + this.gap / 2;
-    return this.tower ? Math.min(center, this.tower.roofY - this.gap / 2) : center;
+    if (!this.tower) return center;
+    // A high roof still requires rising, but the target must stay below the
+    // screen ceiling by more than one flap's typical upward displacement.
+    // This changes only corridor anticipation, not the actual roof hitbox.
+    const preferred = Math.min(center, this.tower.roofY - this.gap / 2);
+    const safeFloor = Math.min(this.tower.roofY - 36, GAME.BASE_HEIGHT * 0.28);
+    return Math.max(preferred, safeFloor);
   }
 }
 
@@ -2564,12 +2560,129 @@ class Scoring {
 }
 
 
+// ===== FILE: src/systems/formationComposer.js =====
+
+// SkyWeave: one deterministic sprite/size selection per obstacle.
+// Designers can author each encounter independently; no new artwork or physics.
+//
+// "sprite" is 1-based to match filenames; "size" selects a common size preset.
+// Adding entries below extends the deliberately taught opening sequence.
+const SKYWEAVE_SIZES = Object.freeze(["tiny", "small", "medium", "large", "massive"]);
+const AUTHORED_OPENING = Object.freeze([
+  { intent: "read",     building: { sprite: 1,  size: "small" },   cloud: { sprite: 2, size: "medium" } },
+  { intent: "climb",    building: { sprite: 3,  size: "large" },   cloud: { sprite: 5, size: "tiny" } },
+  { intent: "descend",  building: { sprite: 5,  size: "tiny" },    cloud: { sprite: 1, size: "large" } },
+  { intent: "recover",  building: { sprite: 7,  size: "medium" },  cloud: { sprite: 3, size: "small" } },
+  { intent: "commit",   building: { sprite: 9,  size: "massive" }, cloud: { sprite: 4, size: "tiny" } },
+  { intent: "duck",     building: { sprite: 11, size: "small" },   cloud: { sprite: 6, size: "massive" } },
+  { intent: "thread",   building: { sprite: 12, size: "medium" },  cloud: { sprite: 2, size: "large" } },
+  { intent: "recover",  building: { sprite: 13, size: "tiny" },    cloud: { sprite: 5, size: "small" } },
+]);
+
+// A bounded language of flight decisions, not arbitrary difficulty spikes.
+// Size pairings intentionally trade height for cloud pressure; a recovery
+// phrase regularly interrupts dense formations.
+const CHALLENGE_PATTERNS = Object.freeze([
+  { intent: "climb", buildingSize: "massive", cloudSize: "small" },
+  { intent: "duck", buildingSize: "small", cloudSize: "massive" },
+  { intent: "thread", buildingSize: "large", cloudSize: "large" },
+  { intent: "read", buildingSize: "medium", cloudSize: "medium" },
+  { intent: "recover", buildingSize: "tiny", cloudSize: "small" },
+  { intent: "crest", buildingSize: "large", cloudSize: "tiny" },
+  { intent: "downshift", buildingSize: "tiny", cloudSize: "large" },
+]);
+
+const BUILDING_SPRITES = 13;
+const CLOUD_SPRITES = 6;
+
+function mix32(value) {
+  let x = value >>> 0;
+  x ^= x >>> 16;
+  x = Math.imul(x, 0x7feb352d);
+  x ^= x >>> 15;
+  x = Math.imul(x, 0x846ca68b);
+  x ^= x >>> 16;
+  return x >>> 0;
+}
+
+function select(seed, ordinal, salt, count) {
+  return mix32((seed >>> 0) ^ Math.imul(ordinal >>> 0, 0x9e3779b1) ^ salt) % count;
+}
+
+function sizeIndex(name) {
+  const index = SKYWEAVE_SIZES.indexOf(name);
+  if (index < 0) throw new Error(`Unknown SkyWeave size: ${name}`);
+  return index;
+}
+
+function spriteIndex(sprite, count) {
+  if (!Number.isInteger(sprite) || sprite < 1 || sprite > count) {
+    throw new Error(`SkyWeave sprite index must be between 1 and ${count}`);
+  }
+  return sprite - 1;
+}
+
+// Selection depends only on the run seed, obstacle number and optional previous
+// descriptor. Never depends on a pooled object's identity or global randomness.
+function composeFormation({ seed = 0, ordinal, previous = null, towerHeight = null } = {}) {
+  if (!Number.isInteger(ordinal) || ordinal < 1) {
+    throw new Error("SkyWeave requires a positive integer obstacle number");
+  }
+
+  const authored = AUTHORED_OPENING[ordinal - 1] || null;
+  const openSky = towerHeight !== null && towerHeight !== undefined;
+  const tier = Math.min(2, Math.floor((ordinal - 1) / 16));
+  const patternPool = tier === 0
+    ? [0, 1, 2, 3, 5, 6]
+    : tier === 1
+      ? [0, 1, 2, 2, 3, 5, 6]
+      : [0, 1, 2, 2, 5, 6];
+  const pattern = ordinal % 12 === 0
+    ? CHALLENGE_PATTERNS[4]
+    : CHALLENGE_PATTERNS[patternPool[select(seed, ordinal, 0x49abc3f1, patternPool.length)]];
+
+  let buildingSpriteIndex = authored
+    ? spriteIndex(authored.building.sprite, BUILDING_SPRITES)
+    : select(seed, ordinal, 0x7c159e37, BUILDING_SPRITES);
+  const buildingSizeIndex = sizeIndex(authored?.building.size || pattern.buildingSize);
+  const cloudSpriteIndex = openSky
+    ? null
+    : authored
+      ? spriteIndex(authored.cloud.sprite, CLOUD_SPRITES)
+      : select(seed, ordinal, 0x9b5d7603, CLOUD_SPRITES);
+  const cloudSizeIndex = openSky
+    ? null
+    : sizeIndex(authored?.cloud.size || pattern.cloudSize);
+
+  // Variety is authored, not a source of unfair last-second trajectory changes.
+  if (!authored && previous &&
+      previous.buildingSpriteIndex === buildingSpriteIndex &&
+      previous.buildingSizeIndex === buildingSizeIndex) {
+    buildingSpriteIndex = (buildingSpriteIndex + 1) % BUILDING_SPRITES;
+  }
+
+  return {
+    id: `skyweave-${String(ordinal).padStart(3, "0")}`,
+    ordinal,
+    intent: openSky ? "open-sky-rooftop" : (authored?.intent || pattern.intent),
+    kind: openSky ? "open-sky" : "cloud-building",
+    buildingSpriteIndex,
+    buildingSizeIndex,
+    cloudSpriteIndex,
+    cloudSizeIndex,
+  };
+}
+
+
 // ===== FILE: src/systems/spawner.js =====
 
 class Spawner {
   constructor(rng, difficulty) {
     this.rng = rng;
     this.difficulty = difficulty;
+    // Read the seed without consuming RNG draws, keeping baseline flight timing.
+    this._formationSeed = Number.isInteger(rng?._state) ? (rng._state >>> 0) : 0x5b17c0de;
+    this._lastFormation = null;
 
     this.pool = [];
     this.active = [];
@@ -2592,6 +2705,7 @@ class Spawner {
     this._spawnCount = 0;
     this._easyRemaining = 0;
     this._lastGapCenter = null;
+    this._lastFormation = null;
   }
 
   update(dt) {
@@ -2644,6 +2758,12 @@ class Spawner {
 
     const topH = Math.floor(clamp(center - halfGap, minTop, maxTop));
     const variants = this._buildVariants({ inOpening, isEasy });
+    const formation = composeFormation({
+      seed: this._formationSeed,
+      ordinal: this._spawnCount,
+      previous: this._lastFormation,
+      towerHeight,
+    });
     const o = this.pool.length ? this.pool.pop() : new ObstaclePair();
 
     o.spawn({
@@ -2652,9 +2772,11 @@ class Spawner {
       gap,
       speed,
       towerHeight,
+      formation,
       ...variants,
     });
 
+    this._lastFormation = formation;
     this._lastGapCenter = o.tower ? o.getGapCenterY() : center;
     this.active.push(o);
   }
@@ -3011,21 +3133,7 @@ function lerp(a, b, t) {
 
 // ===== FILE: src/render/renderer.js =====
 
-const VISION_OBSTACLE_SCALE = {
-  cloudMinHeight: 230,
-  cloudMaxHeight: 360,
-  cloudHeightFactor: 1.22,
-  cloudWidthFactor: 2.9,
-
-  buildingGroundInset: 8,
-  buildingMinBoxWidth: 300,
-  buildingMaxBoxWidth: 560,
-  buildingWidthFactor: 3.3,
-  buildingMinBoxHeight: 500,
-  buildingMaxBoxHeight: 760,
-  buildingHeightFactor: 2.25,
-  buildingHeightOffset: 150,
-};
+const VISION_OBSTACLE_SCALE = OBSTACLE_VISUAL_SCALE;
 class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -3221,55 +3329,34 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
   if (!bounds) return;
 
   const variant = ensureVisualVariant(obstacle, frames, "cloud", 6);
-  const clusterScale = variant.scale ?? 1;
-  const clusterH = Math.max(
-    VISION_OBSTACLE_SCALE.cloudMinHeight,
-    Math.min(
-      VISION_OBSTACLE_SCALE.cloudMaxHeight,
-      bounds.h * VISION_OBSTACLE_SCALE.cloudHeightFactor * clusterScale
-    )
-  );
-  const y = Math.max(0, bounds.y + bounds.h - clusterH);
-  const baseW =
-    bounds.w * VISION_OBSTACLE_SCALE.cloudWidthFactor * (variant.widthScale ?? 1);
+  // Same boxes as ObstaclePair collision: the visual shape is authoritative.
+  const layout = getCloudSpriteLayout(bounds, variant, {
+    cloudMinHeight: VISION_OBSTACLE_SCALE.cloudMinHeight,
+    cloudMaxHeight: VISION_OBSTACLE_SCALE.cloudMaxHeight,
+    cloudHeightFactor: VISION_OBSTACLE_SCALE.cloudHeightFactor,
+    cloudWidthFactor: VISION_OBSTACLE_SCALE.cloudWidthFactor,
+  });
   const frame = pickIndexedFrame(frames, variant.frameIndex);
 
-  if (isImgReady(frame)) {
-    drawContainImage(ctx, frame, {
-      x: bounds.x - bounds.w * 0.28,
-      y: y + 10,
-      w: baseW,
-      h: clusterH,
-    });
-
-    drawContainImage(ctx, frame, {
-      x: bounds.x - bounds.w * 0.04,
-      y,
-      w: baseW * 0.95,
-      h: clusterH * 1.02,
-    });
-
-    drawContainImage(ctx, frame, {
-      x: bounds.x + bounds.w * 0.22,
-      y: y + 12,
-      w: baseW * 0.9,
-      h: clusterH * 0.96,
-    });
-  } else {
-    drawFallbackCloudCluster(
-      ctx,
-      bounds.x + bounds.w * 0.5,
-      y + clusterH * 0.56,
-      baseW,
-      clusterH,
-      theme
-    );
+  for (const box of layout.boxes) {
+    if (isImgReady(frame)) {
+      drawContainImage(ctx, frame, box);
+    } else {
+      drawFallbackCloudCluster(
+        ctx,
+        box.x + box.w * 0.5,
+        box.y + box.h * 0.56,
+        box.w,
+        box.h,
+        theme
+      );
+    }
   }
 
   ctx.save();
   ctx.globalAlpha = 0.1;
   ctx.fillStyle = theme?.clouds?.top || "rgba(255,255,255,0.22)";
-  ctx.fillRect(bounds.x + 8, y + clusterH - 6, Math.max(18, bounds.w - 16), 6);
+  ctx.fillRect(bounds.x + 8, layout.y + layout.clusterH - 6, Math.max(18, bounds.w - 16), 6);
   ctx.restore();
 }
 
@@ -3853,18 +3940,8 @@ function ensureVisualVariant(obstacle, frames, kind, preferredCount) {
   const frameCount = Math.max(1, Math.min(preferredCount, Array.isArray(frames) ? frames.length : 0) || 1);
   const hash = hash01((obstacle.topH || 0) * 0.173 + (obstacle.gap || 0) * 0.113 + (kind === "building" ? 7 : 13), frameCount);
 
-  const buildingSizeBuckets = [
-    { widthScale: 0.9, heightScale: 0.86 },
-    { widthScale: 0.96, heightScale: 0.94 },
-    { widthScale: 1.0, heightScale: 1.0 },
-    { widthScale: 1.06, heightScale: 1.08 },
-    { widthScale: 1.12, heightScale: 1.16 },
-  ];
-  const cloudSizeBuckets = [
-    { widthScale: 0.94, scale: 0.94 },
-    { widthScale: 1.0, scale: 1.0 },
-    { widthScale: 1.06, scale: 1.05 },
-  ];
+  const buildingSizeBuckets = BUILDING_SIZE_VARIANTS;
+  const cloudSizeBuckets = CLOUD_SIZE_VARIANTS;
 
   const bucketSource = kind === "building" ? buildingSizeBuckets : cloudSizeBuckets;
   const bucketIndex = Math.min(bucketSource.length - 1, Math.floor(hash * bucketSource.length));
