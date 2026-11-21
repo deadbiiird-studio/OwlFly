@@ -394,6 +394,12 @@ export class ObstaclePair {
 
   getGapCenterY() {
     const center = this.topH + this.gap / 2;
-    return this.tower ? Math.min(center, this.tower.roofY - this.gap / 2) : center;
+    if (!this.tower) return center;
+    // A high roof still requires rising, but the target must stay below the
+    // screen ceiling by more than one flap's typical upward displacement.
+    // This changes only corridor anticipation, not the actual roof hitbox.
+    const preferred = Math.min(center, this.tower.roofY - this.gap / 2);
+    const safeFloor = Math.min(this.tower.roofY - 36, GAME.BASE_HEIGHT * 0.28);
+    return Math.max(preferred, safeFloor);
   }
 }
