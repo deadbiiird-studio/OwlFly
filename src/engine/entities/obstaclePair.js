@@ -2,28 +2,19 @@ import { GAME, OBSTACLE } from "../../core/constants.js";
 import { BUILDING_COLLISION_PROFILES, CLOUD_COLLISION_PROFILES } from "../obstacleCollisionProfiles.js";
 import {
   BUILDING_GAP_VISUAL_REACH,
+  BUILDING_SIZE_VARIANTS,
+  CLOUD_SIZE_VARIANTS,
+  OBSTACLE_VISUAL_SCALE,
   fitBuildingSpriteHeight,
   getBuildingProfileTopEdge,
+  getCloudSpriteLayout,
 } from "../obstacleVisualFit.js";
 
 let nextVisualSpawnId = 1;
 
 export const BUILDING_GAP_COLLISION_REACH = BUILDING_GAP_VISUAL_REACH;
 
-const COLLISION_RENDER_SCALE = {
-  cloudMinHeight: 230,
-  cloudMaxHeight: 360,
-  cloudHeightFactor: 1.22,
-  cloudWidthFactor: 2.9,
-  buildingGroundInset: 8,
-  buildingMinBoxWidth: 300,
-  buildingMaxBoxWidth: 560,
-  buildingWidthFactor: 3.3,
-  buildingMinBoxHeight: 500,
-  buildingMaxBoxHeight: 760,
-  buildingHeightFactor: 2.25,
-  buildingHeightOffset: 150,
-};
+const COLLISION_RENDER_SCALE = OBSTACLE_VISUAL_SCALE;
 
 function clampToAvailable(target, available) {
   return Math.max(0, Math.min(target, available));
@@ -49,18 +40,8 @@ function ensureCollisionVisualVariant(obstacle, kind) {
   const current = obstacle[storeKey];
   if (current && current.key === key) return current;
 
-  const buildingSizeBuckets = [
-    { widthScale: 0.9, heightScale: 0.86 },
-    { widthScale: 0.96, heightScale: 0.94 },
-    { widthScale: 1.0, heightScale: 1.0 },
-    { widthScale: 1.06, heightScale: 1.08 },
-    { widthScale: 1.12, heightScale: 1.16 },
-  ];
-  const cloudSizeBuckets = [
-    { widthScale: 0.94, scale: 0.94 },
-    { widthScale: 1.0, scale: 1.0 },
-    { widthScale: 1.06, scale: 1.05 },
-  ];
+  const buildingSizeBuckets = BUILDING_SIZE_VARIANTS;
+  const cloudSizeBuckets = CLOUD_SIZE_VARIANTS;
 
   const variant = kind === "building"
     ? {
@@ -157,48 +138,27 @@ function makeBuildingBands(obstacle, bounds) {
 
 function makeCloudBands(obstacle, bounds) {
   const variant = ensureCollisionVisualVariant(obstacle, "cloud");
-  const profile =
-    CLOUD_COLLISION_PROFILES[variant.frameIndex] || CLOUD_COLLISION_PROFILES[0];
-  const clusterScale = variant.scale ?? 1;
-  const clusterH = Math.max(
-    COLLISION_RENDER_SCALE.cloudMinHeight,
-    Math.min(
-      COLLISION_RENDER_SCALE.cloudMaxHeight,
-      bounds.h * COLLISION_RENDER_SCALE.cloudHeightFactor * clusterScale
-    )
-  );
-  const y = Math.max(0, bounds.y + bounds.h - clusterH);
-  const baseW =
-    bounds.w * COLLISION_RENDER_SCALE.cloudWidthFactor * (variant.widthScale ?? 1);
-  const boxes = [
-    { x: bounds.x - bounds.w * 0.28, y: y + 10, w: baseW, h: clusterH },
-    {
-      x: bounds.x - bounds.w * 0.04,
-      y,
-      w: baseW * 0.95,
-      h: clusterH * 1.02,
-    },
-    {
-      x: bounds.x + bounds.w * 0.22,
-      y: y + 12,
-      w: baseW * 0.9,
-      h: clusterH * 0.96,
-    },
-  ];
-
+  const profile = CLOUD_COLLISION_PROFILES[variant.frameIndex] ||
+    CLOUD_COLLISION_PROFILES[0];
+  const layout = getCloudSpriteLayout(bounds, variant, COLLISION_RENDER_SCALE);
   const bands = [];
-  for (const box of boxes) {
+
+  for (const box of layout.boxes) {
     const image = containedImageRect(box, profile, false);
     for (const [x0, x1, edgeY] of profile.bands) {
+      // No invisible ceiling extending upward from a tiny isolated cloud.
+      // Conservative inset avoids punishing near-transparent sprite edges.
+      const topY = image.y + image.h * 0.1;
       const bottomY = image.y + edgeY * image.h;
       bands.push({
         x: image.x + x0 * image.w,
-        y: 0,
+        y: topY,
         w: Math.max(1, (x1 - x0) * image.w),
-        h: Math.max(1, bottomY),
+        h: Math.max(1, bottomY - topY),
       });
     }
   }
+
   return { bands, spriteIndex: variant.frameIndex };
 }
 
@@ -222,8 +182,12 @@ export class ObstaclePair {
     this.tower = null;
   }
 
-  spawn({ x, topH, gap, speed, towerHeight = null }) {
+  spawn({ x, topH, gap, speed, towerHeight = null, formation = null }) {
     this.active = true;
+    this.formation = formation;
+    // Pooled obstacles must not reuse a prior formation's visual cache.
+    this._cloudVisualVariant = null;
+    this._buildingVisualVariant = null;
     this.passed = false;
     this.x = x;
     this.speed = speed;
@@ -238,20 +202,19 @@ export class ObstaclePair {
     const cloudHash = hash01(this.visualSeed, 13);
     const buildingHash = hash01(this.visualSeed, 29);
 
-    this.cloudVariantIndex = clampIndex(Math.floor(cloudHash * 6), 6);
-    this.cloudScaleBucket = clampIndex(
-      Math.floor(hash01(this.visualSeed, 17) * 3),
-      3
-    );
+    this.cloudVariantIndex = Number.isInteger(formation?.cloudSpriteIndex)
+      ? clampIndex(formation.cloudSpriteIndex, CLOUD_COLLISION_PROFILES.length)
+      : clampIndex(Math.floor(cloudHash * 6), 6);
+    this.cloudScaleBucket = Number.isInteger(formation?.cloudSizeIndex)
+      ? clampIndex(formation.cloudSizeIndex, CLOUD_SIZE_VARIANTS.length)
+      : clampIndex(Math.floor(hash01(this.visualSeed, 17) * CLOUD_SIZE_VARIANTS.length), CLOUD_SIZE_VARIANTS.length);
 
-    this.buildingVariantIndex = clampIndex(
-      Math.floor(buildingHash * 13),
-      13
-    );
-    this.buildingSizeBucket = clampIndex(
-      Math.floor(hash01(this.visualSeed, 31) * 5),
-      5
-    );
+    this.buildingVariantIndex = Number.isInteger(formation?.buildingSpriteIndex)
+      ? clampIndex(formation.buildingSpriteIndex, BUILDING_COLLISION_PROFILES.length)
+      : clampIndex(Math.floor(buildingHash * 13), 13);
+    this.buildingSizeBucket = Number.isInteger(formation?.buildingSizeIndex)
+      ? clampIndex(formation.buildingSizeIndex, BUILDING_SIZE_VARIANTS.length)
+      : clampIndex(Math.floor(hash01(this.visualSeed, 31) * BUILDING_SIZE_VARIANTS.length), BUILDING_SIZE_VARIANTS.length);
 
     const cloudGapBonusByBucket = [0, 12, 24];
     const buildingGapBonusByBucket = [0, 8, 16, 24, 32];
@@ -419,14 +382,8 @@ export class ObstaclePair {
       GAME.BASE_HEIGHT - gapBottomY
     );
 
-    const cloudScalePresets = [0.94, 1.0, 1.06];
-    const buildingScalePresets = [
-      { widthScale: 0.9, heightScale: 0.86 },
-      { widthScale: 0.96, heightScale: 0.94 },
-      { widthScale: 1.0, heightScale: 1.0 },
-      { widthScale: 1.06, heightScale: 1.08 },
-      { widthScale: 1.12, heightScale: 1.16 },
-    ];
+    const cloudScalePresets = CLOUD_SIZE_VARIANTS.map((size) => size.scale);
+    const buildingScalePresets = BUILDING_SIZE_VARIANTS;
 
     const buildingScale =
       buildingScalePresets[this.buildingSizeBucket] ||
@@ -443,6 +400,7 @@ export class ObstaclePair {
       cloudVariantIndex: this.cloudVariantIndex,
       cloudScaleBucket: this.cloudScaleBucket,
       cloudScale: cloudScalePresets[this.cloudScaleBucket] || 1,
+      cloudCount: CLOUD_SIZE_VARIANTS[this.cloudScaleBucket]?.count ?? 3,
 
       buildingVariantIndex: this.buildingVariantIndex,
       buildingSizeBucket: this.buildingSizeBucket,
