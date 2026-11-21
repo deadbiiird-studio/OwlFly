@@ -66,6 +66,14 @@ export class AudioBank {
   }
 
   async prime() {
+    // Revisit audio activation on each explicit Start/Restart gesture.
+    // Mobile browsers may suspend WebAudio after a background/tab interruption.
+    if (this._ctx) {
+      if (this._ctx.state === "suspended" || this._ctx.state === "interrupted") {
+        await this._ctx.resume().catch(() => {});
+      }
+      return;
+    }
     if (this._primed) return;
     this._primed = true;
 
@@ -76,7 +84,10 @@ export class AudioBank {
 
     // 2) WebAudio unlock (better latency + reliable)
     const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
+    if (!Ctx) {
+      this._primed = false;
+      return;
+    }
 
     try {
       this._ctx = new Ctx();
@@ -109,6 +120,7 @@ export class AudioBank {
       this._ctx = null;
       this._gainMaster = null;
       this._gainSfx = null;
+      this._primed = false;
     }
   }
 
