@@ -53,6 +53,10 @@ jobs:
           test -s web/home.html
           test -s web/home.css
           cp web/index.html web/play.html
+          # Version web-only asset URLs so repeat visitors cannot load an older game after deployment.
+          # Do not modify Android's Capacitor entrypoint.
+          sed -i "s#src=\"./game.js\"#src=\"./game.js?rev=${GITHUB_SHA}\"#" web/play.html
+          sed -i "s#href=\"./style.css\"#href=\"./style.css?rev=${GITHUB_SHA}\"#" web/play.html
           cp web/home.html web/index.html
 
       - name: Verify static website entrypoint
