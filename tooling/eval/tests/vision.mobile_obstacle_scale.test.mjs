@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { GAME, OBSTACLE } from "../../../src/core/constants.js";
 import { VISION_OBSTACLE_SCALE } from "../../../src/render/renderer.js";
+import { BUILDING_SIZE_VARIANTS, CLOUD_SIZE_VARIANTS, getCloudSpriteLayout } from "../../../src/engine/obstacleVisualFit.js";
 
 const ROOT = process.cwd();
 const renderer = fs.readFileSync(
@@ -41,42 +42,62 @@ test("vision mobile scale: renderer uses building scale constants", () => {
   assert.match(renderer, /VISION_OBSTACLE_SCALE\.buildingWidthFactor/);
 });
 
-test("vision mobile scale: all cloud PNGs occupy meaningful phone-height space", () => {
-  for (let i = 1; i <= 6; i += 1) {
-    const cloud = pngSize(
-      `web/assets/obstacles/clouds/cloud_${i}.png`
-    );
-    const drawn = containSize({
-      boxW: OBSTACLE.WIDTH * VISION_OBSTACLE_SCALE.cloudWidthFactor,
-      boxH: VISION_OBSTACLE_SCALE.cloudMinHeight,
-      imageW: cloud.width,
-      imageH: cloud.height,
-    });
+test("vision mobile scale: cloud sprites can be tiny and dramatically large", () => {
+  const bounds = { x: 520, y: 0, w: OBSTACLE.WIDTH, h: 260 };
+  const tiny = getCloudSpriteLayout(bounds, CLOUD_SIZE_VARIANTS[0], VISION_OBSTACLE_SCALE);
+  const massive = getCloudSpriteLayout(bounds, CLOUD_SIZE_VARIANTS[4], VISION_OBSTACLE_SCALE);
 
-    assert.ok(
-      drawn.height >= GAME.BASE_HEIGHT * 0.28,
-      `cloud_${i} visual height ${drawn.height.toFixed(1)}px should cover at least 28% of the base phone height`
-    );
+  assert.equal(tiny.boxes.length, 1);
+  assert.equal(massive.boxes.length, 3);
+  assert.ok(massive.clusterH >= tiny.clusterH * 2.4);
+  assert.ok(massive.baseW >= tiny.baseW * 3);
+
+  for (let i = 1; i <= 6; i++) {
+    const cloud = pngSize(`web/assets/obstacles/clouds/cloud_${i}.png`);
+    const smallDrawn = containSize({
+      boxW: tiny.boxes[0].w, boxH: tiny.boxes[0].h,
+      imageW: cloud.width, imageH: cloud.height,
+    });
+    const largeDrawn = containSize({
+      boxW: massive.boxes[0].w, boxH: massive.boxes[0].h,
+      imageW: cloud.width, imageH: cloud.height,
+    });
+    assert.ok(smallDrawn.height < GAME.BASE_HEIGHT * 0.2, "tiny cloud must really be tiny");
+    assert.ok(largeDrawn.height > smallDrawn.height * 2.4,
+      "large cloud must be perceptibly bigger than tiny");
   }
 });
 
-test("vision mobile scale: all Cozy City buildings read as tall foreground hazards", () => {
-  for (let i = 1; i <= 13; i += 1) {
-    const padded = String(i).padStart(2, "0");
-    const building = pngSize(
-      `web/assets/obstacles/buildings/building_${padded}.png`
-    );
-    const drawn = containSize({
-      boxW: VISION_OBSTACLE_SCALE.buildingMinBoxWidth,
-      boxH: VISION_OBSTACLE_SCALE.buildingMinBoxHeight,
-      imageW: building.width,
-      imageH: building.height,
-    });
+test("vision mobile scale: buildings preserve a readable tall end and a clearly smaller end", () => {
+  const boxWidth = (variant) => Math.max(
+    VISION_OBSTACLE_SCALE.buildingMinBoxWidth,
+    Math.min(VISION_OBSTACLE_SCALE.buildingMaxBoxWidth,
+      OBSTACLE.WIDTH * VISION_OBSTACLE_SCALE.buildingWidthFactor * variant.widthScale)
+  );
+  const boxHeight = (variant) => Math.max(
+    VISION_OBSTACLE_SCALE.buildingMinBoxHeight,
+    Math.min(VISION_OBSTACLE_SCALE.buildingMaxBoxHeight,
+      280 * variant.heightScale * VISION_OBSTACLE_SCALE.buildingHeightFactor +
+      VISION_OBSTACLE_SCALE.buildingHeightOffset)
+  );
 
-    assert.ok(
-      drawn.height >= GAME.BASE_HEIGHT * 0.5,
-      `building_${padded} visual height ${drawn.height.toFixed(1)}px should cover at least 50% of the base phone height`
-    );
+  for (let i = 1; i <= 13; i++) {
+    const padded = String(i).padStart(2, "0");
+    const building = pngSize(`web/assets/obstacles/buildings/building_${padded}.png`);
+    const tiny = containSize({
+      boxW: boxWidth(BUILDING_SIZE_VARIANTS[0]),
+      boxH: boxHeight(BUILDING_SIZE_VARIANTS[0]),
+      imageW: building.width, imageH: building.height,
+    });
+    const massive = containSize({
+      boxW: boxWidth(BUILDING_SIZE_VARIANTS[4]),
+      boxH: boxHeight(BUILDING_SIZE_VARIANTS[4]),
+      imageW: building.width, imageH: building.height,
+    });
+    assert.ok(massive.height >= GAME.BASE_HEIGHT * 0.5,
+      "large building still needs to read as a foreground hazard");
+    assert.ok(massive.height >= tiny.height * 2,
+      "building size differences must be evident at phone scale");
   }
 });
 
