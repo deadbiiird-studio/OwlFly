@@ -1,10 +1,14 @@
 import { GAME, OBSTACLE, SPAWN } from "../core/constants.js";
 import { ObstaclePair } from "../engine/entities/obstaclePair.js";
+import { composeFormation } from "./formationComposer.js";
 
 export class Spawner {
   constructor(rng, difficulty) {
     this.rng = rng;
     this.difficulty = difficulty;
+    // Read the seed without consuming RNG draws, keeping baseline flight timing.
+    this._formationSeed = Number.isInteger(rng?._state) ? (rng._state >>> 0) : 0x5b17c0de;
+    this._lastFormation = null;
 
     this.pool = [];
     this.active = [];
@@ -27,6 +31,7 @@ export class Spawner {
     this._spawnCount = 0;
     this._easyRemaining = 0;
     this._lastGapCenter = null;
+    this._lastFormation = null;
   }
 
   update(dt) {
@@ -79,6 +84,12 @@ export class Spawner {
 
     const topH = Math.floor(clamp(center - halfGap, minTop, maxTop));
     const variants = this._buildVariants({ inOpening, isEasy });
+    const formation = composeFormation({
+      seed: this._formationSeed,
+      ordinal: this._spawnCount,
+      previous: this._lastFormation,
+      towerHeight,
+    });
     const o = this.pool.length ? this.pool.pop() : new ObstaclePair();
 
     o.spawn({
@@ -87,9 +98,11 @@ export class Spawner {
       gap,
       speed,
       towerHeight,
+      formation,
       ...variants,
     });
 
+    this._lastFormation = formation;
     this._lastGapCenter = o.tower ? o.getGapCenterY() : center;
     this.active.push(o);
   }
