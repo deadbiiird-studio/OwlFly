@@ -149,7 +149,11 @@ test("quality collision: all cloud/building variants receive readable sprite-awa
     }
 
     for (const band of top.bands) {
-      assert.equal(band.y, 0, "cloud contour bands stay ceiling anchored");
+      assert.ok(band.y >= 0, "cloud collision may not extend outside the visible scene");
+      assert.ok(
+        band.y + band.h <= obstacle.getVisualBounds().top.h + EPS,
+        "isolated cloud collision may not extend beyond its drawn upper field"
+      );
     }
 
     const minX = Math.min(
