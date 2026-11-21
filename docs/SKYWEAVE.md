@@ -54,8 +54,8 @@ npm run eval:visual
 
 The workflow also checks that committed `web/game.js` exactly matches a fresh build.
 
-Draft PR #38 gameplay CI at commit `6f939622ea9c59c8138eef74d8b60ed6f066b7a2` reported:
-- **93 unit/quality tests passing**
+Draft PR #38 gameplay CI [run 44880561404](https://github.com/deadbiiird-studio/OwlFly/actions/runs/44880561404) at commit `ce24f472755fbbec91b0993be82deb2cb7d30d86` reported:
+- **94 unit/quality tests passing**, including measured real first-eight obstacle silhouette contrast
 - **40-seed** fairness gate PASS (median score 6; mean score 10.175; mean survival 14.908 seconds)
 - Minimum gap 207px (floor 196px), center shift p95 average 38.813px (ceiling 95px)
 - World-bound deaths 2/40, **exactly** at the allowed limit of 5%; treat this as a risk to validate, not proof of safety across devices
