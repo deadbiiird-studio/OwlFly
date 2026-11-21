@@ -2592,6 +2592,19 @@ const AUTHORED_OPENING = Object.freeze([
   { intent: "recover",  building: { sprite: 13, size: "tiny" },    cloud: { sprite: 5, size: "small" } },
 ]);
 
+// A bounded language of flight decisions, not arbitrary difficulty spikes.
+// Size pairings intentionally trade height for cloud pressure; a recovery
+// phrase regularly interrupts dense formations.
+const CHALLENGE_PATTERNS = Object.freeze([
+  { intent: "climb", buildingSize: "massive", cloudSize: "small" },
+  { intent: "duck", buildingSize: "small", cloudSize: "massive" },
+  { intent: "thread", buildingSize: "large", cloudSize: "large" },
+  { intent: "read", buildingSize: "medium", cloudSize: "medium" },
+  { intent: "recover", buildingSize: "tiny", cloudSize: "small" },
+  { intent: "crest", buildingSize: "large", cloudSize: "tiny" },
+  { intent: "downshift", buildingSize: "tiny", cloudSize: "large" },
+]);
+
 const BUILDING_SPRITES = 13;
 const CLOUD_SPRITES = 6;
 
@@ -2631,12 +2644,20 @@ function composeFormation({ seed = 0, ordinal, previous = null, towerHeight = nu
 
   const authored = AUTHORED_OPENING[ordinal - 1] || null;
   const openSky = towerHeight !== null && towerHeight !== undefined;
+  const tier = Math.min(2, Math.floor((ordinal - 1) / 16));
+  const patternPool = tier === 0
+    ? [0, 1, 2, 3, 5, 6]
+    : tier === 1
+      ? [0, 1, 2, 2, 3, 5, 6]
+      : [0, 1, 2, 2, 5, 6];
+  const pattern = ordinal % 12 === 0
+    ? CHALLENGE_PATTERNS[4]
+    : CHALLENGE_PATTERNS[patternPool[select(seed, ordinal, 0x49abc3f1, patternPool.length)]];
+
   let buildingSpriteIndex = authored
     ? spriteIndex(authored.building.sprite, BUILDING_SPRITES)
     : select(seed, ordinal, 0x7c159e37, BUILDING_SPRITES);
-  const buildingSizeIndex = authored
-    ? sizeIndex(authored.building.size)
-    : select(seed, ordinal, 0x49abc3f1, SKYWEAVE_SIZES.length);
+  const buildingSizeIndex = sizeIndex(authored?.building.size || pattern.buildingSize);
   const cloudSpriteIndex = openSky
     ? null
     : authored
@@ -2644,9 +2665,7 @@ function composeFormation({ seed = 0, ordinal, previous = null, towerHeight = nu
       : select(seed, ordinal, 0x9b5d7603, CLOUD_SPRITES);
   const cloudSizeIndex = openSky
     ? null
-    : authored
-      ? sizeIndex(authored.cloud.size)
-      : select(seed, ordinal, 0xd24147e9, SKYWEAVE_SIZES.length);
+    : sizeIndex(authored?.cloud.size || pattern.cloudSize);
 
   // Variety is authored, not a source of unfair last-second trajectory changes.
   if (!authored && previous &&
@@ -2658,7 +2677,7 @@ function composeFormation({ seed = 0, ordinal, previous = null, towerHeight = nu
   return {
     id: `skyweave-${String(ordinal).padStart(3, "0")}`,
     ordinal,
-    intent: openSky ? "open-sky-rooftop" : (authored?.intent || "adaptive-pair"),
+    intent: openSky ? "open-sky-rooftop" : (authored?.intent || pattern.intent),
     kind: openSky ? "open-sky" : "cloud-building",
     buildingSpriteIndex,
     buildingSizeIndex,
