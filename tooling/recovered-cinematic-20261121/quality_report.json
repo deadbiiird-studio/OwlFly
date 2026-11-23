@@ -1,0 +1,45 @@
+{
+  "OwlFly_Fresh_Cinematic_1080x1920.mp4": {
+    "exists": true,
+    "bytes": 3839931
+  },
+  "owlfly_promo_poster.png": {
+    "exists": true,
+    "bytes": 40835
+  },
+  "owlfly_storyboard.png": {
+    "exists": true,
+    "bytes": 187689
+  },
+  "OwlFly_Figma_Storyboard.svg": {
+    "exists": true,
+    "bytes": 403742
+  },
+  "owlfly_original_score.wav": {
+    "exists": true,
+    "bytes": 2688044
+  },
+  "OwlFly_Fresh_Animation_Source.zip": {
+    "exists": true,
+    "bytes": 3121925
+  },
+  "metadata": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "30/1"
+      },
+      {
+        "codec_name": "aac",
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "format": {
+      "duration": "14.000000"
+    }
+  }
+}

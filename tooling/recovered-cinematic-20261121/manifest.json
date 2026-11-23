@@ -1,0 +1,140 @@
+{
+  "video_status": "passed",
+  "frames": 420,
+  "fps": 30,
+  "duration_seconds": 14.0,
+  "resolution": "1080x1920",
+  "video": "/mnt/data/owlfly_cinematic/OwlFly_Fresh_Cinematic_1080x1920.mp4",
+  "source_owl_assets": [
+    "OwlFly-main/web/assets/sprites/owl_frame_0.png",
+    "OwlFly-main/web/assets/sprites/owl_frame_1.png",
+    "OwlFly-main/web/assets/sprites/owl_frame_2.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png"
+  ],
+  "game_assets_found": [
+    "OwlFly-main/android/app/src/main/res/drawable-land-hdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-land-mdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-land-xhdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-land-xxhdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-land-xxxhdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-port-hdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-port-mdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-port-xhdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-port-xxhdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable-port-xxxhdpi/splash.png",
+    "OwlFly-main/android/app/src/main/res/drawable/splash.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+    "OwlFly-main/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
+    "OwlFly-main/web/assets/icons/icon-192.png",
+    "OwlFly-main/web/assets/icons/icon-512.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_01.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_02.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_03.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_04.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_05.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_06.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_07.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_08.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_09.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_10.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_11.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_12.png",
+    "OwlFly-main/web/assets/obstacles/buildings/building_13.png",
+    "OwlFly-main/web/assets/obstacles/clouds/cloud_1.png",
+    "OwlFly-main/web/assets/obstacles/clouds/cloud_2.png",
+    "OwlFly-main/web/assets/obstacles/clouds/cloud_3.png",
+    "OwlFly-main/web/assets/obstacles/clouds/cloud_4.png",
+    "OwlFly-main/web/assets/obstacles/clouds/cloud_5.png",
+    "OwlFly-main/web/assets/obstacles/clouds/cloud_6.png",
+    "OwlFly-main/web/assets/obstacles/tornados/tornado_1.png",
+    "OwlFly-main/web/assets/obstacles/tornados/tornado_2.png",
+    "OwlFly-main/web/assets/obstacles/tornados/tornado_3.png",
+    "OwlFly-main/web/assets/rings/ring_1.png",
+    "OwlFly-main/web/assets/rings/ring_2.png",
+    "OwlFly-main/web/assets/rings/ring_3.png",
+    "OwlFly-main/web/assets/sprites/owl_frame_0.png",
+    "OwlFly-main/web/assets/sprites/owl_frame_1.png",
+    "OwlFly-main/web/assets/sprites/owl_frame_2.png"
+  ],
+  "note": "Original score generated locally; not from ElevenLabs. Figma files not created by local rendering.",
+  "files": [
+    {
+      "name": "01_opening.png",
+      "bytes": 70696,
+      "sha256": "0e68570ec74b5bb5"
+    },
+    {
+      "name": "02_flight.png",
+      "bytes": 56816,
+      "sha256": "803cfff5c6f152a8"
+    },
+    {
+      "name": "03_shift.png",
+      "bytes": 64957,
+      "sha256": "197f2c4c86701df5"
+    },
+    {
+      "name": "04_discovery.png",
+      "bytes": 67953,
+      "sha256": "296faacf97c5a4a8"
+    },
+    {
+      "name": "05_final.png",
+      "bytes": 40835,
+      "sha256": "deeeb40aea0df493"
+    },
+    {
+      "name": "OwlFly_Fresh_Cinematic_1080x1920.mp4",
+      "bytes": 3839931,
+      "sha256": "bbcca0b5119c57e9"
+    },
+    {
+      "name": "index.html",
+      "bytes": 1043,
+      "sha256": "883e38a6824d2c48"
+    },
+    {
+      "name": "owlfly_flight_poster.png",
+      "bytes": 55510,
+      "sha256": "a0e757f5d6099502"
+    },
+    {
+      "name": "owlfly_original_score.wav",
+      "bytes": 2688044,
+      "sha256": "e3a3f80171274864"
+    },
+    {
+      "name": "owlfly_promo_poster.png",
+      "bytes": 40835,
+      "sha256": "deeeb40aea0df493"
+    },
+    {
+      "name": "owlfly_source_owl.png",
+      "bytes": 38258,
+      "sha256": "9d40a690a1476b9f"
+    },
+    {
+      "name": "owlfly_storyboard.png",
+      "bytes": 187689,
+      "sha256": "c2ad4726bd09e082"
+    }
+  ]
+}
