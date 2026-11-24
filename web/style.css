@@ -589,3 +589,58 @@ input[type="range"] {
 @media (prefers-reduced-motion: reduce) {
   .brandIntro * { animation: none !important; }
 }
+
+
+/* Play-first menu. Opaque background keeps gameplay scenery out of the entrance. */
+#menu {
+  pointer-events: auto;
+  background: radial-gradient(ellipse at 50% 32%, #172b40, #08111d 60%, #050a12);
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+}
+.minimalMenu {
+  width: min(100%, 380px);
+  max-height: 100%;
+  padding: 20px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.minimalMenu .menuHero { padding: 12px 0 36px; }
+.minimalMenu .title {
+  color: #f5deb0;
+  font-size: clamp(2.8rem, 12vw, 4rem);
+  letter-spacing: -0.045em;
+}
+.menuBest {
+  display: grid;
+  gap: 6px;
+  margin-top: 34px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.menuBest strong { color: var(--text); font-size: 1.8rem; font-weight: 600; }
+.minimalMenu .startRow { margin: 0; }
+.menuMore { margin-top: 18px; }
+.menuMore > summary {
+  display: block;
+  list-style: none;
+  min-height: 48px;
+  padding: 14px;
+  text-align: center;
+  color: var(--muted);
+  cursor: pointer;
+}
+.menuMore > summary::-webkit-details-marker { display: none; }
+.menuMore > summary::after { content: " +"; }
+.menuMore[open] > summary::after { content: " −"; }
+.menuMore summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+.moreBody { padding-bottom: 12px; }
+.minimalMenu .statChips { justify-content: center; margin: 0 0 10px; }
+.minimalMenu .menuToast { position: sticky; bottom: 0; left: auto; transform: none; max-width: 100%; margin-top: 12px; }
+@media (prefers-reduced-motion: reduce) {
+  .minimalMenu button, .minimalMenu .menuToast { transition: none; }
+}
