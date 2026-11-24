@@ -3,16 +3,13 @@ export class HudUI {
     this.el = rootEl;
     this._pill = null;
     this._muteBtn = null;
-    this._rmBtn = null;
     this._toastEl = null;
     this._toastTimer = 0;
     this._onToggleMute = null;
-    this._onToggleRM = null;
   }
 
-  show({ muted = false, reducedMotion = false, onToggleMute, onToggleRM } = {}) {
+  show({ muted = false, onToggleMute } = {}) {
     this._onToggleMute = onToggleMute || null;
-    this._onToggleRM = onToggleRM || null;
 
     this.el.classList.remove("hidden");
     this.el.innerHTML = `
@@ -26,9 +23,6 @@ export class HudUI {
           <button type="button" class="hudIconBtn" id="muteBtn" aria-label="Toggle mute">
             ${muted ? "🔇" : "🔊"}
           </button>
-          <button type="button" class="hudIconBtn" id="rmBtn" aria-label="Toggle reduced motion">
-            ${reducedMotion ? "🐢" : "✨"}
-          </button>
         </div>
       </div>
 
@@ -37,11 +31,9 @@ export class HudUI {
 
     this._pill = this.el.querySelector("#scorePill");
     this._muteBtn = this.el.querySelector("#muteBtn");
-    this._rmBtn = this.el.querySelector("#rmBtn");
     this._toastEl = this.el.querySelector("#toast");
 
     this._muteBtn?.addEventListener("click", () => this._onToggleMute?.());
-    this._rmBtn?.addEventListener("click", () => this._onToggleRM?.());
   }
 
   setScore(score) {
@@ -50,10 +42,6 @@ export class HudUI {
 
   setMuted(muted) {
     if (this._muteBtn) this._muteBtn.textContent = muted ? "🔇" : "🔊";
-  }
-
-  setReducedMotion(reducedMotion) {
-    if (this._rmBtn) this._rmBtn.textContent = reducedMotion ? "🐢" : "✨";
   }
 
   toast(message, ms = 1700) {
@@ -80,11 +68,9 @@ export class HudUI {
 
     this._pill = null;
     this._muteBtn = null;
-    this._rmBtn = null;
     this._toastEl = null;
     clearTimeout(this._toastTimer);
     this._toastTimer = 0;
     this._onToggleMute = null;
-    this._onToggleRM = null;
   }
 }
