@@ -97,7 +97,22 @@ test("single flap immediately lifts and cycles all three owl frames", () => {
 });
 
 test("audio retries a suspended or interrupted context on later start gestures", async () => {
-  const audio = Object.create(AudioBank.prototype);
+  // Exercise the actual constructor so the lifecycle state is initialized,
+  // rather than bypassing it with Object.create(AudioBank.prototype).
+  const beforeDocument = globalThis.document;
+  const beforeWindow = globalThis.window;
+  let audio;
+  try {
+    globalThis.document = { createElement: () => ({ canPlayType: () => "" }) };
+    globalThis.window = { location: { href: "https://owlfly.example/" } };
+    audio = new AudioBank({});
+  } finally {
+    if (beforeDocument === undefined) delete globalThis.document;
+    else globalThis.document = beforeDocument;
+    if (beforeWindow === undefined) delete globalThis.window;
+    else globalThis.window = beforeWindow;
+  }
+  assert.equal(audio._active, true);
   let resumeCalls = 0;
   const ctx = {
     state: "suspended",

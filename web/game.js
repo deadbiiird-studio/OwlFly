@@ -262,6 +262,8 @@ class AudioBank {
 
     this._muted = false;
     this._primed = false;
+    this._active = true;
+    this._voices = new Set();
 
     this._mix = {
       master: clamp01(mix.master ?? 1),
@@ -310,13 +312,40 @@ class AudioBank {
     return { ...this._mix };
   }
 
+  setActive(active) {
+    this._active = !!active;
+    this._applyGains();
+    if (this._active) return;
+    for (const pool of Object.values(this._pools)) {
+      for (const a of pool) {
+        try { a.pause(); a.currentTime = 0; } catch {}
+      }
+    }
+    for (const source of this._voices) {
+      try { source.stop(); } catch {}
+      try { source.disconnect(); } catch {}
+    }
+    this._voices.clear();
+    if (this._ctx) this._ctx.suspend().catch(() => {});
+  }
+
+  _trackVoice(source) {
+    this._voices.add(source);
+    source.onended = () => {
+      this._voices.delete(source);
+      try { source.disconnect(); } catch {}
+    };
+  }
+
   async prime() {
+    if (!this._active) return;
     // Revisit audio activation on each explicit Start/Restart gesture.
     // Mobile browsers may suspend WebAudio after a background/tab interruption.
     if (this._ctx) {
       if (this._ctx.state === "suspended" || this._ctx.state === "interrupted") {
         await this._ctx.resume().catch(() => {});
       }
+      if (!this._active) this.setActive(false);
       return;
     }
     if (this._primed) return;
@@ -346,7 +375,8 @@ class AudioBank {
       const osc = this._ctx.createOscillator();
       const g = this._ctx.createGain();
       g.gain.value = 0.0001;
-      osc.connect(g).connect(this._ctx.destination);
+      osc.connect(g).connect(this._gainMaster);
+      this._trackVoice(osc);
       osc.start();
       osc.stop(this._ctx.currentTime + 0.01);
 
@@ -354,6 +384,7 @@ class AudioBank {
         await this._ctx.resume().catch(() => {});
       }
 
+      if (!this._active) this.setActive(false);
       this._applyGains();
 
       // Fire-and-forget load (decode in background)
@@ -379,14 +410,14 @@ class AudioBank {
   }
 
   play(key, opts = {}) {
-    if (this._muted) return;
+    if (this._muted || !this._active) return;
 
     const gain = clamp01(opts.gain ?? 1);
     const mixTrim = clamp01(this._perSoundTrim(key));
     const finalGain = clamp01(gain * this._mix.master * this._mix.sfx * mixTrim);
 
     // Prefer WebAudio if buffer exists
-    if (this._ctx && this._gainSfx) {
+    if (this._ctx?.state === "running" && this._gainSfx) {
       const buf = this._buffers.get(key);
       if (buf) {
         const src = this._ctx.createBufferSource();
@@ -402,6 +433,7 @@ class AudioBank {
         g.gain.value = finalGain;
 
         src.connect(g).connect(this._gainSfx);
+        this._trackVoice(src);
         src.start();
         return;
       }
@@ -429,7 +461,7 @@ class AudioBank {
 
       const p = a.play();
       if (p && typeof p.catch === "function") {
-        p.catch(() => this._swapToFallback(key));
+        p.catch(() => { if (this._active) this._swapToFallback(key); });
       }
     } catch {
       this._swapToFallback(key);
@@ -437,7 +469,7 @@ class AudioBank {
   }
 
   playCountdownTone(number) {
-    if (this._muted || !this._ctx || !this._gainSfx) return false;
+    if (this._muted || !this._active || !this._ctx || !this._gainSfx) return false;
     if (this._ctx.state !== "running") {
       this._ctx.resume?.().catch(() => {});
       return false;
@@ -456,6 +488,7 @@ class AudioBank {
       gain.gain.linearRampToValueAtTime(go ? 0.20 : 0.15, at + 0.012);
       gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
       oscillator.connect(gain).connect(this._gainSfx);
+      this._trackVoice(oscillator);
       oscillator.start(at);
       oscillator.stop(at + duration + 0.015);
       return true;
@@ -463,7 +496,7 @@ class AudioBank {
   }
 
   _applyGains() {
-    const master = this._muted ? 0 : clamp01(this._mix.master);
+    const master = this._muted || !this._active ? 0 : clamp01(this._mix.master);
     if (this._gainMaster) this._gainMaster.gain.value = master;
 
     // SFX gain is separate so future music can be added cleanly.
@@ -486,6 +519,9 @@ class AudioBank {
     const next = info.fallbacks.find((u) => u !== info.primary);
     if (!next) return;
 
+    for (const a of this._pools[key] || []) {
+      try { a.pause(); a.currentTime = 0; } catch {}
+    }
     info.primary = next;
     this._pools[key] = makePool(next, 6);
 
@@ -597,6 +633,7 @@ class MusicLoop {
 
     this._timer = 0;
     this._running = false;
+    this._voices = new Set();
 
     this._tempo = 104;
     this._mode = "minor";
@@ -686,7 +723,7 @@ class MusicLoop {
 
   start({ themeId } = {}) {
     if (!this._enabled) return;
-    if (!this._ctx || !this._dest) return;
+    if (!this._ctx || !this._dest || this._ctx.state !== "running") return;
 
     this.attach({ ctx: this._ctx, destination: this._dest });
     this.setTheme(themeId);
@@ -705,11 +742,24 @@ class MusicLoop {
   }
 
   stop() {
-    if (!this._running) return;
     this._running = false;
     if (this._timer) window.clearInterval(this._timer);
     this._timer = 0;
+    for (const source of this._voices) {
+      try { source.stop(); } catch {}
+      try { source.disconnect(); } catch {}
+    }
+    this._voices.clear();
+    this._duck = { amount: 0, until: 0 };
     this._applyGain(0);
+  }
+
+  _trackVoice(source) {
+    this._voices.add(source);
+    source.onended = () => {
+      this._voices.delete(source);
+      try { source.disconnect(); } catch {}
+    };
   }
 
   // Briefly reduce music volume when SFX plays (feels more "premium")
@@ -722,7 +772,7 @@ class MusicLoop {
   }
 
   _tick() {
-    if (!this._running || !this._ctx) return;
+    if (!this._running || !this._ctx || this._ctx.state !== "running") return;
 
     const now = this._ctx.currentTime;
     const ahead = 0.35;
@@ -788,6 +838,7 @@ class MusicLoop {
     osc.connect(g);
     g.connect(this._gain);
 
+    this._trackVoice(osc);
     osc.start(t);
     osc.stop(t + dur + 0.03);
   }
@@ -817,6 +868,7 @@ class MusicLoop {
     f.connect(g);
     g.connect(this._gain);
 
+    this._trackVoice(src);
     src.start(t);
     src.stop(t + dur + 0.01);
   }
@@ -1670,13 +1722,7 @@ class Input {
       this._heldPointers.delete(e.pointerId);
       this._releaseIfIdle();
     };
-    this._onBlur = () => {
-      this._heldPointers.clear();
-      this._heldKeys.clear();
-      this._jump = false;
-      this._repeatTimer = 0;
-      this._blockedUntilRelease = false;
-    };
+    this._onBlur = () => this.clearHeld();
 
     window.addEventListener("keydown", this._onKeyDown, { passive: false });
     window.addEventListener("keyup", this._onKeyUp, { passive: false });
@@ -1708,6 +1754,14 @@ class Input {
       return true;
     }
     return false;
+  }
+  clearHeld() {
+    this._heldPointers.clear();
+    this._heldKeys.clear();
+    this._jump = false;
+    this._pause = false;
+    this._repeatTimer = 0;
+    this._blockedUntilRelease = false;
   }
   requireFreshPress() {
     this._jump = false;
@@ -4789,7 +4843,7 @@ hit: audioCandidates("hit.wav"),
   const uiOver = new GameOverUI(gameOverEl);
 
   const state = {
-    mode: "menu",
+    mode: "intro",
     countdownLabel: "",
     goTimer: 0,
     paused: false,
@@ -4817,9 +4871,99 @@ hit: audioCandidates("hit.wav"),
   let runEarned = [];
   let runUnlockedThemes = [];
   let profileDirty = false;
+  let foreground = true;
+  let nativeActive = window.__owlflyNativeActive !== false;
+  let pageActive = true;
+  let needsResume = false;
+  let activityEpoch = 0;
+  let introTimer = 0;
+
+  const intro = ensureUi("brandIntro");
+  intro.className = "brandIntro hidden";
+  intro.innerHTML = `
+    <div class="brandIntroContent">
+      <div class="brandEmblem" aria-hidden="true"><span></span></div>
+      <p class="brandName">SkyGlass Partners</p>
+      <p class="brandPresents">Presents</p>
+      <img class="brandOwl" src="./assets/sprites/owl_frame_1.png" alt="">
+      <button type="button" class="brandSkip">Skip intro</button>
+    </div>`;
+  const resumePanel = ensureUi("resumeFlight");
+  resumePanel.className = "resumeFlight hidden";
+  resumePanel.innerHTML = '<button type="button" class="primary">Resume flight</button>';
+
+  function finishIntro() {
+    if (state.mode !== "intro" || !foreground) return;
+    clearTimeout(introTimer);
+    intro.classList.add("hidden");
+    input.requireFreshPress();
+    toMenu();
+  }
+
+  function scheduleIntro() {
+    clearTimeout(introTimer);
+    if (state.mode !== "intro" || !foreground) return;
+    const reduced = settings.reducedMotion || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    intro.classList.toggle("brandReduced", !!reduced);
+    introTimer = setTimeout(finishIntro, reduced ? 1200 : 2500);
+  }
+
+  function resumeFlight() {
+    if (!foreground || !needsResume) return;
+    needsResume = false;
+    resumePanel.classList.add("hidden");
+    input.requireFreshPress();
+    state.paused = false;
+    loop.setPaused(false);
+    audio.setActive(true);
+    void prime();
+  }
+
+  function bindOverlayButton(button, action) {
+    button.addEventListener("click", action);
+    button.addEventListener("keydown", (event) => {
+      if (event.code !== "Enter" && event.code !== "Space") return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!event.repeat) action();
+    });
+  }
+
+  bindOverlayButton(intro.querySelector("button"), finishIntro);
+  bindOverlayButton(resumePanel.querySelector("button"), resumeFlight);
+
+  function syncActivity() {
+    const active = nativeActive && pageActive && !document.hidden;
+    if (active === foreground) return;
+    foreground = active;
+    activityEpoch++;
+    input.clearHeld();
+    if (!active) {
+      clearTimeout(introTimer);
+      music.stop();
+      audio.setActive(false);
+      if (state.mode === "playing" || state.mode === "countdown") {
+        needsResume = true;
+        state.paused = true;
+      }
+      loop.stop();
+      return;
+    }
+    loop.start();
+    loop.setPaused(state.paused);
+    if (needsResume && (state.mode === "playing" || state.mode === "countdown")) {
+      resumePanel.classList.remove("hidden");
+    } else {
+      needsResume = false;
+      audio.setActive(true);
+      if (state.mode === "intro") scheduleIntro();
+      else if (audio.getContext()) void prime();
+    }
+  }
 
   function applyMusicState() {
     const enabled =
+      foreground && !needsResume && state.mode !== "intro" &&
       !settings.muted &&
       settings.musicEnabled !== false &&
       (settings?.audio?.music ?? 0) > 0;
@@ -4833,11 +4977,13 @@ hit: audioCandidates("hit.wav"),
   }
 
   async function prime() {
+    if (!foreground || needsResume || state.mode === "intro") return;
     window.removeEventListener("pointerdown", prime);
     window.removeEventListener("keydown", prime);
 
     audio.setMix(settings.audio);
     await audio.prime();
+    if (!foreground || needsResume || state.mode === "intro") return;
 
     const ctx = audio.getContext();
     const dest = audio.getMasterGain() || ctx?.destination;
@@ -4848,8 +4994,8 @@ hit: audioCandidates("hit.wav"),
     applyMusicState();
   }
 
-  window.addEventListener("pointerdown", prime, { once: true });
-  window.addEventListener("keydown", prime, { once: true });
+  window.addEventListener("pointerdown", prime);
+  window.addEventListener("keydown", prime);
 
   function handleProgress(evt) {
     const res = applyProgressEvent(profile, evt);
@@ -4931,11 +5077,12 @@ hit: audioCandidates("hit.wav"),
   let startingGame = false;
 
   async function startGame() {
-    if (startingGame || state.mode === "playing" || state.mode === "countdown") return;
+    if (!foreground || needsResume || startingGame || state.mode === "intro" || state.mode === "playing" || state.mode === "countdown") return;
+    const startEpoch = activityEpoch;
 
     // Make the Start/Restart tap a fresh opportunity to unlock or resume sound.
     // Do this before awaiting sprites so the request still has user activation.
-    const soundReady = audio.prime();
+    const soundReady = prime();
     startingGame = true;
     try {
       await Promise.all([spritesReady, soundReady]);
@@ -4943,6 +5090,7 @@ hit: audioCandidates("hit.wav"),
       startingGame = false;
     }
 
+    if (!foreground || startEpoch !== activityEpoch) return;
     input.consumeJump();
 
     hardResetRun();
@@ -4973,6 +5121,9 @@ hit: audioCandidates("hit.wav"),
 
   function toMenu() {
     state.mode = "menu";
+    needsResume = false;
+    resumePanel.classList.add("hidden");
+    loop.setPaused(false);
     state.countdownLabel = "";
     state.goTimer = 0;
     state.paused = false;
@@ -5009,6 +5160,14 @@ hit: audioCandidates("hit.wav"),
 
   function gameOver() {
     state.mode = "gameover";
+    state.paused = false;
+    needsResume = false;
+    resumePanel.classList.add("hidden");
+    loop.setPaused(false);
+    if (foreground) {
+      audio.setActive(true);
+      if (audio.getContext()) void prime();
+    }
     uiHud.hide();
 
     uiOver.show({
@@ -5250,6 +5409,11 @@ hit: audioCandidates("hit.wav"),
   }
 
   function step(dt) {
+    if (!foreground || state.mode === "intro" || needsResume) {
+      input.consumeJump();
+      input.consumePause();
+      return;
+    }
     if (input.consumePause() && (state.mode === "playing" || state.mode === "countdown")) {
       state.paused = !state.paused;
       loop.setPaused(state.paused);
@@ -5370,8 +5534,20 @@ hit: audioCandidates("hit.wav"),
   }
 
   const loop = new GameLoop(step, render);
+  uiMenu.hide();
+  uiHud.hide();
+  uiOver.hide();
+  intro.classList.remove("hidden");
+  document.addEventListener("visibilitychange", syncActivity);
+  window.addEventListener("pagehide", () => { pageActive = false; syncActivity(); });
+  window.addEventListener("pageshow", () => { pageActive = true; syncActivity(); });
+  window.addEventListener("owlfly-native-activity", () => {
+    nativeActive = window.__owlflyNativeActive !== false;
+    syncActivity();
+  });
   loop.start();
-  toMenu();
+  syncActivity();
+  scheduleIntro();
 }
 
 boot();

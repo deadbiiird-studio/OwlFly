@@ -17,6 +17,8 @@ export class AudioBank {
 
     this._muted = false;
     this._primed = false;
+    this._active = true;
+    this._voices = new Set();
 
     this._mix = {
       master: clamp01(mix.master ?? 1),
@@ -65,13 +67,40 @@ export class AudioBank {
     return { ...this._mix };
   }
 
+  setActive(active) {
+    this._active = !!active;
+    this._applyGains();
+    if (this._active) return;
+    for (const pool of Object.values(this._pools)) {
+      for (const a of pool) {
+        try { a.pause(); a.currentTime = 0; } catch {}
+      }
+    }
+    for (const source of this._voices) {
+      try { source.stop(); } catch {}
+      try { source.disconnect(); } catch {}
+    }
+    this._voices.clear();
+    if (this._ctx) this._ctx.suspend().catch(() => {});
+  }
+
+  _trackVoice(source) {
+    this._voices.add(source);
+    source.onended = () => {
+      this._voices.delete(source);
+      try { source.disconnect(); } catch {}
+    };
+  }
+
   async prime() {
+    if (!this._active) return;
     // Revisit audio activation on each explicit Start/Restart gesture.
     // Mobile browsers may suspend WebAudio after a background/tab interruption.
     if (this._ctx) {
       if (this._ctx.state === "suspended" || this._ctx.state === "interrupted") {
         await this._ctx.resume().catch(() => {});
       }
+      if (!this._active) this.setActive(false);
       return;
     }
     if (this._primed) return;
@@ -101,7 +130,8 @@ export class AudioBank {
       const osc = this._ctx.createOscillator();
       const g = this._ctx.createGain();
       g.gain.value = 0.0001;
-      osc.connect(g).connect(this._ctx.destination);
+      osc.connect(g).connect(this._gainMaster);
+      this._trackVoice(osc);
       osc.start();
       osc.stop(this._ctx.currentTime + 0.01);
 
@@ -109,6 +139,7 @@ export class AudioBank {
         await this._ctx.resume().catch(() => {});
       }
 
+      if (!this._active) this.setActive(false);
       this._applyGains();
 
       // Fire-and-forget load (decode in background)
@@ -134,14 +165,14 @@ export class AudioBank {
   }
 
   play(key, opts = {}) {
-    if (this._muted) return;
+    if (this._muted || !this._active) return;
 
     const gain = clamp01(opts.gain ?? 1);
     const mixTrim = clamp01(this._perSoundTrim(key));
     const finalGain = clamp01(gain * this._mix.master * this._mix.sfx * mixTrim);
 
     // Prefer WebAudio if buffer exists
-    if (this._ctx && this._gainSfx) {
+    if (this._ctx?.state === "running" && this._gainSfx) {
       const buf = this._buffers.get(key);
       if (buf) {
         const src = this._ctx.createBufferSource();
@@ -157,6 +188,7 @@ export class AudioBank {
         g.gain.value = finalGain;
 
         src.connect(g).connect(this._gainSfx);
+        this._trackVoice(src);
         src.start();
         return;
       }
@@ -184,7 +216,7 @@ export class AudioBank {
 
       const p = a.play();
       if (p && typeof p.catch === "function") {
-        p.catch(() => this._swapToFallback(key));
+        p.catch(() => { if (this._active) this._swapToFallback(key); });
       }
     } catch {
       this._swapToFallback(key);
@@ -192,7 +224,7 @@ export class AudioBank {
   }
 
   playCountdownTone(number) {
-    if (this._muted || !this._ctx || !this._gainSfx) return false;
+    if (this._muted || !this._active || !this._ctx || !this._gainSfx) return false;
     if (this._ctx.state !== "running") {
       this._ctx.resume?.().catch(() => {});
       return false;
@@ -211,6 +243,7 @@ export class AudioBank {
       gain.gain.linearRampToValueAtTime(go ? 0.20 : 0.15, at + 0.012);
       gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
       oscillator.connect(gain).connect(this._gainSfx);
+      this._trackVoice(oscillator);
       oscillator.start(at);
       oscillator.stop(at + duration + 0.015);
       return true;
@@ -218,7 +251,7 @@ export class AudioBank {
   }
 
   _applyGains() {
-    const master = this._muted ? 0 : clamp01(this._mix.master);
+    const master = this._muted || !this._active ? 0 : clamp01(this._mix.master);
     if (this._gainMaster) this._gainMaster.gain.value = master;
 
     // SFX gain is separate so future music can be added cleanly.
@@ -241,6 +274,9 @@ export class AudioBank {
     const next = info.fallbacks.find((u) => u !== info.primary);
     if (!next) return;
 
+    for (const a of this._pools[key] || []) {
+      try { a.pause(); a.currentTime = 0; } catch {}
+    }
     info.primary = next;
     this._pools[key] = makePool(next, 6);
 

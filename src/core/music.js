@@ -17,6 +17,7 @@ export class MusicLoop {
 
     this._timer = 0;
     this._running = false;
+    this._voices = new Set();
 
     this._tempo = 104;
     this._mode = "minor";
@@ -106,7 +107,7 @@ export class MusicLoop {
 
   start({ themeId } = {}) {
     if (!this._enabled) return;
-    if (!this._ctx || !this._dest) return;
+    if (!this._ctx || !this._dest || this._ctx.state !== "running") return;
 
     this.attach({ ctx: this._ctx, destination: this._dest });
     this.setTheme(themeId);
@@ -125,11 +126,24 @@ export class MusicLoop {
   }
 
   stop() {
-    if (!this._running) return;
     this._running = false;
     if (this._timer) window.clearInterval(this._timer);
     this._timer = 0;
+    for (const source of this._voices) {
+      try { source.stop(); } catch {}
+      try { source.disconnect(); } catch {}
+    }
+    this._voices.clear();
+    this._duck = { amount: 0, until: 0 };
     this._applyGain(0);
+  }
+
+  _trackVoice(source) {
+    this._voices.add(source);
+    source.onended = () => {
+      this._voices.delete(source);
+      try { source.disconnect(); } catch {}
+    };
   }
 
   // Briefly reduce music volume when SFX plays (feels more "premium")
@@ -142,7 +156,7 @@ export class MusicLoop {
   }
 
   _tick() {
-    if (!this._running || !this._ctx) return;
+    if (!this._running || !this._ctx || this._ctx.state !== "running") return;
 
     const now = this._ctx.currentTime;
     const ahead = 0.35;
@@ -208,6 +222,7 @@ export class MusicLoop {
     osc.connect(g);
     g.connect(this._gain);
 
+    this._trackVoice(osc);
     osc.start(t);
     osc.stop(t + dur + 0.03);
   }
@@ -237,6 +252,7 @@ export class MusicLoop {
     f.connect(g);
     g.connect(this._gain);
 
+    this._trackVoice(src);
     src.start(t);
     src.stop(t + dur + 0.01);
   }

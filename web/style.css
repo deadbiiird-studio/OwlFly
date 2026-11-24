@@ -529,3 +529,78 @@ input[type="range"] {
     grid-template-columns: 64px 1fr auto;
   }
 }
+
+/* Cold-launch branding and lifecycle-only resume control. */
+.brandIntro {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  text-align: center;
+  background: radial-gradient(ellipse at 50% 38%, #152c42 0%, #08111d 48%, #03070e 100%);
+  color: #f5deb0;
+}
+.brandIntroContent { width: min(88%, 440px); padding: 18px; }
+.brandEmblem {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #eac77e;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #eac77e38, #25415a66 52%, transparent 53%);
+  box-shadow: 0 0 36px #eac77e26;
+  animation: brandReveal 0.9s ease both;
+}
+.brandEmblem span {
+  width: 46px;
+  height: 46px;
+  border: 1px solid #f5deb0;
+  background: linear-gradient(145deg, #eac77e66, transparent 55%);
+}
+.brandName {
+  margin: 0;
+  font-size: clamp(1.25rem, 5vw, 2rem);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  animation: brandReveal 0.8s 0.25s ease both;
+}
+.brandPresents {
+  margin: 12px 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  animation: brandReveal 0.7s 0.65s ease both;
+}
+.brandOwl {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin: 8px auto 20px;
+  animation: brandFlight 0.75s 0.85s ease-out both;
+}
+.brandSkip { background: transparent; border: 1px solid #f5deb055; font-size: 0.85rem; }
+.brandReduced *, .brandReduced *::before { animation: none !important; }
+@keyframes brandReveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes brandFlight {
+  from { opacity: 0; transform: translate(-36px, 12px); }
+  to { opacity: 1; transform: translate(0, 0); }
+}
+.resumeFlight {
+  position: absolute;
+  inset: 0;
+  z-index: 21;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  background: rgba(3, 7, 14, 0.52);
+}
+.resumeFlight button { min-height: 48px; }
+@media (prefers-reduced-motion: reduce) {
+  .brandIntro * { animation: none !important; }
+}
