@@ -320,6 +320,10 @@ export function boot() {
   const spawner = new Spawner(rng, difficulty);
 
   let settings = loadSettings();
+  // Device preference supersedes the legacy player-facing motion toggle.
+  const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  settings.reducedMotion = !!motionPreference?.matches;
+  motionPreference?.addEventListener?.("change", (event) => { settings.reducedMotion = event.matches; });
   let profile = getSafeProfile();
 
   const audio = new AudioBank(
@@ -616,9 +620,7 @@ hit: audioCandidates("hit.wav"),
 
     uiHud.show({
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
     uiHud.toast?.("Tap to flap · Hold to climb", 2400);
@@ -641,7 +643,6 @@ hit: audioCandidates("hit.wav"),
     uiMenu.show({
       best: scoring.best,
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
       themes: THEMES,
@@ -655,7 +656,6 @@ hit: audioCandidates("hit.wav"),
       stats: profile.stats,
       onStart: () => startGame(),
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
       onToggleMusic: () => toggleMusic(),
       onAudioChange: (partial) => updateAudio(partial),
       onResetAudio: () => resetAudio(),
@@ -681,7 +681,6 @@ hit: audioCandidates("hit.wav"),
       score: scoring.score,
       best: scoring.best,
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
       earned: runEarned,
@@ -689,7 +688,6 @@ hit: audioCandidates("hit.wav"),
       onRestart: () => startGame(),
       onMenu: () => toMenu(),
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
     });
 
     applyMusicState();
@@ -703,14 +701,7 @@ hit: audioCandidates("hit.wav"),
 
     if (state.mode === "menu") toMenu();
     if (state.mode === "gameover") gameOver();
-  }
-
-  function toggleReducedMotion() {
-    settings.reducedMotion = !settings.reducedMotion;
-    saveSettings(settings);
-
-    if (state.mode === "menu") toMenu();
-    if (state.mode === "gameover") gameOver();
+    uiHud.setMuted(settings.muted);
   }
 
   function toggleMusic() {
