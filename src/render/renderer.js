@@ -893,8 +893,7 @@ function pickFrame(frames, t, fps, reducedMotion) {
 
 function pickOwlFrame(frames, owl, t, reducedMotion) {
   if (!Array.isArray(frames) || frames.length < 3) return null;
-  if (reducedMotion) return frames[1] || frames[0] || null;
-
+  // Wing position communicates input and remains visible in reduced motion.
   if (Number.isInteger(owl?.wingFrameIndex)) {
     return frames[owl.wingFrameIndex] || frames[1];
   }
@@ -905,6 +904,7 @@ function pickOwlFrame(frames, owl, t, reducedMotion) {
     return frames[1];
   }
 
+  if (reducedMotion) return frames[1] || frames[0] || null;
   return frames[Math.floor(t * 10) % 3] || frames[1] || frames[0] || null;
 }
 
