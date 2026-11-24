@@ -17,7 +17,7 @@ export class MenuUI {
   }
 
   show({
-    best,
+    optionsOnly = false,
     muted,
     musicEnabled,
     audio,
@@ -27,6 +27,7 @@ export class MenuUI {
     achievements,
     stats,
     onStart,
+    onBack,
     onToggleMute,
     onToggleMusic,
     onAudioChange,
@@ -66,15 +67,14 @@ export class MenuUI {
 
     this.el.innerHTML = `
       <div class="panel menuPanel minimalMenu">
-        <div class="menuHero">
-          <h1 class="title">OwlFly</h1>
-          <div class="menuBest"><span>Best Flight</span><strong>${best}</strong></div>
-        </div>
-        <div class="row startRow wideRow">
-          <button type="button" class="primary big wideBtn" id="startBtn">Start Flight</button>
-        </div>
-        <details class="menuMore" id="menuMore">
-          <summary id="moreSummary">More</summary>
+        ${!optionsOnly ? `
+          <div class="menuHero"><h1 class="title">OwlFly</h1></div>
+          <div class="row startRow wideRow">
+            <button type="button" class="primary big wideBtn" id="startBtn">Fly</button>
+          </div>
+        ` : `
+          <div class="menuHero"><h1 class="title optionsTitle">Options</h1></div>
+          <button type="button" id="optionsBack" class="wideBtn">Back</button>
           <div class="moreBody">
             <div class="statChips">
               <span class="badge">Runs ${runs}</span>
@@ -157,17 +157,17 @@ export class MenuUI {
           </div>
         </details>
 
-        <p class="footer"><small>Enter / Space starts a run • Esc pauses during play</small></p>
         <p class="footer"><a class="privacyLink" id="privacyLink" href="./privacy.html">Privacy Policy</a></p>
           </div>
-        </details>
+        `}
       </div>
     `;
 
     const startBtn = this.el.querySelector("#startBtn");
     startBtn?.addEventListener("click", onStart);
 
-    this._attachStartHotkeys(onStart);
+    this.el.querySelector("#optionsBack")?.addEventListener("click", onBack);
+    this._attachStartHotkeys(optionsOnly ? null : onStart);
     for (const details of this.el.querySelectorAll("details")) {
       details.open = openSections.has(details.id);
     }
@@ -243,7 +243,7 @@ export class MenuUI {
       }
       e.preventDefault();
       e.stopImmediatePropagation();
-      if (!e.repeat && !this.el.querySelector("#menuMore")?.open) onStart?.();
+      if (!e.repeat) onStart?.();
     };
 
     window.addEventListener("keydown", this._startHotkeys, { capture: true });
