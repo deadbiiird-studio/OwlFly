@@ -342,7 +342,7 @@ hit: audioCandidates("hit.wav"),
   const uiOver = new GameOverUI(gameOverEl);
 
   const state = {
-    mode: "menu",
+    mode: "intro",
     countdownLabel: "",
     goTimer: 0,
     paused: false,
@@ -370,9 +370,99 @@ hit: audioCandidates("hit.wav"),
   let runEarned = [];
   let runUnlockedThemes = [];
   let profileDirty = false;
+  let foreground = true;
+  let nativeActive = window.__owlflyNativeActive !== false;
+  let pageActive = true;
+  let needsResume = false;
+  let activityEpoch = 0;
+  let introTimer = 0;
+
+  const intro = ensureUi("brandIntro");
+  intro.className = "brandIntro hidden";
+  intro.innerHTML = `
+    <div class="brandIntroContent">
+      <div class="brandEmblem" aria-hidden="true"><span></span></div>
+      <p class="brandName">SkyGlass Partners</p>
+      <p class="brandPresents">Presents</p>
+      <img class="brandOwl" src="./assets/sprites/owl_frame_1.png" alt="">
+      <button type="button" class="brandSkip">Skip intro</button>
+    </div>`;
+  const resumePanel = ensureUi("resumeFlight");
+  resumePanel.className = "resumeFlight hidden";
+  resumePanel.innerHTML = '<button type="button" class="primary">Resume flight</button>';
+
+  function finishIntro() {
+    if (state.mode !== "intro" || !foreground) return;
+    clearTimeout(introTimer);
+    intro.classList.add("hidden");
+    input.requireFreshPress();
+    toMenu();
+  }
+
+  function scheduleIntro() {
+    clearTimeout(introTimer);
+    if (state.mode !== "intro" || !foreground) return;
+    const reduced = settings.reducedMotion || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    intro.classList.toggle("brandReduced", !!reduced);
+    introTimer = setTimeout(finishIntro, reduced ? 1200 : 2500);
+  }
+
+  function resumeFlight() {
+    if (!foreground || !needsResume) return;
+    needsResume = false;
+    resumePanel.classList.add("hidden");
+    input.requireFreshPress();
+    state.paused = false;
+    loop.setPaused(false);
+    audio.setActive(true);
+    void prime();
+  }
+
+  function bindOverlayButton(button, action) {
+    button.addEventListener("click", action);
+    button.addEventListener("keydown", (event) => {
+      if (event.code !== "Enter" && event.code !== "Space") return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!event.repeat) action();
+    });
+  }
+
+  bindOverlayButton(intro.querySelector("button"), finishIntro);
+  bindOverlayButton(resumePanel.querySelector("button"), resumeFlight);
+
+  function syncActivity() {
+    const active = nativeActive && pageActive && !document.hidden;
+    if (active === foreground) return;
+    foreground = active;
+    activityEpoch++;
+    input.clearHeld();
+    if (!active) {
+      clearTimeout(introTimer);
+      music.stop();
+      audio.setActive(false);
+      if (state.mode === "playing" || state.mode === "countdown") {
+        needsResume = true;
+        state.paused = true;
+      }
+      loop.stop();
+      return;
+    }
+    loop.start();
+    loop.setPaused(state.paused);
+    if (needsResume && (state.mode === "playing" || state.mode === "countdown")) {
+      resumePanel.classList.remove("hidden");
+    } else {
+      needsResume = false;
+      audio.setActive(true);
+      if (state.mode === "intro") scheduleIntro();
+      else if (audio.getContext()) void prime();
+    }
+  }
 
   function applyMusicState() {
     const enabled =
+      foreground && !needsResume && state.mode !== "intro" &&
       !settings.muted &&
       settings.musicEnabled !== false &&
       (settings?.audio?.music ?? 0) > 0;
@@ -386,11 +476,13 @@ hit: audioCandidates("hit.wav"),
   }
 
   async function prime() {
+    if (!foreground || needsResume || state.mode === "intro") return;
     window.removeEventListener("pointerdown", prime);
     window.removeEventListener("keydown", prime);
 
     audio.setMix(settings.audio);
     await audio.prime();
+    if (!foreground || needsResume || state.mode === "intro") return;
 
     const ctx = audio.getContext();
     const dest = audio.getMasterGain() || ctx?.destination;
@@ -401,8 +493,8 @@ hit: audioCandidates("hit.wav"),
     applyMusicState();
   }
 
-  window.addEventListener("pointerdown", prime, { once: true });
-  window.addEventListener("keydown", prime, { once: true });
+  window.addEventListener("pointerdown", prime);
+  window.addEventListener("keydown", prime);
 
   function handleProgress(evt) {
     const res = applyProgressEvent(profile, evt);
@@ -484,11 +576,12 @@ hit: audioCandidates("hit.wav"),
   let startingGame = false;
 
   async function startGame() {
-    if (startingGame || state.mode === "playing" || state.mode === "countdown") return;
+    if (!foreground || needsResume || startingGame || state.mode === "intro" || state.mode === "playing" || state.mode === "countdown") return;
+    const startEpoch = activityEpoch;
 
     // Make the Start/Restart tap a fresh opportunity to unlock or resume sound.
     // Do this before awaiting sprites so the request still has user activation.
-    const soundReady = audio.prime();
+    const soundReady = prime();
     startingGame = true;
     try {
       await Promise.all([spritesReady, soundReady]);
@@ -496,6 +589,7 @@ hit: audioCandidates("hit.wav"),
       startingGame = false;
     }
 
+    if (!foreground || startEpoch !== activityEpoch) return;
     input.consumeJump();
 
     hardResetRun();
@@ -526,6 +620,9 @@ hit: audioCandidates("hit.wav"),
 
   function toMenu() {
     state.mode = "menu";
+    needsResume = false;
+    resumePanel.classList.add("hidden");
+    loop.setPaused(false);
     state.countdownLabel = "";
     state.goTimer = 0;
     state.paused = false;
@@ -562,6 +659,14 @@ hit: audioCandidates("hit.wav"),
 
   function gameOver() {
     state.mode = "gameover";
+    state.paused = false;
+    needsResume = false;
+    resumePanel.classList.add("hidden");
+    loop.setPaused(false);
+    if (foreground) {
+      audio.setActive(true);
+      if (audio.getContext()) void prime();
+    }
     uiHud.hide();
 
     uiOver.show({
@@ -803,6 +908,11 @@ hit: audioCandidates("hit.wav"),
   }
 
   function step(dt) {
+    if (!foreground || state.mode === "intro" || needsResume) {
+      input.consumeJump();
+      input.consumePause();
+      return;
+    }
     if (input.consumePause() && (state.mode === "playing" || state.mode === "countdown")) {
       state.paused = !state.paused;
       loop.setPaused(state.paused);
@@ -923,8 +1033,20 @@ hit: audioCandidates("hit.wav"),
   }
 
   const loop = new GameLoop(step, render);
+  uiMenu.hide();
+  uiHud.hide();
+  uiOver.hide();
+  intro.classList.remove("hidden");
+  document.addEventListener("visibilitychange", syncActivity);
+  window.addEventListener("pagehide", () => { pageActive = false; syncActivity(); });
+  window.addEventListener("pageshow", () => { pageActive = true; syncActivity(); });
+  window.addEventListener("owlfly-native-activity", () => {
+    nativeActive = window.__owlflyNativeActive !== false;
+    syncActivity();
+  });
   loop.start();
-  toMenu();
+  syncActivity();
+  scheduleIntro();
 }
 
 boot();

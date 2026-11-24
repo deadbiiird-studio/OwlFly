@@ -35,13 +35,7 @@ export class Input {
       this._heldPointers.delete(e.pointerId);
       this._releaseIfIdle();
     };
-    this._onBlur = () => {
-      this._heldPointers.clear();
-      this._heldKeys.clear();
-      this._jump = false;
-      this._repeatTimer = 0;
-      this._blockedUntilRelease = false;
-    };
+    this._onBlur = () => this.clearHeld();
 
     window.addEventListener("keydown", this._onKeyDown, { passive: false });
     window.addEventListener("keyup", this._onKeyUp, { passive: false });
@@ -73,6 +67,14 @@ export class Input {
       return true;
     }
     return false;
+  }
+  clearHeld() {
+    this._heldPointers.clear();
+    this._heldKeys.clear();
+    this._jump = false;
+    this._pause = false;
+    this._repeatTimer = 0;
+    this._blockedUntilRelease = false;
   }
   requireFreshPress() {
     this._jump = false;
