@@ -249,6 +249,67 @@ function structuredCloneFallback(x) {
 // - primes on first gesture (mobile policy)
 // - WebAudio for low-latency SFX when available
 // - HTMLAudio pool fallback (covers slow decode + older WebViews)
+
+// Offline, deterministic three-note studio cue. A separate media element is
+// explicitly stopped on skip, background, or completion; no music loop.
+function makeBrandIntroWave() {
+  const rate = 24000, length = Math.round(rate * 1.1);
+  const wave = new ArrayBuffer(44 + length * 2);
+  const view = new DataView(wave);
+  const tag = (at, s) => { for (let i = 0; i < s.length; i++) view.setUint8(at + i, s.charCodeAt(i)); };
+  tag(0, "RIFF"); view.setUint32(4, 36 + length * 2, true);
+  tag(8, "WAVE"); tag(12, "fmt "); view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true);
+  view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  tag(36, "data"); view.setUint32(40, length * 2, true);
+  const notes = [[0.04, 523.25], [0.25, 659.25], [0.46, 783.99]];
+  for (let i = 0; i < length; i++) {
+    const time = i / rate;
+    let sample = 0;
+    for (const [start, freq] of notes) {
+      const t = time - start;
+      if (t < 0 || t > 0.60) continue;
+      const env = Math.min(1, t / 0.025) * Math.exp(-5.5 * t) * Math.min(1, (0.60 - t) / 0.08);
+      sample += 0.22 * env * (Math.sin(2 * Math.PI * freq * t) + 0.18 * Math.sin(2 * Math.PI * freq * 2.01 * t));
+    }
+    view.setInt16(44 + i * 2, Math.round(Math.max(-1, Math.min(1, sample)) * 32767), true);
+  }
+  return wave;
+}
+class BrandIntroSound {
+  constructor({ createMedia = () => new Audio(), createURL = (wave) => URL.createObjectURL(new Blob([wave], { type: "audio/wav" })), revokeURL = (url) => URL.revokeObjectURL(url) } = {}) {
+    this.createMedia = createMedia;
+    this.createURL = createURL;
+    this.revokeURL = revokeURL;
+    this.attempted = false;
+    this.media = null;
+    this.url = null;
+  }
+  play(settings) {
+    if (this.attempted) return false;
+    this.attempted = true;
+    const volume = clamp01((settings.audio?.master ?? 1) * (settings.audio?.sfx ?? 1) * 0.65);
+    if (settings.muted || volume === 0) return false;
+    try {
+      this.url = this.createURL(makeBrandIntroWave());
+      this.media = this.createMedia();
+      this.media.src = this.url;
+      this.media.volume = volume;
+      this.media.loop = false;
+      const pending = this.media.play();
+      pending?.catch(() => this.stop()); // browsers may disallow autoplay
+      return true;
+    } catch { this.stop(); return false; }
+  }
+  stop() {
+    if (this.media) {
+      try { this.media.pause(); this.media.currentTime = 0; this.media.removeAttribute("src"); this.media.load(); } catch {}
+      this.media = null;
+    }
+    if (this.url) { this.revokeURL(this.url); this.url = null; }
+  }
+}
 class AudioBank {
   constructor(map, mix = {}) {
     this._map = map || {};
@@ -4877,15 +4938,20 @@ hit: audioCandidates("hit.wav"),
   let needsResume = false;
   let activityEpoch = 0;
   let introTimer = 0;
+  const introSound = new BrandIntroSound();
 
   const intro = ensureUi("brandIntro");
   intro.className = "brandIntro hidden";
   intro.innerHTML = `
     <div class="brandIntroContent">
-      <div class="brandEmblem" aria-hidden="true"><span></span></div>
+      <svg class="brandEmblem" viewBox="0 0 120 112" aria-hidden="true" focusable="false">
+        <path class="brandFacet brandFacet1" d="M60 5 L60 72 L6 103 Z"/>
+        <path class="brandFacet brandFacet2" d="M60 5 L114 103 L60 72 Z"/>
+        <path class="brandFacet brandFacet3" d="M6 103 L60 72 L114 103 Z"/>
+        <path class="brandOutline" d="M60 5 L114 103 L6 103 Z M60 5 V72 L6 103 M60 72 L114 103"/>
+      </svg>
       <p class="brandName">SkyGlass Partners</p>
       <p class="brandPresents">Presents</p>
-      <img class="brandOwl" src="./assets/sprites/owl_frame_1.png" alt="">
       <button type="button" class="brandSkip">Skip intro</button>
     </div>`;
   const resumePanel = ensureUi("resumeFlight");
@@ -4895,6 +4961,7 @@ hit: audioCandidates("hit.wav"),
   function finishIntro() {
     if (state.mode !== "intro" || !foreground) return;
     clearTimeout(introTimer);
+    introSound.stop();
     intro.classList.add("hidden");
     input.requireFreshPress();
     toMenu();
@@ -4905,6 +4972,7 @@ hit: audioCandidates("hit.wav"),
     if (state.mode !== "intro" || !foreground) return;
     const reduced = settings.reducedMotion || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     intro.classList.toggle("brandReduced", !!reduced);
+    introSound.play(settings);
     introTimer = setTimeout(finishIntro, reduced ? 1200 : 2500);
   }
 
@@ -4940,6 +5008,7 @@ hit: audioCandidates("hit.wav"),
     input.clearHeld();
     if (!active) {
       clearTimeout(introTimer);
+      introSound.stop();
       music.stop();
       audio.setActive(false);
       if (state.mode === "playing" || state.mode === "countdown") {
