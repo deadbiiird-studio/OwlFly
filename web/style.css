@@ -644,3 +644,7 @@ input[type="range"] {
 @media (prefers-reduced-motion: reduce) {
   .minimalMenu button, .minimalMenu .menuToast { transition: none; }
 }
+
+/* Exactly two elements on the entrance; options are a separate post-flight view. */
+.minimalMenu .optionsTitle { font-size: 2rem; }
+.minimalMenu .moreBody { margin-top: 20px; }
