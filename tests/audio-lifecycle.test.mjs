@@ -77,7 +77,7 @@ test("brand cue is a deterministic 1.1 second offline PCM wave", () => {
   const a = new Uint8Array(makeBrandIntroWave());
   const b = new Uint8Array(makeBrandIntroWave());
   assert.deepEqual(a, b);
-  assert.equal(a.length, 44 + 24000 * 1.1 * 2);
+  assert.equal(a.length, 44 + Math.round(24000 * 1.1) * 2);
   const header = new DataView(a.buffer);
   assert.equal(header.getUint32(24, true), 24000);
   assert.equal(header.getUint16(34, true), 16);
