@@ -4009,8 +4009,7 @@ function pickFrame(frames, t, fps, reducedMotion) {
 
 function pickOwlFrame(frames, owl, t, reducedMotion) {
   if (!Array.isArray(frames) || frames.length < 3) return null;
-  if (reducedMotion) return frames[1] || frames[0] || null;
-
+  // Wing position communicates input and remains visible in reduced motion.
   if (Number.isInteger(owl?.wingFrameIndex)) {
     return frames[owl.wingFrameIndex] || frames[1];
   }
@@ -4021,6 +4020,7 @@ function pickOwlFrame(frames, owl, t, reducedMotion) {
     return frames[1];
   }
 
+  if (reducedMotion) return frames[1] || frames[0] || null;
   return frames[Math.floor(t * 10) % 3] || frames[1] || frames[0] || null;
 }
 
@@ -4092,7 +4092,6 @@ class MenuUI {
   show({
     best,
     muted,
-    reducedMotion,
     musicEnabled,
     audio,
     themes,
@@ -4102,7 +4101,6 @@ class MenuUI {
     stats,
     onStart,
     onToggleMute,
-    onToggleRM,
     onToggleMusic,
     onAudioChange,
     onResetAudio,
@@ -4131,38 +4129,43 @@ class MenuUI {
     const runs = Math.max(0, stats?.runs || 0);
     const flaps = Math.max(0, stats?.flaps || 0);
 
+    // Preserve disclosure state across sound/theme changes, not across flights.
+    const openSections = new Set([...this.el.querySelectorAll("details[open]")].map(el => el.id));
+    const oldPanel = this.el.querySelector(".menuPanel");
+    const scrollTop = oldPanel?.scrollTop || 0;
+    const focused = this.el.contains(document.activeElement) ? document.activeElement : null;
+    const focusId = focused?.id;
+    const focusTheme = focused?.getAttribute("data-theme");
+
     this.el.innerHTML = `
-      <div class="panel menuPanel sacredMenu">
+      <div class="panel menuPanel minimalMenu">
         <div class="menuHero">
-          <div class="eyebrow">Little Owl Takes Flight</div>
           <h1 class="title">OwlFly</h1>
-          <p class="sub">Fly clean. Break through. Touch the hidden sky.</p>
+          <div class="menuBest"><span>Best Flight</span><strong>${best}</strong></div>
         </div>
-
-        <div class="statChips">
-          <span class="badge strong">Best <strong>${best}</strong></span>
-          <span class="badge">Runs ${runs}</span>
-          <span class="badge">Flaps ${flaps}</span>
-        </div>
-
         <div class="row startRow wideRow">
-          <button class="primary big wideBtn" id="startBtn">Start Flight</button>
+          <button type="button" class="primary big wideBtn" id="startBtn">Start Flight</button>
         </div>
-
-        <details class="menuSection" open>
-          <summary>Flight Controls</summary>
+        <details class="menuMore" id="menuMore">
+          <summary id="moreSummary">More</summary>
+          <div class="moreBody">
+            <div class="statChips">
+              <span class="badge">Runs ${runs}</span>
+              <span class="badge">Flaps ${flaps}</span>
+            </div>
+        <details class="menuSection" id="audioSection">
+          <summary id="audioSummary">Audio</summary>
           <div class="sectionBody">
             <div class="row wideRow wrapRow">
               <button id="muteBtn">${muted ? "Unmute" : "Mute"}</button>
-              <button id="rmBtn">${reducedMotion ? "Motion: Low" : "Motion: Full"}</button>
               <button id="musicBtn">Music: ${musicEnabled === false ? "Off" : "On"}</button>
             </div>
 
           </div>
         </details>
 
-        <details class="menuSection">
-          <summary>Sky Themes</summary>
+        <details class="menuSection" id="themeSection">
+          <summary id="themeSummary">Sky Themes</summary>
           <div class="sectionBody">
             <div class="themeGrid">
               ${themeList
@@ -4197,8 +4200,8 @@ class MenuUI {
           </div>
         </details>
 
-        <details class="menuSection">
-          <summary>Achievements <span class="badge">${earnedCount}/${achList.length}</span></summary>
+        <details class="menuSection" id="achievementSection">
+          <summary id="achievementSummary">Achievements <span class="badge">${earnedCount}/${achList.length}</span></summary>
           <div class="sectionBody">
             <div class="achList">
               ${achList
@@ -4228,7 +4231,9 @@ class MenuUI {
         </details>
 
         <p class="footer"><small>Enter / Space starts a run • Esc pauses during play</small></p>
-        <p class="footer"><a class="privacyLink" href="./privacy.html">Privacy Policy</a></p>
+        <p class="footer"><a class="privacyLink" id="privacyLink" href="./privacy.html">Privacy Policy</a></p>
+          </div>
+        </details>
       </div>
     `;
 
@@ -4236,10 +4241,16 @@ class MenuUI {
     startBtn?.addEventListener("click", onStart);
 
     this._attachStartHotkeys(onStart);
-    setTimeout(() => startBtn?.focus?.(), 0);
+    for (const details of this.el.querySelectorAll("details")) {
+      details.open = openSections.has(details.id);
+    }
+    const panel = this.el.querySelector(".menuPanel");
+    if (panel) panel.scrollTop = scrollTop;
+    const restored = focusId ? this.el.querySelector("#" + focusId) :
+      [...this.el.querySelectorAll("[data-theme]")].find(el => el.getAttribute("data-theme") === focusTheme);
+    if (restored) restored.focus?.({ preventScroll: true });
 
     this.el.querySelector("#muteBtn")?.addEventListener("click", onToggleMute);
-    this.el.querySelector("#rmBtn")?.addEventListener("click", onToggleRM);
     this.el.querySelector("#musicBtn")?.addEventListener("click", onToggleMusic);
     this.el.querySelector("#resetAudioBtn")?.addEventListener("click", onResetAudio);
 
@@ -4292,11 +4303,20 @@ class MenuUI {
 
     this._startHotkeys = (e) => {
       if (e.code !== "Enter" && e.code !== "Space") return;
-      // Let focused links and controls receive their native keyboard actions.
-      if (e.target?.closest?.("a, button, input, select, textarea, [contenteditable='true']")) return;
+      // The game input listener otherwise consumes Space/Enter before native
+      // keyboard activation. Keep menu controls operable without starting a run.
+      const control = e.target?.closest?.("a, button, summary, input, select, textarea, [contenteditable='true']");
+      if (control && this.el.contains(control)) {
+        e.stopImmediatePropagation();
+        if (control.matches("button, summary") || (control.matches("a") && e.code === "Enter")) {
+          e.preventDefault();
+          if (!e.repeat) control.click();
+        }
+        return;
+      }
       e.preventDefault();
       e.stopImmediatePropagation();
-      onStart?.();
+      if (!e.repeat && !this.el.querySelector("#menuMore")?.open) onStart?.();
     };
 
     window.addEventListener("keydown", this._startHotkeys, { capture: true });
@@ -4381,16 +4401,13 @@ class HudUI {
     this.el = rootEl;
     this._pill = null;
     this._muteBtn = null;
-    this._rmBtn = null;
     this._toastEl = null;
     this._toastTimer = 0;
     this._onToggleMute = null;
-    this._onToggleRM = null;
   }
 
-  show({ muted = false, reducedMotion = false, onToggleMute, onToggleRM } = {}) {
+  show({ muted = false, onToggleMute } = {}) {
     this._onToggleMute = onToggleMute || null;
-    this._onToggleRM = onToggleRM || null;
 
     this.el.classList.remove("hidden");
     this.el.innerHTML = `
@@ -4404,9 +4421,6 @@ class HudUI {
           <button type="button" class="hudIconBtn" id="muteBtn" aria-label="Toggle mute">
             ${muted ? "🔇" : "🔊"}
           </button>
-          <button type="button" class="hudIconBtn" id="rmBtn" aria-label="Toggle reduced motion">
-            ${reducedMotion ? "🐢" : "✨"}
-          </button>
         </div>
       </div>
 
@@ -4415,11 +4429,9 @@ class HudUI {
 
     this._pill = this.el.querySelector("#scorePill");
     this._muteBtn = this.el.querySelector("#muteBtn");
-    this._rmBtn = this.el.querySelector("#rmBtn");
     this._toastEl = this.el.querySelector("#toast");
 
     this._muteBtn?.addEventListener("click", () => this._onToggleMute?.());
-    this._rmBtn?.addEventListener("click", () => this._onToggleRM?.());
   }
 
   setScore(score) {
@@ -4428,10 +4440,6 @@ class HudUI {
 
   setMuted(muted) {
     if (this._muteBtn) this._muteBtn.textContent = muted ? "🔇" : "🔊";
-  }
-
-  setReducedMotion(reducedMotion) {
-    if (this._rmBtn) this._rmBtn.textContent = reducedMotion ? "🐢" : "✨";
   }
 
   toast(message, ms = 1700) {
@@ -4458,12 +4466,10 @@ class HudUI {
 
     this._pill = null;
     this._muteBtn = null;
-    this._rmBtn = null;
     this._toastEl = null;
     clearTimeout(this._toastTimer);
     this._toastTimer = 0;
     this._onToggleMute = null;
-    this._onToggleRM = null;
   }
 }
 
@@ -4882,6 +4888,10 @@ function boot() {
   const spawner = new Spawner(rng, difficulty);
 
   let settings = loadSettings();
+  // Device preference supersedes the legacy player-facing motion toggle.
+  const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  settings.reducedMotion = !!motionPreference?.matches;
+  motionPreference?.addEventListener?.("change", (event) => { settings.reducedMotion = event.matches; });
   let profile = getSafeProfile();
 
   const audio = new AudioBank(
@@ -5178,9 +5188,7 @@ hit: audioCandidates("hit.wav"),
 
     uiHud.show({
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
     uiHud.toast?.("Tap to flap · Hold to climb", 2400);
@@ -5203,7 +5211,6 @@ hit: audioCandidates("hit.wav"),
     uiMenu.show({
       best: scoring.best,
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
       themes: THEMES,
@@ -5217,7 +5224,6 @@ hit: audioCandidates("hit.wav"),
       stats: profile.stats,
       onStart: () => startGame(),
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
       onToggleMusic: () => toggleMusic(),
       onAudioChange: (partial) => updateAudio(partial),
       onResetAudio: () => resetAudio(),
@@ -5243,7 +5249,6 @@ hit: audioCandidates("hit.wav"),
       score: scoring.score,
       best: scoring.best,
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
       earned: runEarned,
@@ -5251,7 +5256,6 @@ hit: audioCandidates("hit.wav"),
       onRestart: () => startGame(),
       onMenu: () => toMenu(),
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
     });
 
     applyMusicState();
@@ -5265,14 +5269,7 @@ hit: audioCandidates("hit.wav"),
 
     if (state.mode === "menu") toMenu();
     if (state.mode === "gameover") gameOver();
-  }
-
-  function toggleReducedMotion() {
-    settings.reducedMotion = !settings.reducedMotion;
-    saveSettings(settings);
-
-    if (state.mode === "menu") toMenu();
-    if (state.mode === "gameover") gameOver();
+    uiHud.setMuted(settings.muted);
   }
 
   function toggleMusic() {
