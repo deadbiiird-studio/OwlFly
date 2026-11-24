@@ -560,7 +560,7 @@ hit: audioCandidates("hit.wav"),
     applyMusicState();
 
     if (state.mode === "menu") {
-      toMenu();
+      toMenu(menuOptions);
     }
   }
 
@@ -628,7 +628,9 @@ hit: audioCandidates("hit.wav"),
     applyMusicState();
   }
 
-  function toMenu() {
+  let menuOptions = false;
+  function toMenu(optionsOnly = false) {
+    menuOptions = optionsOnly;
     state.mode = "menu";
     needsResume = false;
     resumePanel.classList.add("hidden");
@@ -641,7 +643,8 @@ hit: audioCandidates("hit.wav"),
     uiOver.hide();
 
     uiMenu.show({
-      best: scoring.best,
+      optionsOnly,
+      onBack: () => toMenu(),
       muted: settings.muted,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
@@ -687,6 +690,7 @@ hit: audioCandidates("hit.wav"),
       unlockedThemes: runUnlockedThemes.map((id) => getTheme(id)),
       onRestart: () => startGame(),
       onMenu: () => toMenu(),
+      onOptions: () => toMenu(true),
       onToggleMute: () => toggleMute(),
     });
 
@@ -699,7 +703,7 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
     uiHud.setMuted(settings.muted);
   }
@@ -709,7 +713,7 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
   }
 
@@ -736,7 +740,7 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
   }
 
