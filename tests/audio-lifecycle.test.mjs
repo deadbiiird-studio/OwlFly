@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { AudioBank } from "../src/core/audio.js";
+import { AudioBank, BrandIntroSound, makeBrandIntroWave } from "../src/core/audio.js";
 import { MusicLoop } from "../src/core/music.js";
 
 test("backgrounding blocks SFX, stops queued voices and pauses every fallback", async () => {
@@ -71,4 +71,43 @@ test("music stop clears scheduler and all previously scheduled voices", () => {
     music.start();
     assert.equal(intervals, 2);
   } finally { globalThis.window = previous; }
+});
+
+test("brand cue is a deterministic 1.1 second offline PCM wave", () => {
+  const a = new Uint8Array(makeBrandIntroWave());
+  const b = new Uint8Array(makeBrandIntroWave());
+  assert.deepEqual(a, b);
+  assert.equal(a.length, 44 + Math.round(24000 * 1.1) * 2);
+  const header = new DataView(a.buffer);
+  assert.equal(header.getUint32(24, true), 24000);
+  assert.equal(header.getUint16(34, true), 16);
+  assert.ok(a.slice(44).some(v => v !== 0));
+});
+
+test("brand cue plays once, respects settings, and stops immediately", () => {
+  let plays = 0, pauses = 0, loads = 0, revoked = 0;
+  const media = { play: () => { plays++; return Promise.resolve(); }, pause: () => { pauses++; }, removeAttribute() {}, load: () => { loads++; } };
+  const opts = { createMedia: () => media, createURL: () => "blob:test", revokeURL: () => { revoked++; } };
+  const cue = new BrandIntroSound(opts);
+  assert.equal(cue.play({ muted: false, audio: { master: 0.5, sfx: 0.5 } }), true);
+  assert.equal(media.volume, 0.1625);
+  assert.equal(cue.play({}), false);
+  cue.stop(); cue.stop();
+  assert.deepEqual([plays, pauses, loads, revoked], [1, 1, 1, 1]);
+  assert.equal(cue.play({}), false);
+  assert.equal(new BrandIntroSound(opts).play({ muted: true }), false);
+  assert.equal(new BrandIntroSound(opts).play({ audio: { sfx: 0 } }), false);
+  assert.equal(plays, 1);
+});
+
+test("autoplay rejection releases the intro sound without retries", async () => {
+  let released = 0;
+  const cue = new BrandIntroSound({
+    createMedia: () => ({ play: () => Promise.reject(new Error("autoplay blocked")), pause() {}, removeAttribute() {}, load() {} }),
+    createURL: () => "blob:test", revokeURL: () => { released++; }
+  });
+  assert.equal(cue.play({}), true);
+  await Promise.resolve();
+  assert.equal(released, 1);
+  assert.equal(cue.play({}), false);
 });

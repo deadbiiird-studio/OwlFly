@@ -249,6 +249,67 @@ function structuredCloneFallback(x) {
 // - primes on first gesture (mobile policy)
 // - WebAudio for low-latency SFX when available
 // - HTMLAudio pool fallback (covers slow decode + older WebViews)
+
+// Offline, deterministic three-note studio cue. A separate media element is
+// explicitly stopped on skip, background, or completion; no music loop.
+function makeBrandIntroWave() {
+  const rate = 24000, length = Math.round(rate * 1.1);
+  const wave = new ArrayBuffer(44 + length * 2);
+  const view = new DataView(wave);
+  const tag = (at, s) => { for (let i = 0; i < s.length; i++) view.setUint8(at + i, s.charCodeAt(i)); };
+  tag(0, "RIFF"); view.setUint32(4, 36 + length * 2, true);
+  tag(8, "WAVE"); tag(12, "fmt "); view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true);
+  view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  tag(36, "data"); view.setUint32(40, length * 2, true);
+  const notes = [[0.04, 523.25], [0.25, 659.25], [0.46, 783.99]];
+  for (let i = 0; i < length; i++) {
+    const time = i / rate;
+    let sample = 0;
+    for (const [start, freq] of notes) {
+      const t = time - start;
+      if (t < 0 || t > 0.60) continue;
+      const env = Math.min(1, t / 0.025) * Math.exp(-5.5 * t) * Math.min(1, (0.60 - t) / 0.08);
+      sample += 0.22 * env * (Math.sin(2 * Math.PI * freq * t) + 0.18 * Math.sin(2 * Math.PI * freq * 2.01 * t));
+    }
+    view.setInt16(44 + i * 2, Math.round(Math.max(-1, Math.min(1, sample)) * 32767), true);
+  }
+  return wave;
+}
+class BrandIntroSound {
+  constructor({ createMedia = () => new Audio(), createURL = (wave) => URL.createObjectURL(new Blob([wave], { type: "audio/wav" })), revokeURL = (url) => URL.revokeObjectURL(url) } = {}) {
+    this.createMedia = createMedia;
+    this.createURL = createURL;
+    this.revokeURL = revokeURL;
+    this.attempted = false;
+    this.media = null;
+    this.url = null;
+  }
+  play(settings) {
+    if (this.attempted) return false;
+    this.attempted = true;
+    const volume = clamp01((settings.audio?.master ?? 1) * (settings.audio?.sfx ?? 1) * 0.65);
+    if (settings.muted || volume === 0) return false;
+    try {
+      this.url = this.createURL(makeBrandIntroWave());
+      this.media = this.createMedia();
+      this.media.src = this.url;
+      this.media.volume = volume;
+      this.media.loop = false;
+      const pending = this.media.play();
+      pending?.catch(() => this.stop()); // browsers may disallow autoplay
+      return true;
+    } catch { this.stop(); return false; }
+  }
+  stop() {
+    if (this.media) {
+      try { this.media.pause(); this.media.currentTime = 0; this.media.removeAttribute("src"); this.media.load(); } catch {}
+      this.media = null;
+    }
+    if (this.url) { this.revokeURL(this.url); this.url = null; }
+  }
+}
 class AudioBank {
   constructor(map, mix = {}) {
     this._map = map || {};
@@ -3948,8 +4009,7 @@ function pickFrame(frames, t, fps, reducedMotion) {
 
 function pickOwlFrame(frames, owl, t, reducedMotion) {
   if (!Array.isArray(frames) || frames.length < 3) return null;
-  if (reducedMotion) return frames[1] || frames[0] || null;
-
+  // Wing position communicates input and remains visible in reduced motion.
   if (Number.isInteger(owl?.wingFrameIndex)) {
     return frames[owl.wingFrameIndex] || frames[1];
   }
@@ -3960,6 +4020,7 @@ function pickOwlFrame(frames, owl, t, reducedMotion) {
     return frames[1];
   }
 
+  if (reducedMotion) return frames[1] || frames[0] || null;
   return frames[Math.floor(t * 10) % 3] || frames[1] || frames[0] || null;
 }
 
@@ -4029,9 +4090,8 @@ class MenuUI {
   }
 
   show({
-    best,
+    optionsOnly = false,
     muted,
-    reducedMotion,
     musicEnabled,
     audio,
     themes,
@@ -4040,8 +4100,8 @@ class MenuUI {
     achievements,
     stats,
     onStart,
+    onBack,
     onToggleMute,
-    onToggleRM,
     onToggleMusic,
     onAudioChange,
     onResetAudio,
@@ -4070,38 +4130,42 @@ class MenuUI {
     const runs = Math.max(0, stats?.runs || 0);
     const flaps = Math.max(0, stats?.flaps || 0);
 
+    // Preserve disclosure state across sound/theme changes, not across flights.
+    const openSections = new Set([...this.el.querySelectorAll("details[open]")].map(el => el.id));
+    const oldPanel = this.el.querySelector(".menuPanel");
+    const scrollTop = oldPanel?.scrollTop || 0;
+    const focused = this.el.contains(document.activeElement) ? document.activeElement : null;
+    const focusId = focused?.id;
+    const focusTheme = focused?.getAttribute("data-theme");
+
     this.el.innerHTML = `
-      <div class="panel menuPanel sacredMenu">
-        <div class="menuHero">
-          <div class="eyebrow">Little Owl Takes Flight</div>
-          <h1 class="title">OwlFly</h1>
-          <p class="sub">Fly clean. Break through. Touch the hidden sky.</p>
-        </div>
-
-        <div class="statChips">
-          <span class="badge strong">Best <strong>${best}</strong></span>
-          <span class="badge">Runs ${runs}</span>
-          <span class="badge">Flaps ${flaps}</span>
-        </div>
-
-        <div class="row startRow wideRow">
-          <button class="primary big wideBtn" id="startBtn">Start Flight</button>
-        </div>
-
-        <details class="menuSection" open>
-          <summary>Flight Controls</summary>
+      <div class="panel menuPanel minimalMenu">
+        ${!optionsOnly ? `
+          <div class="menuHero"><h1 class="title">OwlFly</h1></div>
+          <div class="row startRow wideRow">
+            <button type="button" class="primary big wideBtn" id="startBtn">Fly</button>
+          </div>
+        ` : `
+          <div class="menuHero"><h1 class="title optionsTitle">Options</h1></div>
+          <button type="button" id="optionsBack" class="wideBtn">Back</button>
+          <div class="moreBody">
+            <div class="statChips">
+              <span class="badge">Runs ${runs}</span>
+              <span class="badge">Flaps ${flaps}</span>
+            </div>
+        <details class="menuSection" id="audioSection">
+          <summary id="audioSummary">Audio</summary>
           <div class="sectionBody">
             <div class="row wideRow wrapRow">
               <button id="muteBtn">${muted ? "Unmute" : "Mute"}</button>
-              <button id="rmBtn">${reducedMotion ? "Motion: Low" : "Motion: Full"}</button>
               <button id="musicBtn">Music: ${musicEnabled === false ? "Off" : "On"}</button>
             </div>
 
           </div>
         </details>
 
-        <details class="menuSection">
-          <summary>Sky Themes</summary>
+        <details class="menuSection" id="themeSection">
+          <summary id="themeSummary">Sky Themes</summary>
           <div class="sectionBody">
             <div class="themeGrid">
               ${themeList
@@ -4136,8 +4200,8 @@ class MenuUI {
           </div>
         </details>
 
-        <details class="menuSection">
-          <summary>Achievements <span class="badge">${earnedCount}/${achList.length}</span></summary>
+        <details class="menuSection" id="achievementSection">
+          <summary id="achievementSummary">Achievements <span class="badge">${earnedCount}/${achList.length}</span></summary>
           <div class="sectionBody">
             <div class="achList">
               ${achList
@@ -4166,19 +4230,27 @@ class MenuUI {
           </div>
         </details>
 
-        <p class="footer"><small>Enter / Space starts a run • Esc pauses during play</small></p>
-        <p class="footer"><a class="privacyLink" href="./privacy.html">Privacy Policy</a></p>
+        <p class="footer"><a class="privacyLink" id="privacyLink" href="./privacy.html">Privacy Policy</a></p>
+          </div>
+        `}
       </div>
     `;
 
     const startBtn = this.el.querySelector("#startBtn");
     startBtn?.addEventListener("click", onStart);
 
-    this._attachStartHotkeys(onStart);
-    setTimeout(() => startBtn?.focus?.(), 0);
+    this.el.querySelector("#optionsBack")?.addEventListener("click", onBack);
+    this._attachStartHotkeys(optionsOnly ? null : onStart);
+    for (const details of this.el.querySelectorAll("details")) {
+      details.open = openSections.has(details.id);
+    }
+    const panel = this.el.querySelector(".menuPanel");
+    if (panel) panel.scrollTop = scrollTop;
+    const restored = focusId ? this.el.querySelector("#" + focusId) :
+      [...this.el.querySelectorAll("[data-theme]")].find(el => el.getAttribute("data-theme") === focusTheme);
+    if (restored) restored.focus?.({ preventScroll: true });
 
     this.el.querySelector("#muteBtn")?.addEventListener("click", onToggleMute);
-    this.el.querySelector("#rmBtn")?.addEventListener("click", onToggleRM);
     this.el.querySelector("#musicBtn")?.addEventListener("click", onToggleMusic);
     this.el.querySelector("#resetAudioBtn")?.addEventListener("click", onResetAudio);
 
@@ -4231,11 +4303,20 @@ class MenuUI {
 
     this._startHotkeys = (e) => {
       if (e.code !== "Enter" && e.code !== "Space") return;
-      // Let focused links and controls receive their native keyboard actions.
-      if (e.target?.closest?.("a, button, input, select, textarea, [contenteditable='true']")) return;
+      // The game input listener otherwise consumes Space/Enter before native
+      // keyboard activation. Keep menu controls operable without starting a run.
+      const control = e.target?.closest?.("a, button, summary, input, select, textarea, [contenteditable='true']");
+      if (control && this.el.contains(control)) {
+        e.stopImmediatePropagation();
+        if (control.matches("button, summary") || (control.matches("a") && e.code === "Enter")) {
+          e.preventDefault();
+          if (!e.repeat) control.click();
+        }
+        return;
+      }
       e.preventDefault();
       e.stopImmediatePropagation();
-      onStart?.();
+      if (!e.repeat) onStart?.();
     };
 
     window.addEventListener("keydown", this._startHotkeys, { capture: true });
@@ -4320,16 +4401,13 @@ class HudUI {
     this.el = rootEl;
     this._pill = null;
     this._muteBtn = null;
-    this._rmBtn = null;
     this._toastEl = null;
     this._toastTimer = 0;
     this._onToggleMute = null;
-    this._onToggleRM = null;
   }
 
-  show({ muted = false, reducedMotion = false, onToggleMute, onToggleRM } = {}) {
+  show({ muted = false, onToggleMute } = {}) {
     this._onToggleMute = onToggleMute || null;
-    this._onToggleRM = onToggleRM || null;
 
     this.el.classList.remove("hidden");
     this.el.innerHTML = `
@@ -4343,9 +4421,6 @@ class HudUI {
           <button type="button" class="hudIconBtn" id="muteBtn" aria-label="Toggle mute">
             ${muted ? "🔇" : "🔊"}
           </button>
-          <button type="button" class="hudIconBtn" id="rmBtn" aria-label="Toggle reduced motion">
-            ${reducedMotion ? "🐢" : "✨"}
-          </button>
         </div>
       </div>
 
@@ -4354,11 +4429,9 @@ class HudUI {
 
     this._pill = this.el.querySelector("#scorePill");
     this._muteBtn = this.el.querySelector("#muteBtn");
-    this._rmBtn = this.el.querySelector("#rmBtn");
     this._toastEl = this.el.querySelector("#toast");
 
     this._muteBtn?.addEventListener("click", () => this._onToggleMute?.());
-    this._rmBtn?.addEventListener("click", () => this._onToggleRM?.());
   }
 
   setScore(score) {
@@ -4367,10 +4440,6 @@ class HudUI {
 
   setMuted(muted) {
     if (this._muteBtn) this._muteBtn.textContent = muted ? "🔇" : "🔊";
-  }
-
-  setReducedMotion(reducedMotion) {
-    if (this._rmBtn) this._rmBtn.textContent = reducedMotion ? "🐢" : "✨";
   }
 
   toast(message, ms = 1700) {
@@ -4397,12 +4466,10 @@ class HudUI {
 
     this._pill = null;
     this._muteBtn = null;
-    this._rmBtn = null;
     this._toastEl = null;
     clearTimeout(this._toastTimer);
     this._toastTimer = 0;
     this._onToggleMute = null;
-    this._onToggleRM = null;
   }
 }
 
@@ -4420,6 +4487,7 @@ class GameOverUI {
     unlockedThemes,
     onRestart,
     onMenu,
+    onOptions,
   }) {
     const earnedList = Array.isArray(earned) ? earned : [];
     const themeList = Array.isArray(unlockedThemes) ? unlockedThemes : [];
@@ -4492,12 +4560,14 @@ class GameOverUI {
 
         <div class="row wideRow compactRow">
           <button id="menuBtn">Return to Gate</button>
+          <button type="button" id="optionsBtn">Options</button>
         </div>
       </div>
     `;
 
     this.el.querySelector("#restartBtn")?.addEventListener("click", onRestart);
     this.el.querySelector("#menuBtn")?.addEventListener("click", onMenu);
+    this.el.querySelector("#optionsBtn")?.addEventListener("click", onOptions);
   }
 
   hide() {
@@ -4821,6 +4891,10 @@ function boot() {
   const spawner = new Spawner(rng, difficulty);
 
   let settings = loadSettings();
+  // Device preference supersedes the legacy player-facing motion toggle.
+  const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  settings.reducedMotion = !!motionPreference?.matches;
+  motionPreference?.addEventListener?.("change", (event) => { settings.reducedMotion = event.matches; });
   let profile = getSafeProfile();
 
   const audio = new AudioBank(
@@ -4877,15 +4951,20 @@ hit: audioCandidates("hit.wav"),
   let needsResume = false;
   let activityEpoch = 0;
   let introTimer = 0;
+  const introSound = new BrandIntroSound();
 
   const intro = ensureUi("brandIntro");
   intro.className = "brandIntro hidden";
   intro.innerHTML = `
     <div class="brandIntroContent">
-      <div class="brandEmblem" aria-hidden="true"><span></span></div>
+      <svg class="brandEmblem" viewBox="0 0 120 112" aria-hidden="true" focusable="false">
+        <path class="brandFacet brandFacet1" d="M60 5 L60 72 L6 103 Z"/>
+        <path class="brandFacet brandFacet2" d="M60 5 L114 103 L60 72 Z"/>
+        <path class="brandFacet brandFacet3" d="M6 103 L60 72 L114 103 Z"/>
+        <path class="brandOutline" d="M60 5 L114 103 L6 103 Z M60 5 V72 L6 103 M60 72 L114 103"/>
+      </svg>
       <p class="brandName">SkyGlass Partners</p>
       <p class="brandPresents">Presents</p>
-      <img class="brandOwl" src="./assets/sprites/owl_frame_1.png" alt="">
       <button type="button" class="brandSkip">Skip intro</button>
     </div>`;
   const resumePanel = ensureUi("resumeFlight");
@@ -4895,6 +4974,7 @@ hit: audioCandidates("hit.wav"),
   function finishIntro() {
     if (state.mode !== "intro" || !foreground) return;
     clearTimeout(introTimer);
+    introSound.stop();
     intro.classList.add("hidden");
     input.requireFreshPress();
     toMenu();
@@ -4905,6 +4985,7 @@ hit: audioCandidates("hit.wav"),
     if (state.mode !== "intro" || !foreground) return;
     const reduced = settings.reducedMotion || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     intro.classList.toggle("brandReduced", !!reduced);
+    introSound.play(settings);
     introTimer = setTimeout(finishIntro, reduced ? 1200 : 2500);
   }
 
@@ -4940,6 +5021,7 @@ hit: audioCandidates("hit.wav"),
     input.clearHeld();
     if (!active) {
       clearTimeout(introTimer);
+      introSound.stop();
       music.stop();
       audio.setActive(false);
       if (state.mode === "playing" || state.mode === "countdown") {
@@ -5049,7 +5131,7 @@ hit: audioCandidates("hit.wav"),
     applyMusicState();
 
     if (state.mode === "menu") {
-      toMenu();
+      toMenu(menuOptions);
     }
   }
 
@@ -5109,9 +5191,7 @@ hit: audioCandidates("hit.wav"),
 
     uiHud.show({
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
     uiHud.toast?.("Tap to flap · Hold to climb", 2400);
@@ -5119,7 +5199,9 @@ hit: audioCandidates("hit.wav"),
     applyMusicState();
   }
 
-  function toMenu() {
+  let menuOptions = false;
+  function toMenu(optionsOnly = false) {
+    menuOptions = optionsOnly;
     state.mode = "menu";
     needsResume = false;
     resumePanel.classList.add("hidden");
@@ -5132,9 +5214,9 @@ hit: audioCandidates("hit.wav"),
     uiOver.hide();
 
     uiMenu.show({
-      best: scoring.best,
+      optionsOnly,
+      onBack: () => toMenu(),
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
       themes: THEMES,
@@ -5148,7 +5230,6 @@ hit: audioCandidates("hit.wav"),
       stats: profile.stats,
       onStart: () => startGame(),
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
       onToggleMusic: () => toggleMusic(),
       onAudioChange: (partial) => updateAudio(partial),
       onResetAudio: () => resetAudio(),
@@ -5174,15 +5255,14 @@ hit: audioCandidates("hit.wav"),
       score: scoring.score,
       best: scoring.best,
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
       earned: runEarned,
       unlockedThemes: runUnlockedThemes.map((id) => getTheme(id)),
       onRestart: () => startGame(),
       onMenu: () => toMenu(),
+      onOptions: () => toMenu(true),
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
     });
 
     applyMusicState();
@@ -5194,16 +5274,9 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
-  }
-
-  function toggleReducedMotion() {
-    settings.reducedMotion = !settings.reducedMotion;
-    saveSettings(settings);
-
-    if (state.mode === "menu") toMenu();
-    if (state.mode === "gameover") gameOver();
+    uiHud.setMuted(settings.muted);
   }
 
   function toggleMusic() {
@@ -5211,7 +5284,7 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
   }
 
@@ -5238,7 +5311,7 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
   }
 

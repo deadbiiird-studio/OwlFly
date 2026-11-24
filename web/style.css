@@ -544,22 +544,19 @@ input[type="range"] {
 }
 .brandIntroContent { width: min(88%, 440px); padding: 18px; }
 .brandEmblem {
-  width: 74px;
-  height: 74px;
-  margin: 0 auto 28px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #eac77e;
-  transform: rotate(45deg);
-  background: linear-gradient(135deg, #eac77e38, #25415a66 52%, transparent 53%);
-  box-shadow: 0 0 36px #eac77e26;
-  animation: brandReveal 0.9s ease both;
+  display: block;
+  width: clamp(86px, 25vw, 120px);
+  height: auto;
+  margin: 0 auto 32px;
+  filter: drop-shadow(0 0 18px #eac77e42);
 }
-.brandEmblem span {
-  width: 46px;
-  height: 46px;
-  border: 1px solid #f5deb0;
-  background: linear-gradient(145deg, #eac77e66, transparent 55%);
+.brandFacet { animation: brandReveal 0.45s ease both; }
+.brandFacet1 { fill: #eac77e; animation-delay: 0.04s; }
+.brandFacet2 { fill: #947443; animation-delay: 0.25s; }
+.brandFacet3 { fill: #30485a; animation-delay: 0.46s; }
+.brandOutline {
+  fill: none; stroke: #f5deb0; stroke-width: 1.25;
+  stroke-linejoin: round; animation: brandReveal 0.5s 0.5s ease both;
 }
 .brandName {
   margin: 0;
@@ -576,21 +573,9 @@ input[type="range"] {
   text-transform: uppercase;
   animation: brandReveal 0.7s 0.65s ease both;
 }
-.brandOwl {
-  display: block;
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-  margin: 8px auto 20px;
-  animation: brandFlight 0.75s 0.85s ease-out both;
-}
-.brandSkip { background: transparent; border: 1px solid #f5deb055; font-size: 0.85rem; }
+.brandSkip { margin-top: 28px; min-height: 44px; background: transparent; border: 1px solid #f5deb055; font-size: 0.85rem; }
 .brandReduced *, .brandReduced *::before { animation: none !important; }
 @keyframes brandReveal { from { opacity: 0; } to { opacity: 1; } }
-@keyframes brandFlight {
-  from { opacity: 0; transform: translate(-36px, 12px); }
-  to { opacity: 1; transform: translate(0, 0); }
-}
 .resumeFlight {
   position: absolute;
   inset: 0;
@@ -604,3 +589,62 @@ input[type="range"] {
 @media (prefers-reduced-motion: reduce) {
   .brandIntro * { animation: none !important; }
 }
+
+
+/* Play-first menu. Opaque background keeps gameplay scenery out of the entrance. */
+#menu {
+  pointer-events: auto;
+  background: radial-gradient(ellipse at 50% 32%, #172b40, #08111d 60%, #050a12);
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+}
+.minimalMenu {
+  width: min(100%, 380px);
+  max-height: 100%;
+  padding: 20px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.minimalMenu .menuHero { padding: 12px 0 36px; }
+.minimalMenu .title {
+  color: #f5deb0;
+  font-size: clamp(2.8rem, 12vw, 4rem);
+  letter-spacing: -0.045em;
+}
+.menuBest {
+  display: grid;
+  gap: 6px;
+  margin-top: 34px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.menuBest strong { color: var(--text); font-size: 1.8rem; font-weight: 600; }
+.minimalMenu .startRow { margin: 0; }
+.menuMore { margin-top: 18px; }
+.menuMore > summary {
+  display: block;
+  list-style: none;
+  min-height: 48px;
+  padding: 14px;
+  text-align: center;
+  color: var(--muted);
+  cursor: pointer;
+}
+.menuMore > summary::-webkit-details-marker { display: none; }
+.menuMore > summary::after { content: " +"; }
+.menuMore[open] > summary::after { content: " −"; }
+.menuMore summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+.moreBody { padding-bottom: 12px; }
+.minimalMenu .statChips { justify-content: center; margin: 0 0 10px; }
+.minimalMenu .menuToast { position: sticky; bottom: 0; left: auto; transform: none; max-width: 100%; margin-top: 12px; }
+@media (prefers-reduced-motion: reduce) {
+  .minimalMenu button, .minimalMenu .menuToast { transition: none; }
+}
+
+/* Exactly two elements on the entrance; options are a separate post-flight view. */
+.minimalMenu .optionsTitle { font-size: 2rem; }
+.minimalMenu .moreBody { margin-top: 20px; }

@@ -17,9 +17,8 @@ export class MenuUI {
   }
 
   show({
-    best,
+    optionsOnly = false,
     muted,
-    reducedMotion,
     musicEnabled,
     audio,
     themes,
@@ -28,8 +27,8 @@ export class MenuUI {
     achievements,
     stats,
     onStart,
+    onBack,
     onToggleMute,
-    onToggleRM,
     onToggleMusic,
     onAudioChange,
     onResetAudio,
@@ -58,38 +57,42 @@ export class MenuUI {
     const runs = Math.max(0, stats?.runs || 0);
     const flaps = Math.max(0, stats?.flaps || 0);
 
+    // Preserve disclosure state across sound/theme changes, not across flights.
+    const openSections = new Set([...this.el.querySelectorAll("details[open]")].map(el => el.id));
+    const oldPanel = this.el.querySelector(".menuPanel");
+    const scrollTop = oldPanel?.scrollTop || 0;
+    const focused = this.el.contains(document.activeElement) ? document.activeElement : null;
+    const focusId = focused?.id;
+    const focusTheme = focused?.getAttribute("data-theme");
+
     this.el.innerHTML = `
-      <div class="panel menuPanel sacredMenu">
-        <div class="menuHero">
-          <div class="eyebrow">Little Owl Takes Flight</div>
-          <h1 class="title">OwlFly</h1>
-          <p class="sub">Fly clean. Break through. Touch the hidden sky.</p>
-        </div>
-
-        <div class="statChips">
-          <span class="badge strong">Best <strong>${best}</strong></span>
-          <span class="badge">Runs ${runs}</span>
-          <span class="badge">Flaps ${flaps}</span>
-        </div>
-
-        <div class="row startRow wideRow">
-          <button class="primary big wideBtn" id="startBtn">Start Flight</button>
-        </div>
-
-        <details class="menuSection" open>
-          <summary>Flight Controls</summary>
+      <div class="panel menuPanel minimalMenu">
+        ${!optionsOnly ? `
+          <div class="menuHero"><h1 class="title">OwlFly</h1></div>
+          <div class="row startRow wideRow">
+            <button type="button" class="primary big wideBtn" id="startBtn">Fly</button>
+          </div>
+        ` : `
+          <div class="menuHero"><h1 class="title optionsTitle">Options</h1></div>
+          <button type="button" id="optionsBack" class="wideBtn">Back</button>
+          <div class="moreBody">
+            <div class="statChips">
+              <span class="badge">Runs ${runs}</span>
+              <span class="badge">Flaps ${flaps}</span>
+            </div>
+        <details class="menuSection" id="audioSection">
+          <summary id="audioSummary">Audio</summary>
           <div class="sectionBody">
             <div class="row wideRow wrapRow">
               <button id="muteBtn">${muted ? "Unmute" : "Mute"}</button>
-              <button id="rmBtn">${reducedMotion ? "Motion: Low" : "Motion: Full"}</button>
               <button id="musicBtn">Music: ${musicEnabled === false ? "Off" : "On"}</button>
             </div>
 
           </div>
         </details>
 
-        <details class="menuSection">
-          <summary>Sky Themes</summary>
+        <details class="menuSection" id="themeSection">
+          <summary id="themeSummary">Sky Themes</summary>
           <div class="sectionBody">
             <div class="themeGrid">
               ${themeList
@@ -124,8 +127,8 @@ export class MenuUI {
           </div>
         </details>
 
-        <details class="menuSection">
-          <summary>Achievements <span class="badge">${earnedCount}/${achList.length}</span></summary>
+        <details class="menuSection" id="achievementSection">
+          <summary id="achievementSummary">Achievements <span class="badge">${earnedCount}/${achList.length}</span></summary>
           <div class="sectionBody">
             <div class="achList">
               ${achList
@@ -154,19 +157,27 @@ export class MenuUI {
           </div>
         </details>
 
-        <p class="footer"><small>Enter / Space starts a run • Esc pauses during play</small></p>
-        <p class="footer"><a class="privacyLink" href="./privacy.html">Privacy Policy</a></p>
+        <p class="footer"><a class="privacyLink" id="privacyLink" href="./privacy.html">Privacy Policy</a></p>
+          </div>
+        `}
       </div>
     `;
 
     const startBtn = this.el.querySelector("#startBtn");
     startBtn?.addEventListener("click", onStart);
 
-    this._attachStartHotkeys(onStart);
-    setTimeout(() => startBtn?.focus?.(), 0);
+    this.el.querySelector("#optionsBack")?.addEventListener("click", onBack);
+    this._attachStartHotkeys(optionsOnly ? null : onStart);
+    for (const details of this.el.querySelectorAll("details")) {
+      details.open = openSections.has(details.id);
+    }
+    const panel = this.el.querySelector(".menuPanel");
+    if (panel) panel.scrollTop = scrollTop;
+    const restored = focusId ? this.el.querySelector("#" + focusId) :
+      [...this.el.querySelectorAll("[data-theme]")].find(el => el.getAttribute("data-theme") === focusTheme);
+    if (restored) restored.focus?.({ preventScroll: true });
 
     this.el.querySelector("#muteBtn")?.addEventListener("click", onToggleMute);
-    this.el.querySelector("#rmBtn")?.addEventListener("click", onToggleRM);
     this.el.querySelector("#musicBtn")?.addEventListener("click", onToggleMusic);
     this.el.querySelector("#resetAudioBtn")?.addEventListener("click", onResetAudio);
 
@@ -219,11 +230,20 @@ export class MenuUI {
 
     this._startHotkeys = (e) => {
       if (e.code !== "Enter" && e.code !== "Space") return;
-      // Let focused links and controls receive their native keyboard actions.
-      if (e.target?.closest?.("a, button, input, select, textarea, [contenteditable='true']")) return;
+      // The game input listener otherwise consumes Space/Enter before native
+      // keyboard activation. Keep menu controls operable without starting a run.
+      const control = e.target?.closest?.("a, button, summary, input, select, textarea, [contenteditable='true']");
+      if (control && this.el.contains(control)) {
+        e.stopImmediatePropagation();
+        if (control.matches("button, summary") || (control.matches("a") && e.code === "Enter")) {
+          e.preventDefault();
+          if (!e.repeat) control.click();
+        }
+        return;
+      }
       e.preventDefault();
       e.stopImmediatePropagation();
-      onStart?.();
+      if (!e.repeat) onStart?.();
     };
 
     window.addEventListener("keydown", this._startHotkeys, { capture: true });

@@ -1,5 +1,5 @@
 import { FRACTURE, GAME } from "../core/constants.js";
-import { AudioBank } from "../core/audio.js";
+import { AudioBank, BrandIntroSound } from "../core/audio.js";
 import { MusicLoop } from "../core/music.js";
 import { RNG } from "../core/rng.js";
 import { loadSettings, saveSettings } from "../core/storage.js";
@@ -320,6 +320,10 @@ export function boot() {
   const spawner = new Spawner(rng, difficulty);
 
   let settings = loadSettings();
+  // Device preference supersedes the legacy player-facing motion toggle.
+  const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  settings.reducedMotion = !!motionPreference?.matches;
+  motionPreference?.addEventListener?.("change", (event) => { settings.reducedMotion = event.matches; });
   let profile = getSafeProfile();
 
   const audio = new AudioBank(
@@ -376,15 +380,20 @@ hit: audioCandidates("hit.wav"),
   let needsResume = false;
   let activityEpoch = 0;
   let introTimer = 0;
+  const introSound = new BrandIntroSound();
 
   const intro = ensureUi("brandIntro");
   intro.className = "brandIntro hidden";
   intro.innerHTML = `
     <div class="brandIntroContent">
-      <div class="brandEmblem" aria-hidden="true"><span></span></div>
+      <svg class="brandEmblem" viewBox="0 0 120 112" aria-hidden="true" focusable="false">
+        <path class="brandFacet brandFacet1" d="M60 5 L60 72 L6 103 Z"/>
+        <path class="brandFacet brandFacet2" d="M60 5 L114 103 L60 72 Z"/>
+        <path class="brandFacet brandFacet3" d="M6 103 L60 72 L114 103 Z"/>
+        <path class="brandOutline" d="M60 5 L114 103 L6 103 Z M60 5 V72 L6 103 M60 72 L114 103"/>
+      </svg>
       <p class="brandName">SkyGlass Partners</p>
       <p class="brandPresents">Presents</p>
-      <img class="brandOwl" src="./assets/sprites/owl_frame_1.png" alt="">
       <button type="button" class="brandSkip">Skip intro</button>
     </div>`;
   const resumePanel = ensureUi("resumeFlight");
@@ -394,6 +403,7 @@ hit: audioCandidates("hit.wav"),
   function finishIntro() {
     if (state.mode !== "intro" || !foreground) return;
     clearTimeout(introTimer);
+    introSound.stop();
     intro.classList.add("hidden");
     input.requireFreshPress();
     toMenu();
@@ -404,6 +414,7 @@ hit: audioCandidates("hit.wav"),
     if (state.mode !== "intro" || !foreground) return;
     const reduced = settings.reducedMotion || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     intro.classList.toggle("brandReduced", !!reduced);
+    introSound.play(settings);
     introTimer = setTimeout(finishIntro, reduced ? 1200 : 2500);
   }
 
@@ -439,6 +450,7 @@ hit: audioCandidates("hit.wav"),
     input.clearHeld();
     if (!active) {
       clearTimeout(introTimer);
+      introSound.stop();
       music.stop();
       audio.setActive(false);
       if (state.mode === "playing" || state.mode === "countdown") {
@@ -548,7 +560,7 @@ hit: audioCandidates("hit.wav"),
     applyMusicState();
 
     if (state.mode === "menu") {
-      toMenu();
+      toMenu(menuOptions);
     }
   }
 
@@ -608,9 +620,7 @@ hit: audioCandidates("hit.wav"),
 
     uiHud.show({
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
     });
     uiHud.setScore(0);
     uiHud.toast?.("Tap to flap · Hold to climb", 2400);
@@ -618,7 +628,9 @@ hit: audioCandidates("hit.wav"),
     applyMusicState();
   }
 
-  function toMenu() {
+  let menuOptions = false;
+  function toMenu(optionsOnly = false) {
+    menuOptions = optionsOnly;
     state.mode = "menu";
     needsResume = false;
     resumePanel.classList.add("hidden");
@@ -631,9 +643,9 @@ hit: audioCandidates("hit.wav"),
     uiOver.hide();
 
     uiMenu.show({
-      best: scoring.best,
+      optionsOnly,
+      onBack: () => toMenu(),
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
       themes: THEMES,
@@ -647,7 +659,6 @@ hit: audioCandidates("hit.wav"),
       stats: profile.stats,
       onStart: () => startGame(),
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
       onToggleMusic: () => toggleMusic(),
       onAudioChange: (partial) => updateAudio(partial),
       onResetAudio: () => resetAudio(),
@@ -673,15 +684,14 @@ hit: audioCandidates("hit.wav"),
       score: scoring.score,
       best: scoring.best,
       muted: settings.muted,
-      reducedMotion: settings.reducedMotion,
       musicEnabled: settings.musicEnabled !== false,
       audio: settings.audio,
       earned: runEarned,
       unlockedThemes: runUnlockedThemes.map((id) => getTheme(id)),
       onRestart: () => startGame(),
       onMenu: () => toMenu(),
+      onOptions: () => toMenu(true),
       onToggleMute: () => toggleMute(),
-      onToggleRM: () => toggleReducedMotion(),
     });
 
     applyMusicState();
@@ -693,16 +703,9 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
-  }
-
-  function toggleReducedMotion() {
-    settings.reducedMotion = !settings.reducedMotion;
-    saveSettings(settings);
-
-    if (state.mode === "menu") toMenu();
-    if (state.mode === "gameover") gameOver();
+    uiHud.setMuted(settings.muted);
   }
 
   function toggleMusic() {
@@ -710,7 +713,7 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
   }
 
@@ -737,7 +740,7 @@ hit: audioCandidates("hit.wav"),
     saveSettings(settings);
     applyMusicState();
 
-    if (state.mode === "menu") toMenu();
+    if (state.mode === "menu") toMenu(menuOptions);
     if (state.mode === "gameover") gameOver();
   }
 

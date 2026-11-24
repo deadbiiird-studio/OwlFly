@@ -10,6 +10,7 @@
     unlockedThemes,
     onRestart,
     onMenu,
+    onOptions,
   }) {
     const earnedList = Array.isArray(earned) ? earned : [];
     const themeList = Array.isArray(unlockedThemes) ? unlockedThemes : [];
@@ -82,12 +83,14 @@
 
         <div class="row wideRow compactRow">
           <button id="menuBtn">Return to Gate</button>
+          <button type="button" id="optionsBtn">Options</button>
         </div>
       </div>
     `;
 
     this.el.querySelector("#restartBtn")?.addEventListener("click", onRestart);
     this.el.querySelector("#menuBtn")?.addEventListener("click", onMenu);
+    this.el.querySelector("#optionsBtn")?.addEventListener("click", onOptions);
   }
 
   hide() {
