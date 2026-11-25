@@ -1,6 +1,6 @@
 import { FRACTURE, GAME, OWL } from "../core/constants.js";
 import { getTheme } from "../core/themes.js";
-import { fitBuildingSpriteHeight } from "../engine/obstacleVisualFit.js";
+import { BUILDING_SIZE_VARIANTS, CLOUD_SIZE_VARIANTS, OBSTACLE_VISUAL_SCALE, fitBuildingSpriteHeight, getCloudSpriteLayout } from "../engine/obstacleVisualFit.js";
 import {
   CITY_DETAIL_CONTRACT,
   ENVIRONMENT_LAYER_CONTRACT,
@@ -9,21 +9,7 @@ import {
   getCityWindowLights,
 } from "./environmentGeometry.js";
 
-export const VISION_OBSTACLE_SCALE = {
-  cloudMinHeight: 230,
-  cloudMaxHeight: 360,
-  cloudHeightFactor: 1.22,
-  cloudWidthFactor: 2.9,
-
-  buildingGroundInset: 8,
-  buildingMinBoxWidth: 300,
-  buildingMaxBoxWidth: 560,
-  buildingWidthFactor: 3.3,
-  buildingMinBoxHeight: 500,
-  buildingMaxBoxHeight: 760,
-  buildingHeightFactor: 2.25,
-  buildingHeightOffset: 150,
-};
+export const VISION_OBSTACLE_SCALE = OBSTACLE_VISUAL_SCALE;
 
 export class Renderer {
   constructor(canvas) {
@@ -220,55 +206,34 @@ function drawTopCloudHazard(ctx, obstacle, bounds, frames, t, reducedMotion, the
   if (!bounds) return;
 
   const variant = ensureVisualVariant(obstacle, frames, "cloud", 6);
-  const clusterScale = variant.scale ?? 1;
-  const clusterH = Math.max(
-    VISION_OBSTACLE_SCALE.cloudMinHeight,
-    Math.min(
-      VISION_OBSTACLE_SCALE.cloudMaxHeight,
-      bounds.h * VISION_OBSTACLE_SCALE.cloudHeightFactor * clusterScale
-    )
-  );
-  const y = Math.max(0, bounds.y + bounds.h - clusterH);
-  const baseW =
-    bounds.w * VISION_OBSTACLE_SCALE.cloudWidthFactor * (variant.widthScale ?? 1);
+  // Same boxes as ObstaclePair collision: the visual shape is authoritative.
+  const layout = getCloudSpriteLayout(bounds, variant, {
+    cloudMinHeight: VISION_OBSTACLE_SCALE.cloudMinHeight,
+    cloudMaxHeight: VISION_OBSTACLE_SCALE.cloudMaxHeight,
+    cloudHeightFactor: VISION_OBSTACLE_SCALE.cloudHeightFactor,
+    cloudWidthFactor: VISION_OBSTACLE_SCALE.cloudWidthFactor,
+  });
   const frame = pickIndexedFrame(frames, variant.frameIndex);
 
-  if (isImgReady(frame)) {
-    drawContainImage(ctx, frame, {
-      x: bounds.x - bounds.w * 0.28,
-      y: y + 10,
-      w: baseW,
-      h: clusterH,
-    });
-
-    drawContainImage(ctx, frame, {
-      x: bounds.x - bounds.w * 0.04,
-      y,
-      w: baseW * 0.95,
-      h: clusterH * 1.02,
-    });
-
-    drawContainImage(ctx, frame, {
-      x: bounds.x + bounds.w * 0.22,
-      y: y + 12,
-      w: baseW * 0.9,
-      h: clusterH * 0.96,
-    });
-  } else {
-    drawFallbackCloudCluster(
-      ctx,
-      bounds.x + bounds.w * 0.5,
-      y + clusterH * 0.56,
-      baseW,
-      clusterH,
-      theme
-    );
+  for (const box of layout.boxes) {
+    if (isImgReady(frame)) {
+      drawContainImage(ctx, frame, box);
+    } else {
+      drawFallbackCloudCluster(
+        ctx,
+        box.x + box.w * 0.5,
+        box.y + box.h * 0.56,
+        box.w,
+        box.h,
+        theme
+      );
+    }
   }
 
   ctx.save();
   ctx.globalAlpha = 0.1;
   ctx.fillStyle = theme?.clouds?.top || "rgba(255,255,255,0.22)";
-  ctx.fillRect(bounds.x + 8, y + clusterH - 6, Math.max(18, bounds.w - 16), 6);
+  ctx.fillRect(bounds.x + 8, layout.y + layout.clusterH - 6, Math.max(18, bounds.w - 16), 6);
   ctx.restore();
 }
 
@@ -852,18 +817,8 @@ function ensureVisualVariant(obstacle, frames, kind, preferredCount) {
   const frameCount = Math.max(1, Math.min(preferredCount, Array.isArray(frames) ? frames.length : 0) || 1);
   const hash = hash01((obstacle.topH || 0) * 0.173 + (obstacle.gap || 0) * 0.113 + (kind === "building" ? 7 : 13), frameCount);
 
-  const buildingSizeBuckets = [
-    { widthScale: 0.9, heightScale: 0.86 },
-    { widthScale: 0.96, heightScale: 0.94 },
-    { widthScale: 1.0, heightScale: 1.0 },
-    { widthScale: 1.06, heightScale: 1.08 },
-    { widthScale: 1.12, heightScale: 1.16 },
-  ];
-  const cloudSizeBuckets = [
-    { widthScale: 0.94, scale: 0.94 },
-    { widthScale: 1.0, scale: 1.0 },
-    { widthScale: 1.06, scale: 1.05 },
-  ];
+  const buildingSizeBuckets = BUILDING_SIZE_VARIANTS;
+  const cloudSizeBuckets = CLOUD_SIZE_VARIANTS;
 
   const bucketSource = kind === "building" ? buildingSizeBuckets : cloudSizeBuckets;
   const bucketIndex = Math.min(bucketSource.length - 1, Math.floor(hash * bucketSource.length));
